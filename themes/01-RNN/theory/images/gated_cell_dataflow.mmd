@@ -1,0 +1,22 @@
+flowchart LR
+    xt["x_t"] --> cat["[h_{t-1}, x_t]"]
+    hm1["h_{t-1}"] --> cat
+
+    cat --> fg["f_t = sigma(W_f[...] + b_f)"]
+    cat --> ig["i_t = sigma(W_i[...] + b_i)"]
+    cat --> cg["tilde(C)_t = tanh(W_c[...] + b_c)"]
+    cat --> og["o_t = sigma(W_o[...] + b_o)"]
+
+    cm1["C_{t-1}"] --> multf["f_t odot C_{t-1}"]
+    fg --> multf
+
+    ig --> multi["i_t odot tilde(C)_t"]
+    cg --> multi
+
+    multf --> ct["C_t"]
+    multi --> ct
+
+    ct --> tanhc["tanh(C_t)"]
+    tanhc --> mulho["o_t odot tanh(C_t)"]
+    og --> mulho
+    mulho --> ht["h_t"]

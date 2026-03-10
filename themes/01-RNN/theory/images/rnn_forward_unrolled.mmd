@@ -1,0 +1,27 @@
+flowchart LR
+    subgraph T0["Шаг t-1"]
+        x0["x_{t-1}"]
+        h0["h_{t-1}"]
+        y0["y_{t-1}"]
+    end
+
+    subgraph T1["Шаг t"]
+        x1["x_t"]
+        h1["h_t"]
+        y1["y_t"]
+    end
+
+    subgraph T2["Шаг t+1"]
+        x2["x_{t+1}"]
+        h2["h_{t+1}"]
+        y2["y_{t+1}"]
+    end
+
+    x0 --> h0
+    h0 --> y0
+    h0 --> h1
+    x1 --> h1
+    h1 --> y1
+    h1 --> h2
+    x2 --> h2
+    h2 --> y2
