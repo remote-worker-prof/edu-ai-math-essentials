@@ -150,6 +150,11 @@ PY
 - сначала зафиксировать рабочий fallback на CPU или cloud GPU;
 - потом уже, отдельно от лабораторной, разбирать совместимость версий.
 
+Если хотите увидеть **реальный консервативный разбор** такого сценария на новой
+`compute capability 12.0` карте, откройте:
+
+`themes/00-Foundations/guides/07_tensorflow_blackwell_local_gpu_case_study.md`
+
 ## Продвинутый Appendix: Как Читать Official Docs
 Если хотите понимать картину глубже, смотрите в TensorFlow docs две вещи:
 

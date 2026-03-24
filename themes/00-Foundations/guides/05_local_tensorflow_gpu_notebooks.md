@@ -89,6 +89,11 @@ RUNTIME_MODE = "local-gpu"
 - или унести запуск в `colab-gpu`;
 - или унести запуск в `kaggle-gpu`.
 
+Если хотите увидеть **реальный пример** такого сценария на современной `NVIDIA` laptop GPU,
+откройте:
+
+`themes/00-Foundations/guides/07_tensorflow_blackwell_local_gpu_case_study.md`
+
 Если хотите понять, **как именно думать про версии** и когда нужно смотреть official
 compatibility tables, переходите в guide `06`.
 
