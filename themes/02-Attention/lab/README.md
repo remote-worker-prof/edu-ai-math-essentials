@@ -12,20 +12,70 @@
 
 Основной ноутбук и решение синхронизированы 1:1: одинаковая структура разделов и одинаковые контрольные точки.
 
+## Карта курса
+Этот блок не открывает “новую ЛР03”, а продолжает уже пройденную линию:
+1. Шаг 1 = `01-RNN / ЛР01`
+2. Шаг 2 = `01-RNN / ЛР02`
+3. Шаг 3 = `01-RNN / ЛР03`
+4. Шаг 4 = `02-Attention / ЛР01`
+
+То есть текущая лабораторная — это первая локальная ЛР блока `Attention`, но четвёртый шаг общего курса.
+
+## Beginner Route
+Рекомендуемый маршрут для новичка:
+1. Пройти общий shared-entry: [../../00-Foundations/README.md](../../00-Foundations/README.md).
+2. Повторить токены, `PAD/SOS/EOS`, masking и decoder shift по shared-guide:
+   [../../00-Foundations/guides/02_tokens_padding_and_decoder_shift.md](../../00-Foundations/guides/02_tokens_padding_and_decoder_shift.md)
+3. Повторить базовую интуицию heatmap и `query/key/value` по shared-guide:
+   [../../00-Foundations/guides/03_attention_heatmaps.md](../../00-Foundations/guides/03_attention_heatmaps.md)
+4. При необходимости свериться с RNN-specific guide из `01-RNN / ЛР03`:
+   [../../01-RNN/lab/guides/03_gru_seq2seq_tokens_beginner.md](../../01-RNN/lab/guides/03_gru_seq2seq_tokens_beginner.md)
+5. Прочитать [guides/00_attention_prerequisites.md](./guides/00_attention_prerequisites.md).
+6. Прочитать [guides/01_gru_seq2seq_attention_beginner.md](./guides/01_gru_seq2seq_attention_beginner.md).
+7. При необходимости пройти [guides/02_attention_walkthrough.md](./guides/02_attention_walkthrough.md) и [../../00-Foundations/guides/04_self_study_debugging_playbook.md](../../00-Foundations/guides/04_self_study_debugging_playbook.md).
+8. Только после этого открывать Шаг 4 = `02-Attention / ЛР01`.
+
+## Self-study Route
+Если `02-Attention / ЛР01` нужно пройти полностью без преподавателя, используйте такой маршрут:
+1. [../../00-Foundations/README.md](../../00-Foundations/README.md)
+2. [../../00-Foundations/guides/02_tokens_padding_and_decoder_shift.md](../../00-Foundations/guides/02_tokens_padding_and_decoder_shift.md)
+3. [../../00-Foundations/guides/03_attention_heatmaps.md](../../00-Foundations/guides/03_attention_heatmaps.md)
+4. [../../01-RNN/lab/guides/03_gru_seq2seq_tokens_beginner.md](../../01-RNN/lab/guides/03_gru_seq2seq_tokens_beginner.md)
+5. [guides/00_attention_prerequisites.md](./guides/00_attention_prerequisites.md)
+6. [guides/01_gru_seq2seq_attention_beginner.md](./guides/01_gru_seq2seq_attention_beginner.md)
+7. [guides/02_attention_walkthrough.md](./guides/02_attention_walkthrough.md)
+8. [01_gru_seq2seq_attention_reverse_toy.ipynb](./01_gru_seq2seq_attention_reverse_toy.ipynb)
+9. [solutions/01_gru_seq2seq_attention_reverse_toy_solution.ipynb](./solutions/01_gru_seq2seq_attention_reverse_toy_solution.ipynb)
+10. [../../00-Foundations/guides/04_self_study_debugging_playbook.md](../../00-Foundations/guides/04_self_study_debugging_playbook.md)
+
+## Companion Guides
+- [../../00-Foundations/README.md](../../00-Foundations/README.md) — общий entry-point перед sequence-лабораторными и shared warm-up materials.
+- [../../00-Foundations/guides/02_tokens_padding_and_decoder_shift.md](../../00-Foundations/guides/02_tokens_padding_and_decoder_shift.md) — общий seq2seq-вход: словарь, `PAD/SOS/EOS`, masking и teacher forcing.
+- [../../00-Foundations/guides/03_attention_heatmaps.md](../../00-Foundations/guides/03_attention_heatmaps.md) — короткий shared-guide по `query/key/value`, score-matrix и чтению heatmap.
+- [../../00-Foundations/guides/04_self_study_debugging_playbook.md](../../00-Foundations/guides/04_self_study_debugging_playbook.md) — единый self-study playbook для sequence и attention notebook'ов.
+- [guides/00_attention_prerequisites.md](./guides/00_attention_prerequisites.md) — bottleneck plain `seq2seq`, `query/key/value`, `context`, `attention_scores`, чтение heatmap.
+- [guides/01_gru_seq2seq_attention_beginner.md](./guides/01_gru_seq2seq_attention_beginner.md) — лабораторно-специфический разбор reverse-задачи с attention.
+- [guides/02_attention_walkthrough.md](./guides/02_attention_walkthrough.md) — пошаговый разбор всех `TODO` `02-Attention / ЛР01`.
+
 ## Запуск
 Команды выполняются из корня репозитория.
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r themes/02-Attention/lab/requirements.txt
-python -m ipykernel install --user --name attention-lab --display-name "Python (.venv) Attention Lab"
+python3 -m pip install --upgrade pip
+python3 -m pip install -r themes/02-Attention/lab/requirements.txt
+python3 -m ipykernel install --user --name attention-lab --display-name "Python (.venv) Attention Lab"
 jupyter notebook
 ```
 
 ## Порядок прохождения
-1. `01_gru_seq2seq_attention_reverse_toy.ipynb`
+1. Шаг 4 = `02-Attention / ЛР01` -> `01_gru_seq2seq_attention_reverse_toy.ipynb`
+
+## Что читать перед лабораторной
+| Лабораторная | Что открыть до ноутбука |
+|---|---|
+| `02-Attention / ЛР01` `GRU seq2seq + attention` | `../../00-Foundations/README.md` + `../../00-Foundations/guides/02_tokens_padding_and_decoder_shift.md` + `../../00-Foundations/guides/03_attention_heatmaps.md` + guide из `01-RNN / ЛР03` про токены + `00_attention_prerequisites.md` + `01_gru_seq2seq_attention_beginner.md` + `02_attention_walkthrough.md` |
 
 ## Как читать формы тензоров
 Базовый шаблон:
@@ -46,13 +96,15 @@ jupyter notebook
 
 ## Методический маршрут
 Рекомендуемый цикл работы в ноутбуке:
-1. `Контракт данных` и `Таблица форм тензоров`.
-2. `Контракт модели` и `Мини-теория`.
-3. `Генерация данных` -> `Мини-проверка данных`.
-4. `Модель` -> `Мини-проверка модели` -> `Трассировка одного примера`.
-5. `Как идет обучение внутри эпохи` -> `Обучение` -> `Мини-проверка обучения`.
-6. `Оценка и диагностика`.
-7. `Карта внимания одного примера` -> `Что ожидать на практике`.
+1. `Что нужно знать до старта` и `Интуиция задачи без формул`.
+2. `Контракт данных`, `Таблица форм тензоров`, `Шпаргалка по обозначениям и формам`.
+3. `Контракт модели`, `Мини-теория`, `Ручной разбор одного примера`.
+4. `Генерация данных` -> `Мини-проверка данных`.
+5. `Модель` -> `Мини-проверка модели` -> `Трассировка одного примера`.
+6. `Как идет обучение внутри эпохи` -> `Обучение` -> `Мини-проверка обучения`.
+7. `Оценка и диагностика` -> `Как читать графики и метрики`.
+8. `Карта внимания одного примера`.
+9. `Если застряли: порядок диагностики` -> `Чек-лист перед сдачей` -> `Вопросы для самопроверки`.
 
 ## Схема валидации
 В работе используется тот же подход, что и в блоке `RNN`:
@@ -76,10 +128,27 @@ jupyter notebook
 - Раздел 4 -> отличие `cross-attention` от `self-attention`.
 - Раздел 5 -> почему следующий шаг после этой ЛР — облегченный `Transformer`.
 
+`theory.md` остаётся канонической теорией, а guides дают новичку мягкий вход, ручные примеры и пошаговую интерпретацию attention.
+
 ## Дополнительные материалы
+- [../theory/theory.md](../theory/theory.md) — компактная теория по attention и мостик к `Transformer`.
+- [../../00-Foundations/README.md](../../00-Foundations/README.md) — общий shared-entry, warm-up examples и optional real-data showcases.
 - TensorFlow tutorial: NMT with attention — <https://www.tensorflow.org/tutorials/text/nmt_with_attention>
 - Keras layer API: `Attention` — <https://keras.io/api/layers/attention_layers/attention/>
 - TensorFlow tutorial: Transformer — <https://www.tensorflow.org/text/tutorials/transformer>
+
+## FAQ
+### Я не понимаю, где заканчивается `seq2seq` и начинается attention
+Сначала вернитесь к guide из `01-RNN / ЛР03` про `seq2seq`-токены и сдвиг decoder. Потом прочитайте `00_attention_prerequisites.md`: attention — это надстройка над уже понятным `seq2seq`.
+
+### Нужно ли заново изучать токенизацию в этой лабораторной?
+Полный вводный блок про токены уже должен быть освоен в `01-RNN / ЛР03`. В attention-лаборатории он не дублируется полностью, а только напоминается.
+
+### Как понять, что attention действительно работает?
+Нужно смотреть не только на `token_accuracy` и `exact_match`, но и на `attention_scores` / heatmap. Для reverse-задачи хороший знак — фокус примерно по антидиагонали.
+
+### Что читать после этой ЛР?
+Следующий естественный шаг — облегчённый `Transformer`.
 
 ## Типичные проблемы
 ### Attention-модель
@@ -97,6 +166,9 @@ jupyter notebook
 - Симптом: heatmap выглядит шумной и плохо читается.
   Причина: PAD-позиции не скрыты при визуализации.
   Исправление: показывать только значимые строки и столбцы.
+- Симптом: неясно, что такое `query`, `key`, `value`.
+  Причина: attention читается как набор новых слов без интуитивного образа.
+  Исправление: начать с `00_attention_prerequisites.md`, а не сразу с кода.
 
 ### Сравнение с plain seq2seq
 - Симптом: разница с baseline почти не видна.
