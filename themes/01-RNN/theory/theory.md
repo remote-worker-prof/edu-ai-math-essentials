@@ -544,9 +544,9 @@ $$
 
 | Термин | Где применяется |
 |---|---|
-| `many-to-one`, `h_T`, `binary_crossentropy` | ЛР1: формулировка задачи, модель, оценка |
-| `many-to-many`, `return_sequences`, `token/sequence accuracy` | ЛР2: модель и метрики |
-| `seq2seq`, `teacher forcing`, `exact match`, `mask` | ЛР3: генерация данных, обучение, оценка |
+| `many-to-one`, `h_T`, `binary_crossentropy` | `01-RNN / ЛР01`: формулировка задачи, модель, оценка |
+| `many-to-many`, `return_sequences`, `token/sequence accuracy` | `01-RNN / ЛР02`: модель и метрики |
+| `seq2seq`, `teacher forcing`, `exact match`, `mask` | `01-RNN / ЛР03`: генерация данных, обучение, оценка |
 | `train/validation/test split` | Все ЛР: этапы обучения |
 | `s_t`, `\hat{y}_t`, `loss` | Все ЛР: выходной слой и интерпретация метрик |
 | `BPTT`, `truncated BPTT`, `gradient clipping` | Теория и практические рекомендации при настройке обучения |
@@ -573,7 +573,7 @@ $$
 
 Ниже приведено соответствие между каноническими формулами и реальными тензорами из лабораторных заданий.
 
-### 13.1 Лабораторная 1 (`many-to-one`, `SimpleRNN`)
+### 13.1 `01-RNN / ЛР01` (`many-to-one`, `SimpleRNN`)
 
 Формула:
 
@@ -588,7 +588,7 @@ $$
 - `y_train` имеет форму `(N,)`;
 - `model.predict(X_test)` возвращает вероятности формы `(N_test, 1)`, которые преобразуются в `preds`.
 
-### 13.2 Лабораторная 2 (`many-to-many`, `LSTM`)
+### 13.2 `01-RNN / ЛР02` (`many-to-many`, `LSTM`)
 
 Формулы перехода:
 
@@ -613,7 +613,7 @@ $$
 - `return_sequences=True` обеспечивает выход формы `(batch, T, 1)`;
 - дополнительно считаются `token_accuracy` и `sequence_accuracy`.
 
-### 13.3 Лабораторная 3 (`seq2seq`, `GRU` encoder-decoder)
+### 13.3 `01-RNN / ЛР03` (`seq2seq`, `GRU` encoder-decoder)
 
 Формулы:
 
