@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "students_AI_math_essentials",
+  "project_id": "a993cc53-6b2e-48ac-85df-da5f1aba4c06"
+}

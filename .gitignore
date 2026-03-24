@@ -3,3 +3,11 @@ __pycache__/
 .ipynb_checkpoints/
 *.pyc
 .DS_Store
+.serena/project.local.yml
+.serena/memories/
+.serena/cache/
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
