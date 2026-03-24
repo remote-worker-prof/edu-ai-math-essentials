@@ -64,8 +64,20 @@ source .venv/bin/activate
 python3 -m pip install --upgrade pip
 python3 -m pip install -r themes/03-Transformer/lab/requirements.txt
 python3 -m ipykernel install --user --name transformer-lab --display-name "Python (.venv) Transformer Lab"
-jupyter notebook
+.venv/bin/jupyter notebook
 ```
+
+### Runtime Варианты
+TensorFlow notebook'и этого блока теперь можно запускать:
+- локально через `auto`, `local-cpu`, `local-gpu`;
+- в `Google Colab` через `colab-cpu` или `colab-gpu`;
+- в `Kaggle` через `kaggle-cpu` или `kaggle-gpu`.
+
+Полный runtime-guide для понятного выбора между локальным и облачным запуском:
+[../../00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md](../../00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md)
+
+Если вы хотите локальный GPU и не уверены в версиях `TensorFlow` / `CUDA`, дополнительно откройте:
+[../../00-Foundations/guides/06_tensorflow_cuda_version_selection.md](../../00-Foundations/guides/06_tensorflow_cuda_version_selection.md)
 
 ## Критерии Завершения
 ### `03-Transformer / ЛР01`

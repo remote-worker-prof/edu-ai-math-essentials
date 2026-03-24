@@ -16,6 +16,8 @@
 - [guides/02_tokens_padding_and_decoder_shift.md](./guides/02_tokens_padding_and_decoder_shift.md) — словарь, `PAD/SOS/EOS`, masking, teacher forcing, сдвиг decoder.
 - [guides/03_attention_heatmaps.md](./guides/03_attention_heatmaps.md) — `query/key/value`, score-matrix, `context`, чтение heatmap.
 - [guides/04_self_study_debugging_playbook.md](./guides/04_self_study_debugging_playbook.md) — единый маршрут диагностики для self-study режима.
+- [guides/05_local_tensorflow_gpu_notebooks.md](./guides/05_local_tensorflow_gpu_notebooks.md) — единый runtime-guide для `local / Colab / Kaggle` и режимов `CPU / GPU`.
+- [guides/06_tensorflow_cuda_version_selection.md](./guides/06_tensorflow_cuda_version_selection.md) — как думать про версии `TensorFlow` и `CUDA`, если нужен локальный GPU.
 - `examples/` — короткие полностью решённые warm-up notebooks.
 - `showcases/` — необязательные real-data demos и dataset cards для второго круга.
 - [requirements.txt](./requirements.txt) — зависимости для foundations, warm-up и showcase notebook'ов.
@@ -69,8 +71,40 @@ source .venv/bin/activate
 python3 -m pip install --upgrade pip
 python3 -m pip install -r themes/00-Foundations/requirements.txt
 python3 -m ipykernel install --user --name foundations-lab --display-name "Python (.venv) Foundations"
-jupyter notebook
+.venv/bin/jupyter notebook
 ```
+
+### Runtime Варианты Для TensorFlow Notebook'ов
+Базовый student-flow теперь один и тот же во всех TensorFlow notebook'ах:
+- в первой runtime-ячейке выбрать `RUNTIME_MODE`;
+- для первого запуска безопасно оставлять `auto`;
+- если нужен только CPU, выбрать `local-cpu`;
+- если нужен локальный GPU, выбрать `local-gpu`;
+- если хочется сэкономить локальные ресурсы, выбрать `colab-*` или `kaggle-*`.
+
+Полный guide:
+[guides/05_local_tensorflow_gpu_notebooks.md](./guides/05_local_tensorflow_gpu_notebooks.md)
+
+Если нужен именно локальный GPU и вы не уверены в версиях `TensorFlow` / `CUDA`, используйте:
+[guides/06_tensorflow_cuda_version_selection.md](./guides/06_tensorflow_cuda_version_selection.md)
+
+Короткая локальная версия:
+```bash
+source .venv/bin/activate
+python3 -m pip install --upgrade 'tensorflow[and-cuda]>=2.16,<2.20'
+.venv/bin/python -m ipykernel install --user --name students-ai-gpu --display-name "Python (.venv) GPU"
+.venv/bin/jupyter notebook
+```
+
+Короткая облачная версия:
+- `Google Colab` -> `RUNTIME_MODE = "colab-cpu"` или `RUNTIME_MODE = "colab-gpu"`
+- `Kaggle` -> `RUNTIME_MODE = "kaggle-cpu"` или `RUNTIME_MODE = "kaggle-gpu"`
+- если в облаке загружен только notebook, замените `COURSE_REPO_HTTPS_URL` на публичный HTTPS URL курса
+
+Короткий маршрут для локального GPU:
+1. Сначала открыть `05` и выбрать runtime-сценарий.
+2. Если нужен просто рабочий запуск, этого достаточно.
+3. Если нужен именно локальный GPU и есть вопросы по версиям, открыть `06`.
 
 ## Связь С Основными Темами
 - После этого блока основной теоретический трек начинается в [../01-RNN/theory/theory.md](../01-RNN/theory/theory.md).

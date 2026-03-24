@@ -93,8 +93,20 @@ source .venv/bin/activate
 python3 -m pip install --upgrade pip
 python3 -m pip install -r themes/01-RNN/lab/requirements.txt
 python3 -m ipykernel install --user --name rnn-lab --display-name "Python (.venv) RNN Lab"
-jupyter notebook
+.venv/bin/jupyter notebook
 ```
+
+### Runtime Варианты
+TensorFlow notebook'и этого блока теперь можно запускать:
+- локально через `auto`, `local-cpu`, `local-gpu`;
+- в `Google Colab` через `colab-cpu` или `colab-gpu`;
+- в `Kaggle` через `kaggle-cpu` или `kaggle-gpu`.
+
+Подробный guide с объяснением всех режимов:
+[../../00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md](../../00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md)
+
+Если нужен именно локальный GPU и вы не уверены в версиях `TensorFlow` / `CUDA`, дополнительно откройте:
+[../../00-Foundations/guides/06_tensorflow_cuda_version_selection.md](../../00-Foundations/guides/06_tensorflow_cuda_version_selection.md)
 
 ## Порядок прохождения
 1. Шаг 1 = `01-RNN / ЛР01` -> `01_simple_rnn_many_to_one_toy.ipynb`

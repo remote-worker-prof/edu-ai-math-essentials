@@ -18,6 +18,8 @@
 2. Шаг 2 = `01-RNN / ЛР02`
 3. Шаг 3 = `01-RNN / ЛР03`
 4. Шаг 4 = `02-Attention / ЛР01`
+5. Шаг 5 = `03-Transformer / ЛР01`
+6. Шаг 6 = `03-Transformer / ЛР02`
 
 То есть текущая лабораторная — это первая локальная ЛР блока `Attention`, но четвёртый шаг общего курса.
 
@@ -66,8 +68,20 @@ source .venv/bin/activate
 python3 -m pip install --upgrade pip
 python3 -m pip install -r themes/02-Attention/lab/requirements.txt
 python3 -m ipykernel install --user --name attention-lab --display-name "Python (.venv) Attention Lab"
-jupyter notebook
+.venv/bin/jupyter notebook
 ```
+
+### Runtime Варианты
+TensorFlow notebook'и этого блока теперь можно запускать:
+- локально через `auto`, `local-cpu`, `local-gpu`;
+- в `Google Colab` через `colab-cpu` или `colab-gpu`;
+- в `Kaggle` через `kaggle-cpu` или `kaggle-gpu`.
+
+Если нужен понятный выбор между локальным запуском, `Colab`, `Kaggle`, `CPU` и `GPU`, используйте общий guide:
+[../../00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md](../../00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md)
+
+Если вы хотите именно локальный GPU и не уверены, как думать про версии `TensorFlow` / `CUDA`, используйте:
+[../../00-Foundations/guides/06_tensorflow_cuda_version_selection.md](../../00-Foundations/guides/06_tensorflow_cuda_version_selection.md)
 
 ## Порядок прохождения
 1. Шаг 4 = `02-Attention / ЛР01` -> `01_gru_seq2seq_attention_reverse_toy.ipynb`
@@ -148,7 +162,7 @@ jupyter notebook
 Нужно смотреть не только на `token_accuracy` и `exact_match`, но и на `attention_scores` / heatmap. Для reverse-задачи хороший знак — фокус примерно по антидиагонали.
 
 ### Что читать после этой ЛР?
-Следующий естественный шаг — облегчённый `Transformer`.
+Следующий естественный шаг — блок [../../03-Transformer/lab/README.md](../../03-Transformer/lab/README.md), начиная с `03-Transformer / ЛР01`.
 
 ## Типичные проблемы
 ### Attention-модель
