@@ -1,17 +1,22 @@
 # Лабораторный практикум по авторегрессионному моделированию
 
 ## Назначение
-Практикум содержит одну последовательную лабораторную работу:
-1. `декодерный трансформер` (decoder-only Transformer) на детерминированном синтетическом корпусе для предсказания следующего токена (next-token prediction).
+Практикум включает обязательный двухчастный маршрут:
+1. `ЛР01`: декодерный трансформер (decoder-only Transformer) на детерминированной синтетике.
+2. `ЛР02`: перенос на реальный корпус `Tiny Shakespeare`.
 
-Цель блока — показать переход от классификации последовательности к пошаговой генерации при помощи причинной маски (causal mask).
+Цель блока — последовательно закрепить механику причинной маски (causal mask), а затем проверить её прикладную переносимость на реальных данных.
 
 ## Структура
-- `01_decoder_only_causal_toy.ipynb` — стартовая учебная тетрадь (notebook) с `TODO`.
-- `solutions/01_decoder_only_causal_toy_solution.ipynb` — полное решение.
-- `guides/00_autoregression_prerequisites.md` — входной минимум перед запуском.
-- `guides/01_decoder_only_toy_walkthrough.md` — пошаговый маршрут выполнения.
-- `guides/02_autoregression_debugging_playbook.md` — диагностический порядок при затруднениях.
+- `01_decoder_only_causal_toy.ipynb` — стартовая тетрадь `ЛР01`.
+- `02_decoder_only_tiny_shakespeare.ipynb` — стартовая тетрадь `ЛР02`.
+- `solutions/01_decoder_only_causal_toy_solution.ipynb` — решение `ЛР01`.
+- `solutions/02_decoder_only_tiny_shakespeare_solution.ipynb` — решение `ЛР02`.
+- `guides/00_autoregression_prerequisites.md` — входной минимум.
+- `guides/01_decoder_only_toy_walkthrough.md` — разбор `ЛР01`.
+- `guides/02_autoregression_debugging_playbook.md` — диагностика `ЛР01`.
+- `guides/03_tiny_shakespeare_walkthrough.md` — разбор `ЛР02`.
+- `guides/04_tiny_shakespeare_debugging_playbook.md` — диагностика `ЛР02`.
 
 ## Карта курса
 Общая линия курса:
@@ -22,20 +27,50 @@
 5. Шаг 5 = `03-Transformer / ЛР01`
 6. Шаг 6 = `03-Transformer / ЛР02`
 7. Шаг 7 = `04-Autoregression / ЛР01`
+8. Шаг 8 = `04-Autoregression / ЛР02`
 
-## Детерминированный маршрут студента
+## Канонический маршрут студента
 1. Прочитать [guides/00_autoregression_prerequisites.md](./guides/00_autoregression_prerequisites.md).
-2. Прочитать [guides/01_decoder_only_toy_walkthrough.md](./guides/01_decoder_only_toy_walkthrough.md).
-3. Выполнить `TODO` в [01_decoder_only_causal_toy.ipynb](./01_decoder_only_causal_toy.ipynb) строго по порядку.
-4. При затруднениях открыть [guides/02_autoregression_debugging_playbook.md](./guides/02_autoregression_debugging_playbook.md).
-5. После второй попытки сравнить решение с [solutions/01_decoder_only_causal_toy_solution.ipynb](./solutions/01_decoder_only_causal_toy_solution.ipynb).
+2. Пройти [guides/01_decoder_only_toy_walkthrough.md](./guides/01_decoder_only_toy_walkthrough.md).
+3. Выполнить [01_decoder_only_causal_toy.ipynb](./01_decoder_only_causal_toy.ipynb).
+4. При затруднениях использовать [guides/02_autoregression_debugging_playbook.md](./guides/02_autoregression_debugging_playbook.md).
+5. После второй попытки свериться с [solutions/01_decoder_only_causal_toy_solution.ipynb](./solutions/01_decoder_only_causal_toy_solution.ipynb).
+6. Пройти [guides/03_tiny_shakespeare_walkthrough.md](./guides/03_tiny_shakespeare_walkthrough.md).
+7. Выполнить [02_decoder_only_tiny_shakespeare.ipynb](./02_decoder_only_tiny_shakespeare.ipynb).
+8. При затруднениях использовать [guides/04_tiny_shakespeare_debugging_playbook.md](./guides/04_tiny_shakespeare_debugging_playbook.md).
+9. После второй попытки свериться с [solutions/02_decoder_only_tiny_shakespeare_solution.ipynb](./solutions/02_decoder_only_tiny_shakespeare_solution.ipynb).
 
-## Контрольные критерии завершения
-Работа считается завершённой, если одновременно выполнено:
+## Профили выполнения `ЛР02`
+Оба профиля детерминированы и используют фиксированное зерно случайности.
+
+### `CPU-friendly` (обязательный)
+- уменьшенный объём текста;
+- укороченная длина контекста;
+- умеренный размер модели;
+- быстрый проверочный прогон на центральном процессоре.
+
+### `GPU-friendly` (расширенный)
+- больший объём текста;
+- более длинный контекст;
+- более ёмкая модель;
+- расширенный прогон для лучшего качества генерации.
+
+## Критерии завершения
+### `ЛР01`
 - тестовая токенная точность не ниже `0.97`;
 - тестовая перплексия не выше `1.30`;
-- в детерминированной генерации корректный шаблон выполняется минимум в `18 из 20` запусков;
-- в диагностике внимания отсутствуют обращения к будущим позициям.
+- корректное продолжение выполняется минимум в `18 из 20` фиксированных запусков;
+- диагностика внимания подтверждает отсутствие доступа к будущим позициям.
+
+### `ЛР02` (профиль `CPU-friendly`)
+- тестовая перплексия лучше базового частотного ориентира;
+- в детерминированной генерации осмысленный шаблон соблюдается минимум в `14 из 20` фиксированных запусков;
+- диагностика внимания подтверждает отсутствие доступа в будущее.
+
+### `ЛР02` (профиль `GPU-friendly`)
+- тестовая перплексия лучше результата `CPU-friendly` профиля;
+- в детерминированной генерации осмысленный шаблон соблюдается минимум в `16 из 20` фиксированных запусков;
+- диагностика внимания подтверждает отсутствие доступа в будущее.
 
 ## Запуск
 Команды выполняются из корня репозитория.
@@ -49,27 +84,7 @@ python3 -m ipykernel install --user --name autoregression-lab --display-name "Py
 .venv/bin/jupyter notebook
 ```
 
-### Варианты среды выполнения
-Учебная тетрадь поддерживает те же режимы, что и предыдущие блоки:
-- локальный автоматический режим: `auto`;
-- локальный режим центрального процессора: `local-cpu`;
-- локальный режим графического процессора: `local-gpu`;
-- облачные режимы `Google Colab` и `Kaggle`.
-
-Подробные инструкции:
-- [../../00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md](../../00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md)
-- [../../00-Foundations/guides/06_tensorflow_cuda_version_selection.md](../../00-Foundations/guides/06_tensorflow_cuda_version_selection.md)
-
 ## Дополнительные материалы
 - [../theory/theory.md](../theory/theory.md) — каноническая теория темы.
+- [../../00-Foundations/showcases/cards/06_shakespeare.md](../../00-Foundations/showcases/cards/06_shakespeare.md) — карточка корпуса `Shakespeare`.
 - [../../03-Transformer/theory/theory.md](../../03-Transformer/theory/theory.md) — предыдущий теоретический шаг.
-
-## Частые вопросы
-### Почему здесь только одна лабораторная?
-Потому что блок вводный и должен оставаться простым: сначала фиксируется причинная маска и генерация следующего токена, затем уже расширяется масштаб данных.
-
-### Почему выбран синтетический корпус?
-Чтобы обеспечить воспроизводимость, прозрачную диагностику и учебно-методическую последовательность без лишнего вычислительного шума.
-
-### Что дальше после этого блока?
-Следующий естественный шаг — увеличение сложности генерации и переход к более крупным языковым моделям на той же авторегрессионной идее.
