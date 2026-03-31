@@ -206,7 +206,7 @@ Synthetic toy-задача на порядок токенов.
 - positional embedding нужен, чтобы Transformer не терял порядок;
 - `multi-head attention` — это несколько параллельных способов читать контекст;
 - encoder block = attention + feed-forward + residual + normalization;
-- следующий логический шаг после этой темы — либо decoder-only/causal Transformer, либо полный encoder-decoder Transformer.
+- следующий логический шаг после этой темы — блок [../../04-Autoregression/lab/README.md](../../04-Autoregression/lab/README.md) с decoder-only/causal Transformer, а затем полный encoder-decoder Transformer.
 
 ## 10. Навигация по курсу
 
@@ -219,6 +219,6 @@ Synthetic toy-задача на порядок токенов.
 
 ### Что дальше
 После этого блока можно отдельно изучать:
-- decoder-only Transformer и causal mask;
+- [../../04-Autoregression/lab/README.md](../../04-Autoregression/lab/README.md) — decoder-only Transformer и causal mask;
 - полный encoder-decoder Transformer;
 - более крупные текстовые модели и языковое моделирование.

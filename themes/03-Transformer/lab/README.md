@@ -24,7 +24,7 @@ Solutions остаются в репозитории, но считаются м
 5. Шаг 5 = `03-Transformer / ЛР01`
 6. Шаг 6 = `03-Transformer / ЛР02`
 
-Важно: этот блок специально ограничен **encoder-only Transformer** в формате `toy -> real data`. Полный encoder-decoder Transformer и causal mask остаются на следующий шаг.
+Важно: этот блок специально ограничен **encoder-only Transformer** в формате `toy -> real data`. Полный encoder-decoder Transformer и causal mask остаются на следующий шаг в [../../04-Autoregression/lab/README.md](../../04-Autoregression/lab/README.md).
 
 ## Опционально, Если Нужно Повторить Прошлую Тему
 Открывайте этот блок только если после `02-Attention` плавают термины или чтение heatmap:
@@ -146,7 +146,9 @@ Guides не заменяют теорию, а помогают пройти её
 В `ЛР02` переиспользуется уже понятный transformer reuse-block: `TokenAndPositionEmbedding`, `masked_average` и `TransformerEncoderBlock`. Новая работа начинается не с повторной реализации слоёв, а с переноса их на real text classification.
 
 ### Что дальше после этого блока?
-Следующий естественный шаг — decoder-only Transformer, causal mask или полный encoder-decoder Transformer.
+Следующий естественный шаг:
+- [../../04-Autoregression/lab/README.md](../../04-Autoregression/lab/README.md) — `decoder-only Transformer` + `causal mask` в детерминированной генеративной лабораторной;
+- затем полный `encoder-decoder Transformer`.
 
 ## Типичные Проблемы
 ### Навигация
