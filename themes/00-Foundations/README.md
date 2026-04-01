@@ -85,6 +85,9 @@ python3 -m ipykernel install --user --name foundations-lab --display-name "Pytho
 Полный guide:
 [guides/05_local_tensorflow_gpu_notebooks.md](./guides/05_local_tensorflow_gpu_notebooks.md)
 
+Если IDE падает при долгом запуске (`code: 139` в VS Code), используйте блок
+`Если VS Code падает с code: 139` в этом же guide `05`.
+
 Если нужен именно локальный GPU и вы не уверены в версиях `TensorFlow` / `CUDA`, используйте:
 [guides/06_tensorflow_cuda_version_selection.md](./guides/06_tensorflow_cuda_version_selection.md)
 
@@ -100,6 +103,14 @@ python3 -m pip install --upgrade 'tensorflow[and-cuda]>=2.16,<2.20'
 - `Google Colab` -> `RUNTIME_MODE = "colab-cpu"` или `RUNTIME_MODE = "colab-gpu"`
 - `Kaggle` -> `RUNTIME_MODE = "kaggle-cpu"` или `RUNTIME_MODE = "kaggle-gpu"`
 - если в облаке загружен только notebook, замените `COURSE_REPO_HTTPS_URL` на публичный HTTPS URL курса
+
+### Ограничения бесплатных облачных аккаунтов
+Краткая актуализация по `Colab` и `Kaggle` вынесена в:
+[guides/05_local_tensorflow_gpu_notebooks.md](./guides/05_local_tensorflow_gpu_notebooks.md)
+
+Что важно помнить:
+- лимиты облака динамические и могут меняться;
+- перед длинным запуском проверяйте текущие квоты на официальных страницах платформ.
 
 Короткий маршрут для локального GPU:
 1. Сначала открыть `05` и выбрать runtime-сценарий.

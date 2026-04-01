@@ -146,6 +146,27 @@ COURSE_REPO_HTTPS_URL = "https://github.com/<org>/<repo>.git"
 
 Пока там стоит placeholder, cloud auto-bootstrap не сработает. Это сделано специально, чтобы студент видел понятную причину, а не непонятный `git clone` failure.
 
+## Ограничения бесплатных аккаунтов (актуализация на 31 марта 2026)
+Лимиты в облаке динамические: платформы могут менять их без предварительного уведомления.
+
+### `Google Colab` (бесплатный уровень)
+- точные численные квоты официально не публикуются;
+- доступность `GPU`/`TPU` не гарантируется и зависит от нагрузки платформы;
+- типичный лимит длительности сессии около `12` часов, но остановка может произойти раньше;
+- ограничения по бездействию (idle) и ресурсу меняются динамически.
+
+### `Kaggle Notebooks` (бесплатный уровень)
+- `GPU`: обычно до `30` часов в неделю (иногда больше при доступных ресурсах);
+- `TPU`: обычно до `20` часов в неделю, при этом до `9` часов в одной `TPU`-сессии;
+- `CPU`/`GPU`-сессия: обычно до `12` часов;
+- простой в интерактивном режиме: около `20` минут до автоостановки.
+
+Официальные страницы для перепроверки:
+- `https://research.google.com/colaboratory/intl/en-GB/faq.html`
+- `https://www.kaggle.com/docs/notebooks`
+- `https://www.kaggle.com/docs/efficient-gpu-usage`
+- `https://www.kaggle.com/docs/tpu`
+
 ## Почему cloud-режим не ставит TensorFlow заново
 В `Colab` и `Kaggle` TensorFlow и Jupyter-окружение обычно уже управляются платформой.
 
@@ -184,6 +205,31 @@ import tensorflow as tf
 print("built_with_cuda =", tf.test.is_built_with_cuda())
 print("gpus =", tf.config.list_physical_devices("GPU"))
 PY
+```
+
+## Если VS Code падает с `code: 139`
+`code: 139` обычно означает сегментационный сбой (segmentation fault) интерфейса IDE,
+а не обязательный провал вычислений TensorFlow.
+
+Безопасный учебный маршрут:
+1. Длинные запуски выполнять через терминал в headless-режиме.
+2. Проверять итог по `summary.json`, а не только по консольному логу.
+3. Открывать VS Code в щадящем режиме, если сбой повторяется:
+```bash
+code --disable-gpu
+```
+
+Пример headless-запуска для GPU-лабораторной темы `04`:
+```bash
+themes/04-Autoregression/lab/scripts/execute_gpu_solution.sh \
+  themes/04-Autoregression/lab/solutions/runs_stability_a
+```
+
+Если лог оборвался, восстановите итог из `*.executed.ipynb`:
+```bash
+python3 themes/04-Autoregression/lab/scripts/extract_gpu_run_summary.py \
+  themes/04-Autoregression/lab/solutions/runs_stability_a/02_decoder_only_tiny_shakespeare_gpu_solution.attempt1.gpu_60m.executed.ipynb \
+  --output themes/04-Autoregression/lab/solutions/runs_stability_a/02_decoder_only_tiny_shakespeare_gpu_solution.summary.json
 ```
 
 ## Если `*-gpu` выбран, а GPU нет
