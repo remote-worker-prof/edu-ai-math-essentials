@@ -66,6 +66,7 @@
 - [../../../00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md](../../../00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md)
 - [../../../00-Foundations/guides/06_tensorflow_cuda_version_selection.md](../../../00-Foundations/guides/06_tensorflow_cuda_version_selection.md)
 - [../../../00-Foundations/guides/07_tensorflow_blackwell_local_gpu_case_study.md](../../../00-Foundations/guides/07_tensorflow_blackwell_local_gpu_case_study.md)
+- [07_lr04_local_gpu_tf221_checklist.md](07_lr04_local_gpu_tf221_checklist.md)
 
 В рамках ЛР не предполагаются системные правки ОС и команды через `pkexec`.
 

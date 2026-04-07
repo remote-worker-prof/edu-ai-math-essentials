@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "TF GPU: check",
+      "type": "shell",
+      "command": "~/.local/bin/tf-gpu-run /data/projects/edu-ai-math-essentials python -c \"import tensorflow as tf; print('tf_version=', tf.__version__); print('gpus=', tf.config.list_physical_devices('GPU'))\"",
+      "problemMatcher": []
+    },
+    {
+      "label": "TF GPU: run train.py",
+      "type": "shell",
+      "command": "~/.local/bin/tf-gpu-run /data/projects/edu-ai-math-essentials python train.py",
+      "problemMatcher": []
+    }
+  ]
+}

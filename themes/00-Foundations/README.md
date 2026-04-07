@@ -18,6 +18,8 @@
 - [guides/04_self_study_debugging_playbook.md](./guides/04_self_study_debugging_playbook.md) — единый маршрут диагностики для self-study режима.
 - [guides/05_local_tensorflow_gpu_notebooks.md](./guides/05_local_tensorflow_gpu_notebooks.md) — единый runtime-guide для `local / Colab / Kaggle` и режимов `CPU / GPU`.
 - [guides/06_tensorflow_cuda_version_selection.md](./guides/06_tensorflow_cuda_version_selection.md) — как думать про версии `TensorFlow` и `CUDA`, если нужен локальный GPU.
+- [guides/07_tensorflow_blackwell_local_gpu_case_study.md](./guides/07_tensorflow_blackwell_local_gpu_case_study.md) — консервативный кейс для очень новой `NVIDIA` laptop GPU.
+- [guides/08_g635_local_gpu_tf221_checklist.md](./guides/08_g635_local_gpu_tf221_checklist.md) — практический чеклист миграции `G615 -> G635` с `TensorFlow 2.21`.
 - `examples/` — короткие полностью решённые warm-up notebooks.
 - `showcases/` — необязательные real-data demos и dataset cards для второго круга.
 - [requirements.txt](./requirements.txt) — зависимости для foundations, warm-up и showcase notebook'ов.
@@ -116,6 +118,8 @@ python3 -m pip install --upgrade 'tensorflow[and-cuda]>=2.16,<2.20'
 1. Сначала открыть `05` и выбрать runtime-сценарий.
 2. Если нужен просто рабочий запуск, этого достаточно.
 3. Если нужен именно локальный GPU и есть вопросы по версиям, открыть `06`.
+4. Для пошаговой миграции на новый ноутбук использовать:
+   [guides/08_g635_local_gpu_tf221_checklist.md](./guides/08_g635_local_gpu_tf221_checklist.md).
 
 ## Связь С Основными Темами
 - После этого блока основной теоретический трек начинается в [../01-RNN/theory/theory.md](../01-RNN/theory/theory.md).

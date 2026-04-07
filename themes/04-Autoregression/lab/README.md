@@ -124,6 +124,7 @@ export COURSE_RUNTIME_MODE=local-gpu
 Готовые скрипты запуска GPU-тетрадей:
 
 ```bash
+themes/04-Autoregression/lab/scripts/setup_local_gpu_tf221.sh
 themes/04-Autoregression/lab/scripts/run_gpu_starter.sh
 themes/04-Autoregression/lab/scripts/run_gpu_solution.sh
 themes/04-Autoregression/lab/scripts/execute_gpu_solution.sh
@@ -131,6 +132,7 @@ themes/04-Autoregression/lab/scripts/extract_gpu_run_summary.py
 ```
 
 Назначение скриптов:
+- `setup_local_gpu_tf221.sh` — подготавливает локальный GPU-стек для `RTX 50xx`: базовые зависимости ЛР04 + `tensorflow[and-cuda]==2.21.0` + `nvidia-cuda-nvcc-cu12>=12.8`, регистрирует Jupyter kernel.
 - `run_gpu_starter.sh` — открывает стартовую GPU-тетрадь `02_decoder_only_tiny_shakespeare_gpu.ipynb` в Jupyter Notebook.
 - `run_gpu_solution.sh` — открывает solution GPU-тетрадь `solutions/02_decoder_only_tiny_shakespeare_gpu_solution.ipynb` в Jupyter Notebook.
 - `execute_gpu_solution.sh` — выполняет solution-тетрадь через `nbconvert` в неинтерактивном режиме в сценарии `warm-up + timed-run`, сохраняет выполненную копию даже при ошибках и формирует итоговую сводку `PASS/FAIL` по критерию `19/20`.
