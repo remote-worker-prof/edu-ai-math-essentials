@@ -6,6 +6,7 @@ __pycache__/
 .serena/project.local.yml
 .serena/memories/
 .serena/cache/
+themes/05-Full-Transformer/lab/.cache/
 
 # Beads / Dolt files (added by bd init)
 .dolt/
