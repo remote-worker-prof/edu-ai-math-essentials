@@ -1,0 +1,14 @@
+{
+  "notebook": "themes/05-Full-Transformer/lab/solutions/runs_gpu_full_tuned3/01_full_transformer_wikitext2_solution.gpu_full_tuned3.executed.ipynb",
+  "finished_at": "2026-04-14T18:37:45+0300",
+  "elapsed_minutes_total": 24.181,
+  "gpu_preflight_passed": true,
+  "test_perplexity": "5.0257",
+  "baseline_perplexity": "24.5852",
+  "test_accuracy": "0.5671",
+  "success_count_raw": "17/20",
+  "mean_match_ratio": "0.6687",
+  "generation_top_k": "20",
+  "match_ratio_metric": "top_k_hit_ratio",
+  "errors": []
+}

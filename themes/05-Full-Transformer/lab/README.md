@@ -1,48 +1,78 @@
-# Лабораторный практикум по теме `05-Full-Transformer`
-
-> Статус: **срочный анонс-пакет** для вводного занятия. Полный учебный пакет `ЛР05` будет опубликован отдельным обновлением.
+# Лабораторный практикум `05-Full-Transformer`
 
 ## Назначение
+`ЛР05` — финальная лабораторная курса: полноценный трансформер «кодировщик-декодировщик» (encoder-decoder Transformer) для предсказания токенов текста.
 
-`ЛР05` — финальная лабораторная по построению и обучению полноценного трансформера «кодировщик-декодировщик» (encoder-decoder Transformer) для предсказания токенов текста на корпусе `WikiText-2 (raw-v1)`.
-
-## Что уже есть сейчас
-
-- стартовая тетрадь-скелет с обязательными `TODO`;
-- каркас тетради-решения;
-- дорожная карта для студентов и преподавателя;
-- зафиксированный методический контракт полного пакета.
+В теме используются два корпуса:
+1. `starter`: `Tiny Shakespeare`.
+2. `solution`: `WikiText-2` (текстовые `train/valid/test` из GitHub-источника).
 
 ## Структура
+- `01_full_transformer_tiny_shakespeare.ipynb` — стартовая тетрадь (`TODO 1..6`).
+- `solutions/01_full_transformer_wikitext2_solution.ipynb` — полное решение.
+- `guides/00_full_transformer_prerequisites.md` — входной минимум.
+- `guides/01_full_transformer_walkthrough.md` — пошаговый разбор.
+- `guides/02_full_transformer_debugging_playbook.md` — диагностика.
+- `../theory/theory.md` — теоретическая основа темы.
+- `requirements.txt` — зависимости.
 
-- `01_full_transformer_wikitext2.ipynb` — стартовая тетрадь-скелет `ЛР05`.
-- `solutions/01_full_transformer_wikitext2_solution.ipynb` — тетрадь-решение (скелет) `ЛР05`.
-- `guides/00_lab5_roadmap.md` — что объяснять студентам сейчас и что будет в полном пакете.
-- `../theory/theory.md` — вводная теория темы.
-- `requirements.txt` — базовые зависимости.
+## Канонический маршрут студента
+1. Прочитать [../theory/theory.md](../theory/theory.md).
+2. Прочитать [guides/00_full_transformer_prerequisites.md](./guides/00_full_transformer_prerequisites.md).
+3. Пройти [guides/01_full_transformer_walkthrough.md](./guides/01_full_transformer_walkthrough.md).
+4. Выполнить [01_full_transformer_tiny_shakespeare.ipynb](./01_full_transformer_tiny_shakespeare.ipynb): для `GPU-friendly` сначала пройти `gpu_preflight()`.
+5. При затруднениях использовать [guides/02_full_transformer_debugging_playbook.md](./guides/02_full_transformer_debugging_playbook.md).
+6. Свериться с [solutions/01_full_transformer_wikitext2_solution.ipynb](./solutions/01_full_transformer_wikitext2_solution.ipynb).
 
-## Канонический вводный маршрут студента (сейчас)
+## Обязательный workflow внутри ноутбуков
+`контракт данных -> интуиция -> формализация -> ручной пример -> TODO -> mini-checks -> диагностика`.
 
-1. Открыть [../theory/theory.md](../theory/theory.md).
-2. Прочитать [guides/00_lab5_roadmap.md](./guides/00_lab5_roadmap.md).
-3. Открыть [01_full_transformer_wikitext2.ipynb](./01_full_transformer_wikitext2.ipynb).
-4. Просмотреть `TODO 1..6`, понять будущий поток работы (workflow) и критерии.
+## Контракт данных
+Для каждого окна:
+- `encoder_input = ids[i : i + SRC_LEN]`;
+- `target = ids[i + SRC_LEN : i + SRC_LEN + TGT_LEN]`;
+- `decoder_input = [SOS] + target[:-1]`;
+- `decoder_target = target`.
 
-## Контракт будущей полной ЛР05
+## Профили выполнения
+- `CPU-friendly`: целевой бюджет `40-60` минут.
+- `GPU-friendly`: целевой бюджет `30-45` минут.
 
-Обязательный pipeline:
+Если выбран `GPU-friendly`, но `GPU` недоступен, ноутбук завершает выполнение ранней диагностической ошибкой без скрытого fallback.
 
-`контракт данных -> интуиция -> формализация -> ручной пример -> TODO -> мини-проверки (mini-checks) -> диагностика`.
+## Контракт окружения для `GPU-friendly`
+Для `GPU`-запуска сначала переиспользуйте уже подготовленное окружение из темы `00-Foundations`.
+Повторная «тяжёлая» установка TensorFlow с CUDA не является обязательным шагом, если `GPU` уже корректно виден в текущей `.venv`.
 
-Обязательные проверки:
-- фиксированное зерно случайности (seed);
-- фиксированные индексные разбиения;
-- отсутствие доступа к будущему в декодере;
-- сравнение с базовым ориентиром (baseline) по перплексии (perplexity);
-- детерминированные контрольные продолжения (continuation probes).
+Опорные материалы:
+- [../../00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md](../../00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md)
+- [../../00-Foundations/guides/06_tensorflow_cuda_version_selection.md](../../00-Foundations/guides/06_tensorflow_cuda_version_selection.md)
+- [../../00-Foundations/guides/07_tensorflow_blackwell_local_gpu_case_study.md](../../00-Foundations/guides/07_tensorflow_blackwell_local_gpu_case_study.md)
+
+Выбор профиля:
+```bash
+export COURSE_RUNTIME_PROFILE=CPU-friendly
+# или
+export COURSE_RUNTIME_PROFILE=GPU-friendly
+```
+
+## Критерии завершения
+### Starter (`Tiny Shakespeare`)
+- `test_perplexity < baseline_perplexity`;
+- `success_count >= 18` из `20`;
+- `mean_match_ratio >= 0.70`;
+- для `GPU-friendly`: `gpu_preflight()` пройден полностью;
+- диагностика внимания подтверждает отсутствие доступа к будущим позициям.
+
+### Solution (`WikiText-2`)
+- `test_perplexity < baseline_perplexity`;
+- `success_count >= 16` из `20`;
+- `mean_match_ratio >= 0.60` (для solution считается как `top-k hit ratio` в детерминированной генерации);
+- для `GPU-friendly`: `gpu_preflight()` пройден полностью;
+- диагностика внимания подтверждает отсутствие доступа к будущим позициям.
 
 ## Запуск
-
+### Базовый сценарий (чистый старт)
 Команды из корня репозитория:
 
 ```bash
@@ -54,7 +84,24 @@ python3 -m ipykernel install --user --name full-transformer-lab --display-name "
 .venv/bin/jupyter notebook
 ```
 
-## Связь с предыдущей темой
+### Рекомендуемый сценарий для уже настроенного `GPU`
+Если `.venv` уже подготовлена в теме `00-Foundations` и `GPU` виден в TensorFlow:
+1. Активируйте существующую `.venv`.
+2. Не переустанавливайте весь стек заново.
+3. Выполните только лёгкую синхронизацию зависимостей темы `05`, если нужно.
 
-Предыдущий шаг курса:
-- [../../04-Autoregression/lab/README.md](../../04-Autoregression/lab/README.md)
+```bash
+source .venv/bin/activate
+python3 -m pip install -r themes/05-Full-Transformer/lab/requirements.txt
+```
+
+Recovery (только если `GPU-friendly` выбран, но TensorFlow не видит `GPU`):
+```bash
+python3 -m pip install --upgrade 'tensorflow[and-cuda]>=2.16,<2.22'
+python3 -m pip install -r themes/05-Full-Transformer/lab/requirements.txt
+```
+
+В рамках `ЛР05` не выполняются системные правки уровня ОС (`pkexec`, переустановка драйверов).
+
+## Переходы по курсу
+- Предыдущая тема: [../../04-Autoregression/lab/README.md](../../04-Autoregression/lab/README.md)
