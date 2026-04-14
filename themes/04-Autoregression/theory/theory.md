@@ -166,4 +166,4 @@ $$
 - полного трансформера «кодировщик-декодировщик» (encoder-decoder Transformer).
 
 Следующий практический шаг в курсе:
-- [../../05-Full-Transformer/lab/README.md](../../05-Full-Transformer/lab/README.md) — финальная `ЛР05` с полноценной архитектурой `encoder-decoder` на `WikiText-2`.
+- [../../05-Full-Transformer/lab/README.md](../../05-Full-Transformer/lab/README.md) — финальная `ЛР05` с полноценной архитектурой `encoder-decoder` (starter: `Tiny Shakespeare`, solution: `WikiText-2`).

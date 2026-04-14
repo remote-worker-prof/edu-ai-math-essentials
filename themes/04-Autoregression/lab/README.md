@@ -215,4 +215,4 @@ python3 themes/04-Autoregression/lab/scripts/extract_gpu_run_summary.py \
 - [../../03-Transformer/theory/theory.md](../../03-Transformer/theory/theory.md) — предыдущий теоретический шаг.
 
 ## Что дальше
-- [../../05-Full-Transformer/lab/README.md](../../05-Full-Transformer/lab/README.md) — финальная `ЛР05`: полный трансформер `encoder-decoder` для предсказания токенов текста на `WikiText-2`.
+- [../../05-Full-Transformer/lab/README.md](../../05-Full-Transformer/lab/README.md) — финальная `ЛР05`: полный трансформер `encoder-decoder` (starter: `Tiny Shakespeare`, solution: `WikiText-2`).
