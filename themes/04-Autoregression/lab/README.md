@@ -34,6 +34,7 @@
 7. Шаг 7 = `04-Autoregression / ЛР01`
 8. Шаг 8 = `04-Autoregression / ЛР02 CPU`
 9. Шаг 9 = `04-Autoregression / ЛР02 GPU`
+10. Шаг 10 = `05-Full-Transformer / ЛР05`
 
 ## Канонический маршрут студента
 1. Прочитать [guides/00_autoregression_prerequisites.md](./guides/00_autoregression_prerequisites.md).
@@ -212,3 +213,6 @@ python3 themes/04-Autoregression/lab/scripts/extract_gpu_run_summary.py \
 - [../theory/theory.md](../theory/theory.md) — каноническая теория темы.
 - [../../00-Foundations/showcases/cards/06_shakespeare.md](../../00-Foundations/showcases/cards/06_shakespeare.md) — карточка корпуса `Shakespeare`.
 - [../../03-Transformer/theory/theory.md](../../03-Transformer/theory/theory.md) — предыдущий теоретический шаг.
+
+## Что дальше
+- [../../05-Full-Transformer/lab/README.md](../../05-Full-Transformer/lab/README.md) — финальная `ЛР05`: полный трансформер `encoder-decoder` для предсказания токенов текста на `WikiText-2`.
