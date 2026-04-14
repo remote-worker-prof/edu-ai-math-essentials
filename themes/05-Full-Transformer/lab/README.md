@@ -60,7 +60,7 @@ export COURSE_RUNTIME_PROFILE=GPU-friendly
 ### Starter (`Tiny Shakespeare`)
 - `test_perplexity < baseline_perplexity`;
 - `success_count >= 18` из `20`;
-- `mean_match_ratio >= 0.70`;
+- `mean_match_ratio >= 0.70` (в starter это доля точных `argmax`-совпадений по символам);
 - для `GPU-friendly`: `gpu_preflight()` пройден полностью;
 - диагностика внимания подтверждает отсутствие доступа к будущим позициям.
 

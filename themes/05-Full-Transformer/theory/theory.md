@@ -118,13 +118,13 @@ $$
 ### Starter (`Tiny Shakespeare`)
 1. `test_perplexity < baseline_perplexity`;
 2. `success_count >= 18` из `20`;
-3. `mean_match_ratio >= 0.70`;
+3. `mean_match_ratio >= 0.70`, где `mean_match_ratio` — доля точных (`argmax`) посимвольных совпадений по фиксированным `probes`;
 4. диагностика внимания подтверждает отсутствие доступа к будущим позициям.
 
 ### Solution (`WikiText-2`)
 1. `test_perplexity < baseline_perplexity`;
 2. `success_count >= 16` из `20`;
-3. `mean_match_ratio >= 0.60`;
+3. `mean_match_ratio >= 0.60`, где `mean_match_ratio` считается как `top-k hit ratio` (эталонный токен попадает в `k` лучших предсказаний на каждом шаге);
 4. диагностика внимания подтверждает отсутствие доступа к будущим позициям.
 
 ## 9. Навигация
