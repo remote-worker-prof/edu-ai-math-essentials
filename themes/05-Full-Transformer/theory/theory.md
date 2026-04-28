@@ -1,135 +1,74 @@
-# Полный трансформер «кодировщик-декодировщик» (encoder-decoder): финальная лабораторная `ЛР05`
+# 05-Full-Transformer Theory: Строгий Encoder-Decoder Контракт Для Финальной ЛР
 
-Место в линии курса:
-- предыдущий шаг: `04-Autoregression / ЛР01 + ЛР02 (CPU/GPU)`;
-- текущий шаг: `05-Full-Transformer / ЛР05`;
-- цель: собрать и обучить полный трансформер для предсказания токенов продолжения текста.
+## Кому читать
+- Тем, кто дошёл до финальной темы и хочет собрать целостную картину.
+- Тем, кто путает `encoder_input`, `decoder_input`, `decoder_target`.
+- Тем, кому нужна строгая логика `padding/causal/cross` масок в одном месте.
 
-## 1. Что меняется после темы 04
+## Интуиция на пальцах
+В full-transformer decoder предсказывает цель, опираясь на два источника:
+1. прошлые токены самой цели (decoder self-attention),
+2. память encoder по входной последовательности (cross-attention).
 
-В теме `04` мы работали с декодерным режимом (decoder-only):
+Поэтому data-contract здесь строже, чем в предыдущих темах.
 
-$$
-P(y_{1:T}) = \prod_{t=1}^{T} P(y_t \mid y_{<t}).
-$$
+## Контракт данных
+- `encoder_input.shape = (batch, src_len)`
+- `decoder_input.shape = (batch, tgt_len)` (обычно `SOS + target[:-1]`)
+- `decoder_target.shape = (batch, tgt_len)` или `(batch, tgt_len, 1)`
 
-В `ЛР05` появляется входная последовательность `x` для кодировщика, и декодер прогнозирует цель с учётом `x`:
+Контракт масок:
+- `padding_mask_encoder`: скрывает `PAD` на стороне source.
+- `causal_mask_decoder`: запрещает доступ decoder к будущим позициям target.
+- `cross_attention_mask`: разрешает decoder смотреть только на валидные source-позиции.
 
-$$
-P(y_{1:T} \mid x) = \prod_{t=1}^{T} P(y_t \mid y_{<t}, x).
-$$
+## Формализация (минимум формул)
+Условное цепное правило:
 
-Поэтому декодер использует два типа внимания:
-1. самовнимание (self-attention) по уже известной части цели;
-2. перекрёстное внимание (cross-attention) к выходам кодировщика.
+`P(y_1...y_T | x) = Π_t P(y_t | y_<t, x)`
 
-## 2. Контракт данных
+Attention в decoder self-attention:
 
-Для каждого окна текста фиксируем:
-- `encoder_input = ids[i : i + SRC_LEN]`;
-- `target = ids[i + SRC_LEN : i + SRC_LEN + TGT_LEN]`;
-- `decoder_input = [SOS] + target[:-1]`;
-- `decoder_target = target`.
+`softmax(Q_dec K_dec^T / sqrt(d_k) + causal_mask)`
 
-Смысл: на шаге `t` декодер получает корректный предыдущий токен (teacher forcing) и предсказывает текущий.
+Attention в cross-attention:
 
-## 3. Вывод функции потерь
+`softmax(Q_dec K_enc^T / sqrt(d_k) + cross_mask)`
 
-### 3.1 Цепное правило вероятностей
+Loss и perplexity:
 
-$$
-P(y_{1:T} \mid x) = \prod_{t=1}^{T} P(y_t \mid y_{<t}, x).
-$$
+`L = token_cross_entropy`
 
-Логарифм:
+`PPL = exp(L)`
 
-$$
-\log P(y_{1:T} \mid x) = \sum_{t=1}^{T} \log P(y_t \mid y_{<t}, x).
-$$
+## Ручной мини-пример
+Пусть:
 
-### 3.2 Отрицательное лог-правдоподобие
+```text
+encoder_input = [12, 7, 5, 0, 0]
+decoder_target = [31, 9, 14, 2]
+decoder_input  = [SOS, 31, 9, 14]
+```
 
-Минимизируем отрицательное среднее по валидным позициям:
+Тогда:
+- decoder шаг `t=2` может смотреть только на `SOS,31,9` (causal),
+- и на валидные source-токены `12,7,5` (cross + padding).
 
-$$
-\mathcal{L}_{\mathrm{NLL}} = -\frac{1}{T_{\mathrm{valid}}}
-\sum_{t=1}^{T} m_t\,\log P(y_t \mid y_{<t}, x),
-\quad
-T_{\mathrm{valid}} = \sum_{t=1}^{T} m_t.
-$$
+## Где это в TODO
+- TODO по сборке датасета: правильно сформировать три входа/цель.
+- TODO по маскам: проверить causal/padding/cross контракты.
+- TODO по обучению: baseline/perplexity/generation gates.
+- TODO по диагностике: убедиться, что внимания в будущее нет.
 
-При one-hot цели это перекрёстная энтропия (cross-entropy) на токенах.
+## Типичные ошибки
+- Сдвигают `decoder_target` неверно и теряют teacher-forcing логику.
+- Используют только одну маску там, где нужны несколько.
+- Проверяют только `test_perplexity`, игнорируя generation gates.
+- Не валидируют форму входов до `model.fit`.
 
-### 3.3 Перплексия
-
-$$
-\mathrm{PPL} = e^{\mathcal{L}_{\mathrm{NLL}}}.
-$$
-
-Интерпретация: средний «эффективный объём неопределённости» модели на одном токене.
-
-## 4. Причинная маска и отсутствие утечки в будущее
-
-Пусть `S` — оценки внимания декодера до `softmax`.
-Для запрещённых позиций `j > i` применяем маску:
-
-$$
-S'_{i,j} = -\infty, \quad j > i.
-$$
-
-После `softmax`:
-
-$$
-\alpha_{i,j} = 0, \quad j > i.
-$$
-
-Значит, выход на позиции `i` зависит только от позиций `\le i` и от выходов кодировщика в cross-attention.
-
-## 5. Масштабирование оценок внимания
-
-В скалярном произведении внимания используется делитель:
-
-$$
-\mathrm{Attention}(Q,K,V)=\mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}} + M\right)V.
-$$
-
-Почему нужен `1/\sqrt{d_k}`: при росте размерности `d_k` дисперсия `QK^\top` растёт, `softmax` становится слишком «острым», а градиенты деградируют. Делитель нормирует масштаб логитов.
-
-## 6. Датасеты в starter и solution
-
-В `ЛР05` специально используются разные корпуса:
-- `starter`: `Tiny Shakespeare`;
-- `solution`: `WikiText-2` (текстовые `train/valid/test` из GitHub-источника).
-
-Это сделано методически:
-1. `starter` остаётся контролируемым и прозрачным для самостоятельной работы;
-2. `solution` показывает перенос той же архитектуры на более сложную текстовую статистику.
-
-## 7. Профили выполнения
-
-Оба ноутбука поддерживают единый выбор профиля:
-- `CPU-friendly`: целевой бюджет `40-60` минут;
-- `GPU-friendly`: целевой бюджет `30-45` минут.
-
-Если выбран `GPU-friendly`, но графический процессор недоступен, тетрадь должна завершиться понятной ошибкой конфигурации без скрытого CPU-fallback.
-
-## 8. Критерии завершения
-
-### Starter (`Tiny Shakespeare`)
-1. `test_perplexity < baseline_perplexity`;
-2. `success_count >= 18` из `20`;
-3. `mean_match_ratio >= 0.70`, где `mean_match_ratio` — доля точных (`argmax`) посимвольных совпадений по фиксированным `probes`;
-4. диагностика внимания подтверждает отсутствие доступа к будущим позициям.
-
-### Solution (`WikiText-2`)
-1. `test_perplexity < baseline_perplexity`;
-2. `success_count >= 16` из `20`;
-3. `mean_match_ratio >= 0.60`, где `mean_match_ratio` считается как `top-k hit ratio` (эталонный токен попадает в `k` лучших предсказаний на каждом шаге);
-4. диагностика внимания подтверждает отсутствие доступа к будущим позициям.
-
-## 9. Навигация
-
-- Практика: [../lab/README.md](../lab/README.md)
-- Входной минимум: [../lab/guides/00_full_transformer_prerequisites.md](../lab/guides/00_full_transformer_prerequisites.md)
-- Пошаговый разбор: [../lab/guides/01_full_transformer_walkthrough.md](../lab/guides/01_full_transformer_walkthrough.md)
-- Диагностика: [../lab/guides/02_full_transformer_debugging_playbook.md](../lab/guides/02_full_transformer_debugging_playbook.md)
+## Мини-чеклист
+- Я могу устно объяснить роль каждой из трёх масок.
+- Я знаю, почему `decoder_input` и `decoder_target` не совпадают.
+- Я проверяю и `perplexity`, и generation-quality gates.
+- Я умею связать финальную ЛР с предыдущими шагами курса:
+  [../../00-Foundations/theory/theory.md](../../00-Foundations/theory/theory.md).
