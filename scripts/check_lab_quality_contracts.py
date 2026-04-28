@@ -23,11 +23,6 @@ FORBIDDEN_ENGLISH_HEADING_MARKERS = (
     "workflow",
     "checkpoint",
 )
-REQUIRED_BEGINNER_LAYER_MARKER = "beginner-слой"
-REQUIRED_FLOW_MARKER = (
-    "контракт -> теория -> ручной пример -> todo -> проверки -> диагностика"
-)
-REQUIRED_THEORY_LINK_FRAGMENT = "theory/theory.md"
 
 NOTEBOOK_HEADING_MARKERS = {
     "themes/00-Foundations/examples/01_numpy_sequence_basics.ipynb": ("разминка 1",),
@@ -63,8 +58,6 @@ README_MARKERS = {
     "themes/00-Foundations/README.md": (
         "единый мини-глоссарий 00-05",
         "готов/не готов к следующей теме",
-        "внешний обзор архитектур",
-        "математический минимум sequence/attention/transformer",
     ),
     "themes/01-RNN/lab/README.md": (
         "shape bridge",
@@ -91,75 +84,6 @@ README_MARKERS = {
         "decoder_input",
         "decoder_target",
         "cross-attention",
-    ),
-}
-
-THEORY_FILE_MARKERS = {
-    "themes/00-Foundations/theory/theory.md": (
-        "кому читать",
-        "интуиция на пальцах",
-        "контракт данных",
-        "формализация",
-        "ручной мини-пример",
-        "где это в todo",
-        "типичные ошибки",
-        "мини-чеклист",
-        "mlp",
-        "cnn",
-        "gnn",
-        "autoencoder",
-        "gan",
-        "diffusion",
-    ),
-    "themes/01-RNN/theory/theory.md": (
-        "кому читать",
-        "интуиция на пальцах",
-        "контракт данных",
-        "формализация",
-        "ручной мини-пример",
-        "где это в todo",
-        "типичные ошибки",
-        "мини-чеклист",
-    ),
-    "themes/02-Attention/theory/theory.md": (
-        "кому читать",
-        "интуиция на пальцах",
-        "контракт данных",
-        "формализация",
-        "ручной мини-пример",
-        "где это в todo",
-        "типичные ошибки",
-        "мини-чеклист",
-    ),
-    "themes/03-Transformer/theory/theory.md": (
-        "кому читать",
-        "интуиция на пальцах",
-        "контракт данных",
-        "формализация",
-        "ручной мини-пример",
-        "где это в todo",
-        "типичные ошибки",
-        "мини-чеклист",
-    ),
-    "themes/04-Autoregression/theory/theory.md": (
-        "кому читать",
-        "интуиция на пальцах",
-        "контракт данных",
-        "формализация",
-        "ручной мини-пример",
-        "где это в todo",
-        "типичные ошибки",
-        "мини-чеклист",
-    ),
-    "themes/05-Full-Transformer/theory/theory.md": (
-        "кому читать",
-        "интуиция на пальцах",
-        "контракт данных",
-        "формализация",
-        "ручной мини-пример",
-        "где это в todo",
-        "типичные ошибки",
-        "мини-чеклист",
     ),
 }
 
@@ -228,29 +152,21 @@ def parse_ast(source: str) -> ast.Module | None:
 def required_markers_for_notebook(relative_path: str) -> tuple[str, ...]:
     """Возвращает список обязательных маркеров для учебной темы."""
 
-    base_markers: tuple[str, ...] = ()
-    if "/runs_" not in relative_path:
-        base_markers = (
-            REQUIRED_BEGINNER_LAYER_MARKER,
-            REQUIRED_FLOW_MARKER,
-            REQUIRED_THEORY_LINK_FRAGMENT,
-        )
-
     if relative_path.startswith("themes/01-RNN/lab/"):
         if "simple_rnn" in relative_path:
-            return base_markers + ("(batch, time, features)", "чек-лист")
+            return ("(batch, time, features)", "чек-лист")
         if "lstm_many_to_many" in relative_path:
-            return base_markers + ("token_accuracy", "чек-лист")
-        return base_markers + ("decoder_input", "decoder_target", "чек-лист")
+            return ("token_accuracy", "чек-лист")
+        return ("decoder_input", "decoder_target", "чек-лист")
     if relative_path.startswith("themes/02-Attention/lab/"):
-        return base_markers + ("query", "key", "value", "attention_scores", "чек-лист")
+        return ("query", "key", "value", "attention_scores", "чек-лист")
     if relative_path.startswith("themes/03-Transformer/lab/"):
-        return base_markers + ("padding_mask", "attention_scores", "positional", "чек-лист")
+        return ("padding_mask", "attention_scores", "positional", "чек-лист")
     if relative_path.startswith("themes/04-Autoregression/lab/"):
         if "01_decoder_only_causal_toy" in relative_path:
-            return base_markers + ("causal_mask", "perplexity", "чек-лист")
+            return ("causal_mask", "perplexity", "чек-лист")
         if "02_decoder_only_tiny_shakespeare_gpu" in relative_path:
-            return base_markers + (
+            return (
                 "gpu_preflight",
                 "causal_mask",
                 "perplexity",
@@ -258,9 +174,9 @@ def required_markers_for_notebook(relative_path: str) -> tuple[str, ...]:
                 "generation",
                 "чек-лист",
             )
-        return base_markers + ("causal_mask", "perplexity", "baseline", "генерац", "чек-лист")
+        return ("causal_mask", "perplexity", "baseline", "генерац", "чек-лист")
     if relative_path.startswith("themes/05-Full-Transformer/lab/"):
-        return base_markers + (
+        return (
             "encoder_input",
             "decoder_input",
             "decoder_target",
@@ -268,9 +184,7 @@ def required_markers_for_notebook(relative_path: str) -> tuple[str, ...]:
             "cross",
             "чек-лист",
         )
-    if relative_path.startswith("themes/00-Foundations/"):
-        return base_markers
-    return base_markers
+    return ()
 
 
 def check_docstrings(tree: ast.Module, relative_path: str, errors: list[str]) -> None:
@@ -380,23 +294,6 @@ def check_readmes(errors: list[str]) -> None:
         print(f"readme-quality-ok: {relative_path}")
 
 
-def check_theory_files(errors: list[str]) -> None:
-    """Проверяет единый beginner-first шаблон в theory-файлах."""
-
-    for relative_path, markers in THEORY_FILE_MARKERS.items():
-        path = ROOT / relative_path
-        if not path.exists():
-            errors.append(f"{relative_path}: theory file is missing.")
-            continue
-
-        text = path.read_text(encoding="utf-8").lower()
-        for marker in markers:
-            if marker not in text:
-                errors.append(f"{relative_path}: missing theory marker {marker!r}.")
-
-        print(f"theory-quality-ok: {relative_path}")
-
-
 def main() -> None:
     """Запускает quality-проверки notebook-ов и README."""
 
@@ -404,7 +301,6 @@ def main() -> None:
     for relative_path in sorted(EXPECTED_NOTEBOOKS):
         check_notebook(relative_path, errors)
     check_readmes(errors)
-    check_theory_files(errors)
 
     if errors:
         raise SystemExit("\n".join(errors))

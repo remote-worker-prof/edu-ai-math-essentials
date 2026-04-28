@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
 from pathlib import Path
 from typing import Iterable
@@ -72,38 +71,11 @@ RUN_SYNC_MAP: dict[str, list[str]] = {
     ],
 }
 
-BEGINNER_LAYER_TITLE = "## Beginner-слой: как читать эту тетрадь с нуля"
-FLOW_MARKER_LINE = (
-    "Поток изучения: контракт -> теория -> ручной пример -> TODO -> проверки -> диагностика."
-)
-FOUNDATIONS_README = ROOT / "themes" / "00-Foundations" / "README.md"
-THEME_PREVIOUS_STEP = {
-    "00-Foundations": "Стартовая точка курса: с нуля к формам, маскам и базовым метрикам.",
-    "01-RNN": "После Foundations: формы последовательностей и базовый словарь token/mask уже знакомы.",
-    "02-Attention": "После 01-RNN / ЛР03: вы уже умеете читать seq2seq и decoder shift.",
-    "03-Transformer": "После 02-Attention: понятны query/key/value и карта attention-соответствий.",
-    "04-Autoregression": "После 03-Transformer: понятны self-attention и роль positional/масок.",
-    "05-Full-Transformer": "После 04-Autoregression: закреплены causal mask, leakage checks и perplexity gates.",
-}
-
 
 def iter_notebooks() -> list[Path]:
     """Возвращает отсортированный список всех notebook-ов в themes."""
 
     return sorted(THEMES_DIR.rglob("*.ipynb"))
-
-
-def is_run_notebook(relative_path: str) -> bool:
-    """Возвращает True для executed run-ноутбуков."""
-
-    return "/runs_" in relative_path
-
-
-def as_relative_link(source_notebook: Path, target_file: Path) -> str:
-    """Строит относительную markdown-ссылку от notebook к целевому файлу."""
-
-    link = os.path.relpath(target_file, source_notebook.parent)
-    return Path(link).as_posix()
 
 
 def normalize_simple_array(match: re.Match[str]) -> str:
@@ -141,75 +113,6 @@ def normalize_source(source: str) -> str:
     return updated
 
 
-def build_beginner_scaffold(path: Path) -> str | None:
-    """Строит markdown-врезку beginner-first для non-run notebook-а."""
-
-    relative_path = path.relative_to(ROOT).as_posix()
-    if is_run_notebook(relative_path):
-        return None
-
-    parts = Path(relative_path).parts
-    if len(parts) < 2 or parts[0] != "themes":
-        return None
-
-    theme_name = parts[1]
-    theory_path = ROOT / "themes" / theme_name / "theory" / "theory.md"
-    if not theory_path.exists():
-        return None
-
-    theory_link = as_relative_link(path, theory_path)
-    foundations_link = as_relative_link(path, FOUNDATIONS_README)
-    previous_step = THEME_PREVIOUS_STEP.get(
-        theme_name,
-        "Продолжайте в том же ритме: сначала контракт данных и маски, затем формализация.",
-    )
-
-    return (
-        f"{BEGINNER_LAYER_TITLE}\n\n"
-        "### Кому читать\n"
-        "- Если вы стартуете с нуля и хотите понимать, зачем каждый блок идёт именно в таком порядке.\n"
-        "- Если формулы пока тяжёлые, а опора нужна через интуицию и ручной мини-пример.\n\n"
-        "### Что изменилось после прошлого шага\n"
-        f"- {previous_step}\n\n"
-        "### Теоретический ориентир\n"
-        f"- Теория этой темы: [{theory_link}]({theory_link})\n"
-        f"- Общий вход курса: [{foundations_link}]({foundations_link})\n\n"
-        f"{FLOW_MARKER_LINE}\n"
-    )
-
-
-def inject_beginner_scaffold(path: Path, notebook: dict) -> bool:
-    """Добавляет beginner-врезку в notebook, если её ещё нет."""
-
-    scaffold = build_beginner_scaffold(path)
-    if scaffold is None:
-        return False
-
-    markdown_blob = "\n".join(
-        cell_source(cell).lower()
-        for cell in notebook["cells"]
-        if cell.get("cell_type") == "markdown"
-    )
-    if BEGINNER_LAYER_TITLE.lower() in markdown_blob:
-        return False
-
-    insert_index = 0
-    for index, cell in enumerate(notebook["cells"]):
-        if cell.get("cell_type") == "markdown":
-            insert_index = index + 1
-            break
-
-    notebook["cells"].insert(
-        insert_index,
-        {
-            "cell_type": "markdown",
-            "metadata": {},
-            "source": scaffold,
-        },
-    )
-    return True
-
-
 def read_notebook(path: Path) -> dict:
     """Читает notebook как JSON-объект."""
 
@@ -245,7 +148,6 @@ def normalize_notebooks(paths: Iterable[Path]) -> tuple[int, list[str]]:
 
     for path in paths:
         notebook = read_notebook(path)
-        relative_path = path.relative_to(ROOT).as_posix()
 
         changed = False
         for cell in notebook["cells"]:
@@ -255,13 +157,10 @@ def normalize_notebooks(paths: Iterable[Path]) -> tuple[int, list[str]]:
                 cell["source"] = normalized
                 changed = True
 
-        if inject_beginner_scaffold(path, notebook):
-            changed = True
-
         if changed:
             write_notebook(path, notebook)
             changed_count += 1
-            changed_paths.append(relative_path)
+            changed_paths.append(str(path.relative_to(ROOT)))
 
     return changed_count, changed_paths
 
@@ -280,57 +179,26 @@ def sync_run_sources() -> tuple[int, list[str]]:
             target_path = ROOT / target_rel
             target = read_notebook(target_path)
 
-            canonical_cells = canonical["cells"]
-            target_cells = target["cells"]
-            rebuilt_cells: list[dict] = []
-            target_index = 0
-            target_changed = False
-
-            for canonical_index, src_cell in enumerate(canonical_cells):
-                src_type = src_cell.get("cell_type")
-
-                if target_index < len(target_cells):
-                    dst_cell = target_cells[target_index]
-                    dst_type = dst_cell.get("cell_type")
-                else:
-                    dst_cell = None
-                    dst_type = None
-
-                if dst_cell is not None and dst_type == src_type:
-                    src_source = cell_source(src_cell)
-                    dst_source = cell_source(dst_cell)
-                    if dst_source != src_source:
-                        dst_cell["source"] = src_source
-                        target_changed = True
-                    rebuilt_cells.append(dst_cell)
-                    target_index += 1
-                    continue
-
-                if src_type == "markdown":
-                    rebuilt_cells.append(
-                        {
-                            "cell_type": "markdown",
-                            "metadata": {},
-                            "source": cell_source(src_cell),
-                        }
-                    )
-                    target_changed = True
-                    continue
-
+            if len(canonical["cells"]) != len(target["cells"]):
                 raise SystemExit(
-                    "Run sync failed: incompatible cell layout for "
-                    f"{target_rel} at canonical cell {canonical_index}."
-                )
-
-            if target_index != len(target_cells):
-                raise SystemExit(
-                    "Run sync failed: target has extra trailing cells for "
+                    "Run sync failed: different cell count for "
                     f"{target_rel} vs {canonical_rel}."
                 )
 
-            if target.get("cells") != rebuilt_cells:
-                target["cells"] = rebuilt_cells
-                target_changed = True
+            target_changed = False
+            for index, (src_cell, dst_cell) in enumerate(
+                zip(canonical["cells"], target["cells"])
+            ):
+                if src_cell.get("cell_type") != dst_cell.get("cell_type"):
+                    raise SystemExit(
+                        "Run sync failed: different cell type at "
+                        f"{target_rel} cell {index}."
+                    )
+                src_source = cell_source(src_cell)
+                dst_source = cell_source(dst_cell)
+                if dst_source != src_source:
+                    dst_cell["source"] = src_source
+                    target_changed = True
 
             if target_changed:
                 write_notebook(target_path, target)

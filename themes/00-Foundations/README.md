@@ -12,7 +12,6 @@
 Этот блок не заменяет тематические guides внутри `01-RNN` и `02-Attention`. Он снимает общие входные трудности до того, как студент откроет основную лабораторную.
 
 ## Структура
-- [theory/theory.md](./theory/theory.md) — единый теоретический хаб `00`: beginner-first маршрут, математический минимум и карта архитектур.
 - [guides/01_sequence_shapes_and_metrics.md](./guides/01_sequence_shapes_and_metrics.md) — формы `(batch, time, features)`, `loss` vs `accuracy`, `return_sequences`, `token_accuracy` vs `exact_match`.
 - [guides/02_tokens_padding_and_decoder_shift.md](./guides/02_tokens_padding_and_decoder_shift.md) — словарь, `PAD/SOS/EOS`, masking, teacher forcing, сдвиг decoder.
 - [guides/03_attention_heatmaps.md](./guides/03_attention_heatmaps.md) — `query/key/value`, score-matrix, `context`, чтение heatmap.
@@ -69,38 +68,13 @@
 
 Если один из пунктов не выполняется, сначала вернитесь в соответствующий guide и пройдите mini-check до обучения.
 
-## Внешний обзор архитектур
-Этот блок нужен как карта местности: что есть вне основного трека `00 -> 05`, чтобы студент не терялся в терминах.
-
-- `MLP` — базовые полносвязные сети для табличных и векторных признаков.
-- `CNN` — свёрточные сети для изображений и локальных паттернов.
-- `GNN` — графовые сети для узлов/рёбер и структурных зависимостей.
-- `Autoencoder` — сжатие и восстановление представлений без явных меток.
-- `GAN` — состязательная генерация (`generator` против `discriminator`).
-- `Diffusion` — генерация через шаги зашумления и обратного восстановления.
-
-Это обзорный слой: отдельные лабораторные ветки под эти архитектуры в текущем курсе не добавляются.
-
-## Математический минимум sequence/attention/transformer
-Короткая формула-опора, к которой можно возвращаться в любой теме:
-
-1. sequence-контракт:
-   `X.shape = (batch, time, features)` или `(batch, time)` для токенов.
-2. attention:
-   `scores = softmax(QK^T / sqrt(d_k))`, затем `context = scores @ V`.
-3. transformer:
-   `LayerNorm(x + Attention(x))`, затем `LayerNorm(h + FFN(h))`.
-
-Подробный beginner-разбор этих пунктов:
-[theory/theory.md](./theory/theory.md)
-
-## Разминка: examples
+## Warm-up Examples
 - [examples/01_numpy_sequence_basics.ipynb](./examples/01_numpy_sequence_basics.ipynb) — ручной разбор `shape`, `axis`, `sum`, `cumsum` и построения меток.
 - [examples/02_minimal_keras_sequence_classifier.ipynb](./examples/02_minimal_keras_sequence_classifier.ipynb) — минимальный `Embedding + SimpleRNN/GRU` на synthetic data.
 - [examples/03_tokenization_padding_masking.ipynb](./examples/03_tokenization_padding_masking.ipynb) — словарь, `PAD/SOS/EOS`, decoder shift и mask без тяжёлого обучения.
 - [examples/04_attention_heatmap_toy.ipynb](./examples/04_attention_heatmap_toy.ipynb) — ручная score-matrix, softmax, `context` и маленький Keras `Attention`.
 
-## Демонстрации на реальных данных
+## Real-Data Showcases
 Материалы в `showcases/` не обязательны перед первой попыткой лабораторной.
 
 Их правильный момент:

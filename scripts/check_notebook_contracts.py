@@ -19,12 +19,6 @@ UNRESOLVED_PATTERNS = (
     re.compile(r"NotImplementedError\(\s*['\"]TODO"),
     re.compile(r"=\s*\.\.\."),
 )
-REQUIRED_BEGINNER_LAYER_MARKER = "beginner-слой"
-REQUIRED_FLOW_MARKER = (
-    "контракт -> теория -> ручной пример -> todo -> проверки -> диагностика"
-)
-REQUIRED_THEORY_LINK_FRAGMENT = "theory/theory.md"
-REQUIRED_DELTA_MARKER = "что изменилось после"
 
 
 def read_notebook(path: Path) -> dict:
@@ -53,16 +47,6 @@ def notebook_text(notebook: dict) -> str:
     """Возвращает объединенный source всех ячеек."""
 
     return "\n".join(cell_source(cell) for cell in notebook["cells"])
-
-
-def markdown_text(notebook: dict) -> str:
-    """Возвращает объединенный source только markdown-ячеек."""
-
-    return "\n".join(
-        cell_source(cell)
-        for cell in notebook["cells"]
-        if cell.get("cell_type") == "markdown"
-    )
 
 
 def code_text(notebook: dict) -> str:
@@ -114,23 +98,6 @@ def checklist_required_for_pair(starter_rel: str) -> bool:
     return True
 
 
-def check_theory_learning_spine(relative_path: str, notebook: dict, errors: list[str]) -> None:
-    """Проверяет beginner-маркеры и теоретические связки в учебных ноутбуках."""
-
-    lowered_markdown = markdown_text(notebook).lower()
-    required_markers = (
-        REQUIRED_BEGINNER_LAYER_MARKER,
-        REQUIRED_FLOW_MARKER,
-        REQUIRED_THEORY_LINK_FRAGMENT,
-    )
-    for marker in required_markers:
-        if marker not in lowered_markdown:
-            errors.append(f"{relative_path}: missing required learning-spine marker {marker!r}.")
-
-    if REQUIRED_DELTA_MARKER not in lowered_markdown:
-        errors.append(f"{relative_path}: missing transition marker {REQUIRED_DELTA_MARKER!r}.")
-
-
 def check_inventory(errors: list[str]) -> None:
     """Проверяет, что набор notebook-ов совпадает с зафиксированным контрактом."""
 
@@ -158,8 +125,6 @@ def check_starter_solution_alignment(errors: list[str]) -> None:
 
         starter_text = notebook_text(starter)
         solution_code = code_text(solution)
-        check_theory_learning_spine(starter_rel, starter, errors)
-        check_theory_learning_spine(solution_rel, solution, errors)
 
         if TODO_MARKER not in starter_text:
             errors.append(f"{starter_rel}: starter notebook must contain TODO markers.")
