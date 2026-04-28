@@ -94,11 +94,7 @@ def has_checklist_heading(notebook: dict) -> bool:
 def checklist_required_for_pair(starter_rel: str) -> bool:
     """Возвращает, обязателен ли checklist-заголовок для пары notebook-ов."""
 
-    if starter_rel in (
-        "themes/04-Autoregression/lab/02_decoder_only_tiny_shakespeare.ipynb",
-        "themes/04-Autoregression/lab/02_decoder_only_tiny_shakespeare_gpu.ipynb",
-    ):
-        return False
+    _ = starter_rel
     return True
 
 

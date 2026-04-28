@@ -17,6 +17,42 @@ FORBIDDEN_COMMENT_FRAGMENTS = (
     "# Step ",
     "# Hint:",
 )
+FORBIDDEN_ENGLISH_HEADING_MARKERS = (
+    "warm-up",
+    "showcase",
+    "workflow",
+    "checkpoint",
+)
+
+NOTEBOOK_HEADING_MARKERS = {
+    "themes/00-Foundations/examples/01_numpy_sequence_basics.ipynb": ("разминка 1",),
+    "themes/00-Foundations/examples/02_minimal_keras_sequence_classifier.ipynb": ("разминка 2",),
+    "themes/00-Foundations/examples/03_tokenization_padding_masking.ipynb": ("разминка 3",),
+    "themes/00-Foundations/examples/04_attention_heatmap_toy.ipynb": ("разминка 4",),
+    "themes/00-Foundations/showcases/01_imdb_many_to_one_showcase.ipynb": ("демонстрация 1",),
+    "themes/00-Foundations/showcases/02_jena_climate_lstm_gru_showcase.ipynb": ("демонстрация 2",),
+    "themes/00-Foundations/showcases/03_spa_eng_seq2seq_attention_showcase.ipynb": ("демонстрация 3",),
+    "themes/03-Transformer/lab/01_transformer_encoder_order_toy.ipynb": (
+        "контрольная точка 1",
+        "контрольная точка 2",
+        "контрольная точка 3",
+        "контрольная точка 4",
+        "контрольная точка 5",
+    ),
+    "themes/03-Transformer/lab/solutions/01_transformer_encoder_order_toy_solution.ipynb": (
+        "контрольная точка 1",
+        "контрольная точка 2",
+        "контрольная точка 3",
+        "контрольная точка 4",
+        "контрольная точка 5",
+    ),
+    "themes/05-Full-Transformer/lab/01_full_transformer_tiny_shakespeare.ipynb": (
+        "маршрут выполнения",
+    ),
+    "themes/05-Full-Transformer/lab/solutions/01_full_transformer_wikitext2_solution.ipynb": (
+        "маршрут выполнения",
+    ),
+}
 
 README_MARKERS = {
     "themes/00-Foundations/README.md": (
@@ -90,6 +126,20 @@ def notebook_sources(notebook: dict) -> tuple[str, str]:
     return markdown, code
 
 
+def markdown_headings(notebook: dict) -> list[str]:
+    """Возвращает все markdown-заголовки notebook-а."""
+
+    headings: list[str] = []
+    for cell in notebook["cells"]:
+        if cell.get("cell_type") != "markdown":
+            continue
+        for raw_line in cell_source(cell).splitlines():
+            line = raw_line.strip()
+            if line.startswith("#"):
+                headings.append(line)
+    return headings
+
+
 def parse_ast(source: str) -> ast.Module | None:
     """Пытается разобрать code source в AST без падения на синтаксических ячейках."""
 
@@ -116,8 +166,15 @@ def required_markers_for_notebook(relative_path: str) -> tuple[str, ...]:
         if "01_decoder_only_causal_toy" in relative_path:
             return ("causal_mask", "perplexity", "чек-лист")
         if "02_decoder_only_tiny_shakespeare_gpu" in relative_path:
-            return ("gpu_preflight", "causal_mask", "perplexity", "baseline", "generation")
-        return ("causal_mask", "perplexity", "baseline", "генерац")
+            return (
+                "gpu_preflight",
+                "causal_mask",
+                "perplexity",
+                "baseline",
+                "generation",
+                "чек-лист",
+            )
+        return ("causal_mask", "perplexity", "baseline", "генерац", "чек-лист")
     if relative_path.startswith("themes/05-Full-Transformer/lab/"):
         return (
             "encoder_input",
@@ -171,6 +228,27 @@ def check_docstrings(tree: ast.Module, relative_path: str, errors: list[str]) ->
             errors.append(f"{relative_path}: function {node.name!r} misses 'Исключения:'.")
 
 
+def check_markdown_headings(
+    relative_path: str, notebook: dict, errors: list[str]
+) -> None:
+    """Проверяет запрет EN heading-маркеров и наличие обязательных RU heading-маркеров."""
+
+    headings = markdown_headings(notebook)
+    lowered_headings = [heading.lower() for heading in headings]
+
+    for heading in lowered_headings:
+        for marker in FORBIDDEN_ENGLISH_HEADING_MARKERS:
+            if re.search(rf"(^|\W){re.escape(marker)}($|\W)", heading):
+                errors.append(
+                    f"{relative_path}: heading contains forbidden EN marker {marker!r}."
+                )
+
+    required_markers = NOTEBOOK_HEADING_MARKERS.get(relative_path, ())
+    for marker in required_markers:
+        if not any(marker in heading for heading in lowered_headings):
+            errors.append(f"{relative_path}: missing required heading marker {marker!r}.")
+
+
 def check_notebook(relative_path: str, errors: list[str]) -> None:
     """Проверяет один notebook по quality-контракту."""
 
@@ -194,6 +272,7 @@ def check_notebook(relative_path: str, errors: list[str]) -> None:
     tree = parse_ast(code)
     if tree is not None:
         check_docstrings(tree, relative_path, errors)
+    check_markdown_headings(relative_path, notebook, errors)
 
     print(f"quality-ok: {relative_path}")
 
