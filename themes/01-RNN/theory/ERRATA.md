@@ -30,6 +30,14 @@
 5. Отсутствие явных размерностей тензоров.
 - В новой версии добавлены обозначения и размерности для входов, скрытых состояний, весов и выходов.
 
+6. Двусмысленные seq2seq-изображения в теме `01-RNN`.
+- Внешние файлы `Seq2seq_training.png` и `Seq2seq_training_and_inferring.png` по исходной Wikimedia-атрибуции
+  описывают `encoder-decoder with attention mechanism`.
+- Для plain GRU seq2seq в ЛР03 они заменены на локальные схемы:
+  `seq2seq_training_plain.svg` и `seq2seq_training_and_inferring_plain.svg`.
+- Attention-семантика теперь явно отнесена к теме `02-Attention`, а аудит всех diagram-assets закреплен в
+  `images/DIAGRAM_AUDIT.md`.
+
 ## Проверки, выполненные перед исправлением
 
 1. Текстовый слой PDF: `pdftotext`.

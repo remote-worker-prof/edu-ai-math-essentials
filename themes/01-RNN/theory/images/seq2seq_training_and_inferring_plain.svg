@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="720" viewBox="0 0 1320 720" role="img" aria-labelledby="title desc">
+  <title id="title">Plain seq2seq training versus inference</title>
+  <desc id="desc">Training uses teacher forcing with shifted true targets; inference feeds the previous predicted token back into the decoder. The diagram intentionally contains no attention block.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f172a"/>
+    </marker>
+    <style>
+      .title { font: 700 30px 'DejaVu Sans', sans-serif; fill: #0f172a; }
+      .subtitle { font: 700 22px 'DejaVu Sans', sans-serif; fill: #0f172a; }
+      .label { font: 600 18px 'DejaVu Sans', sans-serif; fill: #0f172a; }
+      .small { font: 500 16px 'DejaVu Sans', sans-serif; fill: #1f2937; }
+      .tiny { font: 500 14px 'DejaVu Sans', sans-serif; fill: #334155; }
+      .panel { fill: #f8fafc; stroke: #64748b; stroke-width: 1.5; rx: 12; }
+      .source { fill: #dcfce7; stroke: #166534; stroke-width: 2; rx: 10; }
+      .target { fill: #fef3c7; stroke: #92400e; stroke-width: 2; rx: 10; }
+      .decoder { fill: #dbeafe; stroke: #1d4ed8; stroke-width: 2; rx: 10; }
+      .output { fill: #fce7f3; stroke: #be185d; stroke-width: 2; rx: 10; }
+      .line { stroke: #0f172a; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+      .feedback { stroke: #be185d; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+      .dash { stroke: #475569; stroke-width: 2; stroke-dasharray: 8 6; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <text x="40" y="54" class="title">Plain seq2seq: обучение и инференс - разные потоки входов decoder</text>
+  <text x="40" y="86" class="small">01-RNN: сравниваем два режима без attention. Attention появится в теме 02.</text>
+
+  <rect x="50" y="120" width="590" height="500" class="panel"/>
+  <text x="80" y="158" class="subtitle">Training: teacher forcing</text>
+  <text x="80" y="188" class="small">decoder получает истинный предыдущий токен</text>
+
+  <rect x="95" y="230" width="110" height="52" class="source"/>
+  <text x="126" y="262" class="label">SOS</text>
+  <rect x="255" y="230" width="110" height="52" class="source"/>
+  <text x="292" y="262" class="label">y_1</text>
+  <rect x="415" y="230" width="110" height="52" class="source"/>
+  <text x="452" y="262" class="label">y_2</text>
+
+  <rect x="95" y="350" width="110" height="62" class="decoder"/>
+  <text x="123" y="386" class="label">dec_1</text>
+  <rect x="255" y="350" width="110" height="62" class="decoder"/>
+  <text x="283" y="386" class="label">dec_2</text>
+  <rect x="415" y="350" width="110" height="62" class="decoder"/>
+  <text x="443" y="386" class="label">dec_3</text>
+
+  <path d="M 150 282 L 150 350" class="line"/>
+  <path d="M 310 282 L 310 350" class="line"/>
+  <path d="M 470 282 L 470 350" class="line"/>
+  <path d="M 205 381 L 255 381" class="line"/>
+  <path d="M 365 381 L 415 381" class="line"/>
+
+  <rect x="95" y="480" width="110" height="52" class="output"/>
+  <text x="132" y="512" class="label">y_1</text>
+  <rect x="255" y="480" width="110" height="52" class="output"/>
+  <text x="292" y="512" class="label">y_2</text>
+  <rect x="415" y="480" width="110" height="52" class="output"/>
+  <text x="448" y="512" class="label">EOS</text>
+  <path d="M 150 412 L 150 480" class="line"/>
+  <path d="M 310 412 L 310 480" class="line"/>
+  <path d="M 470 412 L 470 480" class="line"/>
+
+  <text x="80" y="580" class="small">decoder_input = [SOS, y_1, y_2]</text>
+  <text x="80" y="604" class="small">decoder_target = [y_1, y_2, EOS]</text>
+
+  <rect x="690" y="120" width="590" height="500" class="panel"/>
+  <text x="720" y="158" class="subtitle">Inference: autoregressive feedback</text>
+  <text x="720" y="188" class="small">decoder получает свое прошлое предсказание</text>
+
+  <rect x="735" y="230" width="110" height="52" class="source"/>
+  <text x="766" y="262" class="label">SOS</text>
+
+  <rect x="735" y="350" width="110" height="62" class="decoder"/>
+  <text x="763" y="386" class="label">dec_1</text>
+  <rect x="895" y="350" width="110" height="62" class="decoder"/>
+  <text x="923" y="386" class="label">dec_2</text>
+  <rect x="1055" y="350" width="110" height="62" class="decoder"/>
+  <text x="1083" y="386" class="label">dec_3</text>
+
+  <path d="M 790 282 L 790 350" class="line"/>
+  <path d="M 845 381 L 895 381" class="line"/>
+  <path d="M 1005 381 L 1055 381" class="line"/>
+
+  <rect x="735" y="480" width="110" height="52" class="output"/>
+  <text x="762" y="512" class="label">hat y_1</text>
+  <rect x="895" y="480" width="110" height="52" class="output"/>
+  <text x="922" y="512" class="label">hat y_2</text>
+  <rect x="1055" y="480" width="110" height="52" class="output"/>
+  <text x="1086" y="512" class="label">hat EOS</text>
+  <path d="M 790 412 L 790 480" class="line"/>
+  <path d="M 950 412 L 950 480" class="line"/>
+  <path d="M 1110 412 L 1110 480" class="line"/>
+
+  <path d="M 790 480 C 790 442, 950 442, 950 350" class="feedback"/>
+  <path d="M 950 480 C 950 442, 1110 442, 1110 350" class="feedback"/>
+
+  <text x="720" y="580" class="small">next input = previous prediction</text>
+  <text x="720" y="604" class="tiny">No ground-truth target is available during real generation.</text>
+
+  <rect x="80" y="645" width="1160" height="44" class="panel"/>
+  <text x="105" y="673" class="small">Математический смысл: training оценивает p(y_t | y_&lt;t, x); inference строит y_t из уже выбранных model predictions.</text>
+</svg>

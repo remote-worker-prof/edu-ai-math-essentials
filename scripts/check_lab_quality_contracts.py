@@ -188,6 +188,34 @@ THEORY_CONTRACTS = {
 }
 
 FORMULA_MARKER_PATTERN = re.compile(r"\$|\\\[|\\\]|\\begin|\\end")
+MARKDOWN_IMAGE_PATTERN = re.compile(r"!\[[^\]]*\]\(([^)]+)\)")
+MARKDOWN_DIAGRAM_BLOCK_PATTERN = re.compile(
+    r"```(?:mermaid|plantuml)\b|@startuml\b|^\s*digraph\s+\w*\s*\{",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+RNN_THEORY_PATH = "themes/01-RNN/theory/theory.md"
+RNN_DIAGRAM_DIR = "themes/01-RNN/theory/images"
+RNN_APPROVED_EMBEDDED_DIAGRAMS = {
+    "rnn_forward_unrolled.svg",
+    "lstm_forward_consistent.svg",
+    "gru_forward_consistent.svg",
+    "seq2seq_training_plain.svg",
+    "seq2seq_training_and_inferring_plain.svg",
+}
+RNN_FORBIDDEN_EMBEDDED_DIAGRAMS = {
+    "Seq2seq_training.png",
+    "Seq2seq_training_and_inferring.png",
+}
+RNN_REQUIRED_MATH_MARKERS = (
+    "h_t",
+    "c_t",
+    "z_t",
+    "r_t",
+    "teacher forcing",
+    "decoder_input",
+    "decoder_target",
+)
 
 
 def read_notebook(path: Path) -> dict:
@@ -431,6 +459,92 @@ def check_theory_files(errors: list[str]) -> None:
         print(f"theory-quality-ok: {relative_path}")
 
 
+def markdown_image_targets(text: str) -> list[str]:
+    """Извлекает целевые пути Markdown image-ссылок."""
+
+    return [match.group(1).split("#", 1)[0].strip() for match in MARKDOWN_IMAGE_PATTERN.finditer(text)]
+
+
+def is_external_target(target: str) -> bool:
+    """Определяет, ведет ли Markdown image-ссылка наружу."""
+
+    lowered = target.lower()
+    return lowered.startswith(("http://", "https://", "data:", "mailto:"))
+
+
+def check_markdown_image_links(errors: list[str]) -> None:
+    """Проверяет существование локальных Markdown image-ссылок во всех MD-файлах."""
+
+    for path in sorted((ROOT / "themes").rglob("*.md")):
+        relative_path = path.relative_to(ROOT).as_posix()
+        text = path.read_text(encoding="utf-8")
+
+        if MARKDOWN_DIAGRAM_BLOCK_PATTERN.search(text):
+            errors.append(
+                f"{relative_path}: contains Mermaid/PlantUML/Graphviz diagram block "
+                "that is not covered by the current diagram audit contract."
+            )
+
+        for target in markdown_image_targets(text):
+            if not target or is_external_target(target):
+                continue
+            image_path = (path.parent / target).resolve()
+            try:
+                image_path.relative_to(ROOT.resolve())
+            except ValueError:
+                errors.append(f"{relative_path}: image link escapes repository: {target!r}.")
+                continue
+            if not image_path.exists():
+                errors.append(f"{relative_path}: image link target does not exist: {target!r}.")
+
+    print("markdown-image-links-ok: themes/**/*.md")
+
+
+def check_rnn_diagram_contracts(errors: list[str]) -> None:
+    """Проверяет математически утвержденный набор диаграмм в RNN theory."""
+
+    theory_path = ROOT / RNN_THEORY_PATH
+    if not theory_path.exists():
+        errors.append(f"{RNN_THEORY_PATH}: RNN theory file is missing.")
+        return
+
+    text = theory_path.read_text(encoding="utf-8")
+    embedded = {Path(target).name for target in markdown_image_targets(text)}
+
+    missing = sorted(RNN_APPROVED_EMBEDDED_DIAGRAMS - embedded)
+    if missing:
+        errors.append(f"{RNN_THEORY_PATH}: missing approved embedded diagram(s): {missing}.")
+
+    unexpected = sorted(embedded - RNN_APPROVED_EMBEDDED_DIAGRAMS)
+    if unexpected:
+        errors.append(f"{RNN_THEORY_PATH}: embeds unapproved diagram(s): {unexpected}.")
+
+    forbidden = sorted(embedded & RNN_FORBIDDEN_EMBEDDED_DIAGRAMS)
+    if forbidden:
+        errors.append(f"{RNN_THEORY_PATH}: embeds forbidden seq2seq attention diagram(s): {forbidden}.")
+
+    lowered = text.lower()
+    for marker in RNN_REQUIRED_MATH_MARKERS:
+        if marker.lower() not in lowered:
+            errors.append(f"{RNN_THEORY_PATH}: missing required diagram math marker {marker!r}.")
+
+    audit_path = ROOT / RNN_DIAGRAM_DIR / "DIAGRAM_AUDIT.md"
+    if not audit_path.exists():
+        errors.append(f"{RNN_DIAGRAM_DIR}/DIAGRAM_AUDIT.md: diagram audit file is missing.")
+        return
+
+    audit_text = audit_path.read_text(encoding="utf-8")
+    for asset_path in sorted((ROOT / RNN_DIAGRAM_DIR).glob("*")):
+        if asset_path.suffix.lower() not in {".svg", ".png", ".mmd"}:
+            continue
+        if asset_path.name not in audit_text:
+            errors.append(
+                f"{RNN_DIAGRAM_DIR}/DIAGRAM_AUDIT.md: missing audit entry for {asset_path.name!r}."
+            )
+
+    print("rnn-diagram-contracts-ok: themes/01-RNN/theory")
+
+
 def main() -> None:
     """Запускает quality-проверки notebook-ов и README."""
 
@@ -439,6 +553,8 @@ def main() -> None:
         check_notebook(relative_path, errors)
     check_readmes(errors)
     check_theory_files(errors)
+    check_markdown_image_links(errors)
+    check_rnn_diagram_contracts(errors)
 
     if errors:
         raise SystemExit("\n".join(errors))

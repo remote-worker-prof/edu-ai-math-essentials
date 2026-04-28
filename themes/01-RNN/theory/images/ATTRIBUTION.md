@@ -2,7 +2,8 @@
 
 Дата обновления: 2026-03-10
 
-Ниже перечислены изображения, используемые в `theory.md`. Все файлы получены из открытых интернет-источников (Wikimedia Commons).
+Ниже перечислены внешние изображения, исторически сохраненные рядом с `theory.md`.
+Текущие embedded-схемы и verdict по каждой диаграмме зафиксированы в `DIAGRAM_AUDIT.md`.
 
 ## Recurrent_neural_network_unfold.svg
 - Локальный файл: `Recurrent_neural_network_unfold.svg`
@@ -48,3 +49,12 @@
 - Лицензия: CC BY 4.0
 - URL лицензии: <https://creativecommons.org/licenses/by/4.0>
 - Credit: https://github.com/dvgodoy/dl-visuals/
+
+## Local course diagrams
+
+- `rnn_forward_unrolled.svg`, `lstm_forward_consistent.svg`, `gru_forward_consistent.svg`,
+  `seq2seq_training_plain.svg`, `seq2seq_training_and_inferring_plain.svg` и соседние render/source
+  assets являются локальными учебными схемами проекта EAIME.
+- Они используются для синхронизации диаграмм с нотацией курса и не требуют внешней атрибуции.
+- Внешние `Seq2seq_training*.png` оставлены только для provenance: их Wikimedia-источники описывают
+  encoder-decoder with attention mechanism, поэтому они deprecated для plain seq2seq в `01-RNN`.
