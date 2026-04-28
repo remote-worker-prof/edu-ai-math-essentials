@@ -58,6 +58,7 @@ README_MARKERS = {
     "themes/00-Foundations/README.md": (
         "единый мини-глоссарий 00-05",
         "готов/не готов к следующей теме",
+        "theory/theory.md",
     ),
     "themes/01-RNN/lab/README.md": (
         "shape bridge",
@@ -86,6 +87,107 @@ README_MARKERS = {
         "cross-attention",
     ),
 }
+
+THEORY_CONTRACTS = {
+    "themes/00-Foundations/theory/theory.md": {
+        "min_lines": 90,
+        "min_formula_lines": 4,
+        "markers": (
+            "математический минимум sequence/attention/transformer",
+            "внешний обзор архитектур",
+            "MLP",
+            "CNN",
+            "GNN",
+            "Autoencoder",
+            "GAN",
+            "Diffusion",
+            "Shape-contract",
+        ),
+    },
+    "themes/01-RNN/theory/theory.md": {
+        "min_lines": 650,
+        "min_formula_lines": 160,
+        "markers": (
+            "Канонический блок обозначений и формул",
+            "BPTT",
+            "Интернет-инфографика",
+            "Внутренняя логика обучения",
+            "Расшифровка каждой закорючки",
+            "Что это значит словами",
+            "Что означает каждый символ",
+            "Shape-contract",
+            "Мини-числовой пример",
+            "Где это в TODO",
+            "Типичная ошибка",
+        ),
+    },
+    "themes/02-Attention/theory/theory.md": {
+        "min_lines": 120,
+        "min_formula_lines": 12,
+        "markers": (
+            "Dot-product attention",
+            "Как attention ведет к Transformer",
+            "Расшифровка каждой закорючки",
+            "Что это значит словами",
+            "Что означает каждый символ",
+            "Shape-contract",
+            "Мини-числовой пример",
+            "Где это в TODO",
+            "Типичная ошибка",
+        ),
+    },
+    "themes/03-Transformer/theory/theory.md": {
+        "min_lines": 210,
+        "min_formula_lines": 32,
+        "markers": (
+            "Масштабированное скалярное внимание",
+            "Многоголовое внимание",
+            "Маска дополнения",
+            "Расшифровка каждой закорючки",
+            "Что это значит словами",
+            "Что означает каждый символ",
+            "Shape-contract",
+            "Мини-числовой пример",
+            "Где это в TODO",
+            "Типичная ошибка",
+        ),
+    },
+    "themes/04-Autoregression/theory/theory.md": {
+        "min_lines": 165,
+        "min_formula_lines": 23,
+        "markers": (
+            "Вероятностная основа",
+            "Перплексия",
+            "Почему нужна причинная маска",
+            "Двухчастная практическая траектория",
+            "Расшифровка каждой закорючки",
+            "Что это значит словами",
+            "Что означает каждый символ",
+            "Shape-contract",
+            "Мини-числовой пример",
+            "Где это в TODO",
+            "Типичная ошибка",
+        ),
+    },
+    "themes/05-Full-Transformer/theory/theory.md": {
+        "min_lines": 130,
+        "min_formula_lines": 18,
+        "markers": (
+            "Вывод функции потерь",
+            "Причинная маска",
+            "Масштабирование оценок внимания",
+            "Расшифровка каждой закорючки",
+            "Что это значит словами",
+            "Что означает каждый символ",
+            "Data-contract",
+            "Мини-числовой пример",
+            "Где это в TODO",
+            "Типичная ошибка",
+        ),
+    },
+}
+
+FORMULA_MARKER_PATTERN = re.compile(r"\$|\\\[|\\\]|\\begin|\\end")
 
 
 def read_notebook(path: Path) -> dict:
@@ -294,6 +396,41 @@ def check_readmes(errors: list[str]) -> None:
         print(f"readme-quality-ok: {relative_path}")
 
 
+def check_theory_files(errors: list[str]) -> None:
+    """Проверяет, что rich theory не была заменена кратким пересказом."""
+
+    for relative_path, contract in THEORY_CONTRACTS.items():
+        path = ROOT / relative_path
+        if not path.exists():
+            errors.append(f"{relative_path}: theory file is missing.")
+            continue
+
+        text = path.read_text(encoding="utf-8")
+        line_count = len(text.splitlines())
+        min_lines = int(contract["min_lines"])
+        if line_count < min_lines:
+            errors.append(
+                f"{relative_path}: theory file is too short ({line_count} < {min_lines})."
+            )
+
+        formula_lines = sum(
+            1 for line in text.splitlines() if FORMULA_MARKER_PATTERN.search(line)
+        )
+        min_formula_lines = int(contract["min_formula_lines"])
+        if formula_lines < min_formula_lines:
+            errors.append(
+                f"{relative_path}: too few formula/LaTeX lines "
+                f"({formula_lines} < {min_formula_lines})."
+            )
+
+        lowered = text.lower()
+        for marker in contract["markers"]:
+            if str(marker).lower() not in lowered:
+                errors.append(f"{relative_path}: missing theory marker {marker!r}.")
+
+        print(f"theory-quality-ok: {relative_path}")
+
+
 def main() -> None:
     """Запускает quality-проверки notebook-ов и README."""
 
@@ -301,6 +438,7 @@ def main() -> None:
     for relative_path in sorted(EXPECTED_NOTEBOOKS):
         check_notebook(relative_path, errors)
     check_readmes(errors)
+    check_theory_files(errors)
 
     if errors:
         raise SystemExit("\n".join(errors))

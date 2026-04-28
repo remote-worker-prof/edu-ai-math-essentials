@@ -121,3 +121,92 @@ Attention решает главную проблему plain `seq2seq`: decoder 
 - [../../03-Transformer/lab/README.md](../../03-Transformer/lab/README.md)
 - сначала `03-Transformer / ЛР01` на synthetic order-sensitive задаче;
 - затем `03-Transformer / ЛР02` на `IMDB`.
+
+## 6. Расшифровка каждой закорючки: attention как таблица соответствий
+
+Этот раздел добавляет beginner-first чтение формул выше. Формулы Luong attention остаются каноническими; ниже показано, как их читать без пропуска смысла.
+
+### 6.1 Что это значит словами
+
+Attention отвечает на вопрос: “какая позиция входа сейчас нужна decoder-у?”.
+
+Если совсем с нуля:
+- decoder делает запрос `query`;
+- encoder хранит адреса `key`;
+- encoder хранит содержимое `value`;
+- attention превращает похожесть `query` и `key` в веса;
+- context собирается как взвешенная сумма `value`.
+
+Если профессионально:
+- attention строит дифференцируемый content-addressing механизм;
+- веса $\alpha_{t,s}$ являются распределением по позициям source для фиксированного decoder-step `t`.
+
+### 6.2 Что означает каждый символ
+
+| Символ | Смысл | Shape-contract |
+|---|---|---|
+| $q_t$ | запрос decoder на шаге `t` | `(H,)` или `(batch, H)` |
+| $k_s$ | ключ encoder-позиции `s` | `(H,)` или `(batch, H)` |
+| $v_s$ | значение encoder-позиции `s` | `(H,)` или `(batch, H)` |
+| $e_{t,s}$ | сырая оценка похожести | scalar или `(batch,)` |
+| $\alpha_{t,s}$ | нормированный вес внимания | scalar, сумма по `s` равна `1` |
+| $c_t$ | context-вектор decoder-шага | `(H,)` или `(batch, H)` |
+| $T_{in}$ | длина входа encoder | число столбцов heatmap |
+| $T_{out}$ | длина выхода decoder | число строк heatmap |
+
+### 6.3 Shape-contract и heatmap axes
+
+```text
+encoder_outputs  : (batch, T_in,  H)
+decoder_outputs  : (batch, T_out, H)
+attention_scores : (batch, T_out, T_in)
+context          : (batch, T_out, H)
+```
+
+Heatmap читается как таблица:
+- строка = decoder-step (`query`);
+- столбец = encoder-position (`key/value`);
+- цвет = $\alpha_{t,s}$.
+
+### 6.4 Мини-числовой пример
+
+Пусть на одном decoder-шаге сырые оценки:
+
+$$
+e_{t,:} = [1.0,\ 2.0,\ 0.0]
+$$
+
+После softmax:
+
+$$
+\alpha_{t,:} \approx [0.24,\ 0.67,\ 0.09]
+$$
+
+Если значения:
+
+$$
+v_1 = [1,0],\quad v_2=[0,1],\quad v_3=[1,1]
+$$
+
+то context:
+
+$$
+c_t \approx 0.24[1,0] + 0.67[0,1] + 0.09[1,1] = [0.33,\ 0.76]
+$$
+
+Смысл: decoder в основном взял информацию из второй позиции, немного из первой и совсем немного из третьей.
+
+### 6.5 Где это в TODO
+
+- TODO по attention-layer: проверить, что `query` приходит из decoder, а `key/value` из encoder.
+- TODO по диагностике: проверить форму `attention_scores`.
+- TODO по heatmap: подписать `T_out` по вертикали и `T_in` по горизонтали.
+
+### 6.6 Типичная ошибка и способ поймать её
+
+Ошибка: перепутать порядок входов attention и получить веса не той формы.
+
+Антидот:
+1. До обучения вывести shape `encoder_outputs` и `decoder_outputs`.
+2. После `predict` проверить `attention_scores.shape == (batch, T_out, T_in)`.
+3. Прочитать одну строку heatmap словами: “на этом decoder-шаге модель смотрит сюда”.

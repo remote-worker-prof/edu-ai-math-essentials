@@ -167,3 +167,96 @@ $$
 
 Следующий практический шаг в курсе:
 - [../../05-Full-Transformer/lab/README.md](../../05-Full-Transformer/lab/README.md) — финальная `ЛР05` с полноценной архитектурой `encoder-decoder` (starter: `Tiny Shakespeare`, solution: `WikiText-2`).
+
+## 10. Расшифровка каждой закорючки: causal mask, leakage, perplexity
+
+Этот раздел добавляет медленный слой чтения поверх вероятностной теории выше. Формулы не сокращаются: наоборот, каждая часть получает практический смысл.
+
+### 10.1 Что это значит словами
+
+Авторегрессионная модель играет честную игру только если на шаге `t` она знает прошлое, но не знает будущее.
+
+Если совсем с нуля:
+- `input` — уже известный контекст;
+- `target` — следующий токен, который надо угадать;
+- `causal mask` — правило “не подсматривать вправо”;
+- `leakage` — любая ситуация, где модель получила будущий ответ.
+
+Если профессионально:
+- causal mask реализует факторизацию $P(x_{1:T})=\prod_t P(x_t\mid x_{<t})$;
+- leakage нарушает условную независимость и делает loss/perplexity невалидными как оценку языкового моделирования.
+
+### 10.2 Что означает каждый символ
+
+| Символ | Смысл | Shape-contract |
+|---|---|---|
+| $x_t$ | токен на позиции `t` | scalar token id |
+| $x_{<t}$ | все токены до `t` | префикс длины `t-1` |
+| $P(x_t\mid x_{<t})$ | вероятность текущего токена по прошлому | `(vocab_size,)` после softmax |
+| $m_t$ | участвует ли позиция в loss | `0/1` |
+| $S_{i,j}$ | attention logit до маски | `(context, context)` |
+| $M_{i,j}$ | causal разрешение | `1`, если `j <= i`, иначе `0` |
+| $\mathcal{L}$ | средняя token loss | scalar |
+| $\mathrm{PPL}$ | perplexity | scalar |
+
+### 10.3 Shape-contract CPU/GPU
+
+```text
+token_windows : (batch, context)
+targets       : (batch, context)
+padding_mask  : (batch, context)
+causal_mask   : (context, context)
+logits        : (batch, context, vocab_size)
+```
+
+`CPU` и `GPU` отличаются масштабом и runtime-профилем, но не математическим контрактом.
+
+### 10.4 Мини-числовой пример causal mask
+
+Для `context=4`:
+
+$$
+M =
+\begin{bmatrix}
+1 & 0 & 0 & 0 \\
+1 & 1 & 0 & 0 \\
+1 & 1 & 1 & 0 \\
+1 & 1 & 1 & 1
+\end{bmatrix}
+$$
+
+Строка `2` разрешает смотреть на позиции `0,1,2`, но запрещает позицию `3`.
+Если attention mass на запрещённой позиции не близка к нулю, это leakage symptom.
+
+### 10.5 Мини-числовой пример perplexity
+
+Если средняя token loss:
+
+$$
+\mathcal{L}=1.386
+$$
+
+то:
+
+$$
+\mathrm{PPL}=e^{1.386}\approx 4
+$$
+
+Смысл: модель в среднем ведёт себя так, будто выбирает примерно из четырёх равновероятных вариантов.
+
+### 10.6 Где это в TODO
+
+- TODO causal mask: построить нижнетреугольную матрицу.
+- TODO leakage checks: подтвердить отсутствие внимания в будущее.
+- TODO perplexity/baseline: сравнить модель с простым ориентиром.
+- TODO generation gates: проверить поведение на фиксированных prompts.
+- GPU TODO: пройти `gpu_preflight()` без hidden CPU fallback.
+
+### 10.7 Типичная ошибка и способ поймать её
+
+Ошибка: считать `test_perplexity` хорошей, не проверив leakage.
+
+Антидот:
+1. Сначала проверить causal mask.
+2. Затем проверить attention mass в будущем.
+3. Только после этого интерпретировать `baseline_pass`, `generation_pass` и `overall_pass`.

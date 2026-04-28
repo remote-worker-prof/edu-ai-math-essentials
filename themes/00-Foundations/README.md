@@ -12,6 +12,7 @@
 Этот блок не заменяет тематические guides внутри `01-RNN` и `02-Attention`. Он снимает общие входные трудности до того, как студент откроет основную лабораторную.
 
 ## Структура
+- [theory/theory.md](./theory/theory.md) — единый теоретический хаб: карта `00 -> 05`, математический минимум sequence/attention/transformer и внешний обзор архитектур.
 - [guides/01_sequence_shapes_and_metrics.md](./guides/01_sequence_shapes_and_metrics.md) — формы `(batch, time, features)`, `loss` vs `accuracy`, `return_sequences`, `token_accuracy` vs `exact_match`.
 - [guides/02_tokens_padding_and_decoder_shift.md](./guides/02_tokens_padding_and_decoder_shift.md) — словарь, `PAD/SOS/EOS`, masking, teacher forcing, сдвиг decoder.
 - [guides/03_attention_heatmaps.md](./guides/03_attention_heatmaps.md) — `query/key/value`, score-matrix, `context`, чтение heatmap.

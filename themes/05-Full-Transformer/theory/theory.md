@@ -133,3 +133,109 @@ $$
 - Входной минимум: [../lab/guides/00_full_transformer_prerequisites.md](../lab/guides/00_full_transformer_prerequisites.md)
 - Пошаговый разбор: [../lab/guides/01_full_transformer_walkthrough.md](../lab/guides/01_full_transformer_walkthrough.md)
 - Диагностика: [../lab/guides/02_full_transformer_debugging_playbook.md](../lab/guides/02_full_transformer_debugging_playbook.md)
+
+## 10. Расшифровка каждой закорючки: полный encoder-decoder контракт
+
+Этот раздел добавлен как мост от формул к финальной лабораторной. Он сохраняет весь вывод выше и разбирает, что означает каждый tensor в `ЛР05`.
+
+### 10.1 Что это значит словами
+
+Full-transformer отвечает на вопрос: как decoder предсказывает продолжение, если у него есть отдельная source-память encoder.
+
+Если совсем с нуля:
+- encoder читает исходный фрагмент;
+- decoder получает предыдущие target-токены;
+- decoder предсказывает текущий target-токен;
+- cross-attention позволяет decoder смотреть на encoder-память.
+
+Если профессионально:
+- модель оценивает условное распределение $P(y_{1:T}\mid x)$;
+- decoder self-attention ограничивается causal mask;
+- cross-attention ограничивается padding mask источника.
+
+### 10.2 Что означает каждый символ
+
+| Символ | Смысл | Shape-contract |
+|---|---|---|
+| $x$ | source-последовательность encoder | `(batch, src_len)` |
+| $y_t$ | target-токен на шаге `t` | scalar token id |
+| $y_{<t}$ | target-префикс до шага `t` | длина `t-1` |
+| $m_t$ | валидность target-позиции | `0/1` |
+| $Q_{dec}$ | decoder queries | `(batch, tgt_len, d_k)` |
+| $K_{enc},V_{enc}$ | encoder memory | `(batch, src_len, d_k/d_v)` |
+| $M$ | mask в attention logits | broadcast к attention score shape |
+| $\mathcal{L}_{\mathrm{NLL}}$ | отрицательное log-likelihood | scalar |
+
+### 10.3 Data-contract без двусмысленности
+
+```text
+encoder_input:
+  ids[i : i + SRC_LEN]
+  shape = (batch, SRC_LEN)
+
+target:
+  ids[i + SRC_LEN : i + SRC_LEN + TGT_LEN]
+  shape = (batch, TGT_LEN)
+
+decoder_input:
+  [SOS] + target[:-1]
+  shape = (batch, TGT_LEN)
+
+decoder_target:
+  target
+  shape = (batch, TGT_LEN)
+```
+
+Правило: `decoder_input` — что decoder уже видит; `decoder_target` — что он обязан предсказать.
+
+### 10.4 Мини-числовой пример teacher forcing
+
+Если:
+
+```text
+target = [31, 9, 14, 2]
+SOS = 1
+```
+
+то:
+
+```text
+decoder_input  = [1, 31, 9, 14]
+decoder_target = [31, 9, 14, 2]
+```
+
+На позиции `0` decoder видит `SOS` и должен предсказать `31`.
+На позиции `1` decoder видит `31` и должен предсказать `9`.
+
+### 10.5 Разбор масок
+
+```text
+padding mask:
+  выключает PAD в encoder/decoder токенах
+
+causal mask:
+  запрещает decoder self-attention смотреть на future target positions
+
+cross-attention mask:
+  запрещает decoder смотреть на PAD-позиции encoder_input
+```
+
+Если перепутать causal и cross mask, модель либо увидит будущее, либо потеряет доступ к source-памяти.
+
+### 10.6 Где это в TODO
+
+- TODO data contract: собрать `encoder_input`, `decoder_input`, `decoder_target`.
+- TODO mask contract: проверить padding, causal и cross masks отдельно.
+- TODO training: сравнить `test_perplexity` с `baseline_perplexity`.
+- TODO generation: проверить `success_count` и `mean_match_ratio`.
+- TODO diagnostics: подтвердить отсутствие future leakage.
+
+### 10.7 Типичная ошибка и способ поймать её
+
+Ошибка: сделать `decoder_input == decoder_target`.
+
+Антидот:
+1. Вывести один пример до обучения.
+2. Проверить, что `decoder_input[0] == SOS`.
+3. Проверить, что `decoder_input[1:] == decoder_target[:-1]`.
+4. Только после этого запускать обучение.
