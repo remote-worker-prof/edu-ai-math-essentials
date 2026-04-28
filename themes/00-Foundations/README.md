@@ -44,6 +44,30 @@
 3. [showcases/README.md](./showcases/README.md) — если нужен мостик от synthetic labs к реальным данным
 4. Затем открыть [../02-Attention/lab/README.md](../02-Attention/lab/README.md)
 
+## Единый мини-глоссарий 00-05
+Этот мини-глоссарий связывает общий язык всех лабораторных от `01-RNN` до `05-Full-Transformer`.
+
+| Термин | На пальцах | Типичная форма | Частая ошибка | Что проверить |
+|---|---|---|---|---|
+| `batch` | сколько примеров обрабатываем параллельно | первая ось тензора | перепутать с длиной последовательности | `X.shape[0]`, `y.shape[0]` |
+| `time` | сколько шагов во временной оси | вторая ось `(N, T, F)` или `(N, T)` | потерять `time` при `return_sequences=False` | `model.output_shape` |
+| `features` | сколько признаков на шаг | третья ось `(N, T, F)` | перепутать с размером словаря | контракт данных в notebook |
+| `padding mask` | какие позиции не `PAD` | `(N, T)` | считать метрики по `PAD` | сумма маски и выборка непустых позиций |
+| `causal mask` | запрет смотреть в будущее | `(T, T)` нижний треугольник | утечка future-token | доля массы внимания в будущем < порога |
+| `cross-attention` | decoder смотрит в память encoder | веса `(N, T_out, T_in)` или `(N, H, T_out, T_in)` | перепутать `query` и `key/value` | форма `attention_scores` и подписи осей |
+| `perplexity` | сколько вариантов в среднем «думает» модель | `exp(loss)` | сравнивать без baseline | `test_perplexity < baseline_perplexity` |
+| `generation gate` | поведенческая проверка на fixed prompts | `success_count`, `mean_match_ratio` | считать только accuracy без генерации | блок quality gate в notebook |
+
+## Готов/не готов к следующей теме
+Переходить дальше безопасно только после минимальных проверок:
+
+- `RNN`: готов, если стабильно читаете `(batch, time, features)` и не путаете `loss`/`accuracy`.
+- `Attention`: готов, если понимаете `PAD/SOS/EOS`, decoder shift и можете объяснить `query/key/value`.
+- `Autoregression`: готов, если causal mask читается как нижнетреугольный запрет на будущее.
+- `Full-Transformer`: готов, если без подсказки различаете `encoder_input`, `decoder_input`, `decoder_target`.
+
+Если один из пунктов не выполняется, сначала вернитесь в соответствующий guide и пройдите mini-check до обучения.
+
 ## Warm-up Examples
 - [examples/01_numpy_sequence_basics.ipynb](./examples/01_numpy_sequence_basics.ipynb) — ручной разбор `shape`, `axis`, `sum`, `cumsum` и построения меток.
 - [examples/02_minimal_keras_sequence_classifier.ipynb](./examples/02_minimal_keras_sequence_classifier.ipynb) — минимальный `Embedding + SimpleRNN/GRU` на synthetic data.

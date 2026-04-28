@@ -34,6 +34,16 @@
 - `decoder_input = [SOS] + target[:-1]`;
 - `decoder_target = target`.
 
+## Контракт масок
+- `padding mask`: запрещает учитывать `PAD`-позиции в encoder и decoder.
+- `causal mask`: запрещает decoder self-attention смотреть в будущие токены.
+- `cross-attention mask`: ограничивает доступ decoder только к валидным позициям `encoder_input`.
+
+Минимальный контроль перед обучением:
+1. Проверить, что `encoder_input`, `decoder_input`, `decoder_target` имеют ожидаемые длины.
+2. Проверить, что `causal mask` нижнетреугольная.
+3. Проверить, что `cross-attention` не включает `PAD`-позиции источника.
+
 ## Профили выполнения
 - `CPU-friendly`: целевой бюджет `40-60` минут.
 - `GPU-friendly`: целевой бюджет `30-45` минут.

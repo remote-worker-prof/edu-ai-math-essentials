@@ -26,6 +26,21 @@ This repository is notebook-heavy and teaching-oriented.
 - `bd update <id> --claim` to claim work.
 - `bd show <id>` to inspect task state and history.
 
+## Notebook Quality Checks
+После правок учебных notebook-ов обязательно прогонять структурные и quality-контракты:
+
+```bash
+python3 scripts/validate_notebooks.py
+python3 scripts/check_notebook_contracts.py
+python3 scripts/check_lab_quality_contracts.py
+python3 scripts/check_runtime_gpu_contracts.py
+git diff --check
+git status --short --branch
+```
+
+Правило: тяжелое обучение не запускать в обычном quality-маршруте, только
+структурные и контрактные проверки.
+
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ca08a54f -->
 ## Beads Issue Tracker
 
