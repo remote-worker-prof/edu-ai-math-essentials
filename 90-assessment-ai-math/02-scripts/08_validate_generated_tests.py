@@ -81,6 +81,21 @@ RUSSIAN_STOPWORDS = {
     "где",
 }
 
+PROJECT_MARKER_PATTERNS = [
+    r"themes/",
+    r"\.ipynb\b",
+    r"\bguides\b",
+    r"\bsolutions\b",
+    r"\bruns?_",
+    r"\brun[_-]",
+    r"\bmaterial_id\b",
+    r"\bmodule_slug\b",
+    r"\bsource_path\b",
+]
+
+KNOWLEDGE_SCOPE_REQUIRED = "internet_general"
+BASIC_MIN_SHARE = 0.80
+
 
 class ValidationError(Exception):
     """Raised when generated files violate required contracts."""
@@ -405,6 +420,14 @@ def _parse_key_technical_block(block: str, qid: int, filename: str) -> dict[str,
     if not style_match:
         raise ValidationError(f"{filename}: Q{qid} missing style profile line")
 
+    difficulty_match = re.search(r"^- Уровень сложности:\s+(basic|medium)\s*$", block, flags=re.MULTILINE)
+    if not difficulty_match:
+        raise ValidationError(f"{filename}: Q{qid} missing difficulty level line")
+
+    scope_match = re.search(r"^- Область знаний:\s+(.+)$", block, flags=re.MULTILINE)
+    if not scope_match:
+        raise ValidationError(f"{filename}: Q{qid} missing knowledge scope line")
+
     return {
         "trace_topic_id": trace_match.group(1).strip(),
         "trace_material_id": trace_match.group(2).strip(),
@@ -412,6 +435,8 @@ def _parse_key_technical_block(block: str, qid: int, filename: str) -> dict[str,
         "risk_level": risk_match.group(1),
         "requires_latex": latex_match.group(1) == "да",
         "style_profile": style_match.group(0).split(":", 1)[1].strip(),
+        "difficulty_level": difficulty_match.group(1),
+        "knowledge_scope": scope_match.group(1).strip(),
     }
 
 
@@ -531,6 +556,8 @@ def validate_traceability_json(path: Path, legacy_mode: bool) -> dict[tuple[int,
         "requires_latex",
         "allowed_abbrev",
         "style_profile",
+        "difficulty_level",
+        "knowledge_scope",
         "section_title",
         "reference",
         "criteria",
@@ -574,6 +601,12 @@ def validate_traceability_json(path: Path, legacy_mode: bool) -> dict[tuple[int,
                 raise ValidationError(f"question_traceability.json: item #{idx} allowed_abbrev must be list")
             if not str(item["style_profile"]).strip():
                 raise ValidationError(f"question_traceability.json: item #{idx} style_profile must be non-empty")
+            if str(item["difficulty_level"]) not in {"basic", "medium"}:
+                raise ValidationError(f"question_traceability.json: item #{idx} has invalid difficulty_level")
+            if str(item["knowledge_scope"]) != KNOWLEDGE_SCOPE_REQUIRED:
+                raise ValidationError(
+                    f"question_traceability.json: item #{idx} must use knowledge_scope={KNOWLEDGE_SCOPE_REQUIRED}"
+                )
 
         result[key] = item
 
@@ -614,6 +647,10 @@ def validate_sync_with_traceability(
                 raise ValidationError(f"traceability mismatch: variant {variant} Q{qid} LaTeX flag differs from key")
             if str(trace["style_profile"]).strip() != str(q_key["style_profile"]).strip():
                 raise ValidationError(f"traceability mismatch: variant {variant} Q{qid} style profile differs from key")
+            if str(trace["difficulty_level"]).strip() != str(q_key["difficulty_level"]).strip():
+                raise ValidationError(f"traceability mismatch: variant {variant} Q{qid} difficulty differs from key")
+            if str(trace["knowledge_scope"]).strip() != str(q_key["knowledge_scope"]).strip():
+                raise ValidationError(f"traceability mismatch: variant {variant} Q{qid} knowledge scope differs from key")
 
             if q_test["qtype"] == "single":
                 trace_indices = [int(i) + 1 for i in trace.get("correct", [])]
@@ -731,6 +768,10 @@ def strip_technical_lines(text: str) -> str:
             continue
         if stripped.startswith("- Профиль стиля:"):
             continue
+        if stripped.startswith("- Уровень сложности:"):
+            continue
+        if stripped.startswith("- Область знаний:"):
+            continue
         cleaned.append(line)
     return "\n".join(cleaned)
 
@@ -799,6 +840,43 @@ def validate_language_contract(out_dir: Path, dynamic_allowed_tokens: set[str]) 
         check_one(path, threshold=0.07, strip_tech=False, student_mode=True)
     for path in key_files:
         check_one(path, threshold=0.11, strip_tech=True, student_mode=False)
+
+
+def validate_internet_orientation(out_dir: Path) -> None:
+    student_files = [
+        out_dir / "test_variant_1.md",
+        out_dir / "test_variant_2.md",
+        out_dir / "answer_template_1.md",
+        out_dir / "answer_template_2.md",
+        out_dir / "README.md",
+    ]
+    for path in student_files:
+        text = strip_code_fragments(read_text(path))
+        low = text.lower()
+        for pattern in PROJECT_MARKER_PATTERNS:
+            if re.search(pattern, low):
+                raise ValidationError(
+                    f"{path.name}: project-specific marker detected by pattern '{pattern}'"
+                )
+
+
+def validate_difficulty_profile(trace_map: dict[tuple[int, int], dict[str, Any]]) -> None:
+    for variant in (1, 2):
+        subset = [trace_map[(variant, qid)] for qid in range(1, 31)]
+        basic = sum(1 for item in subset if str(item.get("difficulty_level")) == "basic")
+        share = basic / max(1, len(subset))
+        if share < BASIC_MIN_SHARE:
+            raise ValidationError(
+                f"difficulty profile: variant {variant} basic share too low ({share:.3f} < {BASIC_MIN_SHARE:.3f})"
+            )
+        if basic < 24:
+            raise ValidationError(f"difficulty profile: variant {variant} must contain at least 24 basic questions")
+
+        invalid_scope = [item["question_id"] for item in subset if str(item.get("knowledge_scope")) != KNOWLEDGE_SCOPE_REQUIRED]
+        if invalid_scope:
+            raise ValidationError(
+                f"difficulty profile: variant {variant} has non-{KNOWLEDGE_SCOPE_REQUIRED} scope in {invalid_scope}"
+            )
 
 
 def collect_dynamic_allowed_tokens(trace_map: dict[tuple[int, int], dict[str, Any]]) -> set[str]:
@@ -971,6 +1049,8 @@ def main() -> int:
         validate_anti_leakage(test_by_variant, trace_map)
         validate_modality(test_by_variant, trace_map)
         validate_latex_requirements(test_by_variant, key_by_variant, trace_map)
+        validate_difficulty_profile(trace_map)
+        validate_internet_orientation(out_dir)
         dynamic_tokens = collect_dynamic_allowed_tokens(trace_map)
         validate_language_contract(out_dir, dynamic_tokens)
         mode = "transfer_academic_ru"

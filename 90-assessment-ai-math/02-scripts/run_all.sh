@@ -30,12 +30,15 @@ clean_outputs() {
   rm -f "${WORKSPACE_ROOT}/03-topic-context/MODULE_INDEX.md"
   rm -f "${WORKSPACE_ROOT}/03-topic-context/module_index.json"
   rm -rf "${WORKSPACE_ROOT}/04_modules"
-  rm -rf "${WORKSPACE_ROOT}/05-tests-v1v2"
+  if [[ -d "${WORKSPACE_ROOT}/05-tests-v1v2" ]]; then
+    find "${WORKSPACE_ROOT}/05-tests-v1v2" -mindepth 1 -maxdepth 1 ! -name "_backup" -exec rm -rf {} +
+  fi
   rm -rf "${WORKSPACE_ROOT}/99_memory"
 
   mkdir -p "${WORKSPACE_ROOT}/03-topic-context"
   mkdir -p "${WORKSPACE_ROOT}/04_modules"
   mkdir -p "${WORKSPACE_ROOT}/05-tests-v1v2"
+  mkdir -p "${WORKSPACE_ROOT}/05-tests-v1v2/_backup"
   mkdir -p "${WORKSPACE_ROOT}/99_memory"
 }
 
