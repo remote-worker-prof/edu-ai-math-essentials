@@ -4,13 +4,17 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import random
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 SEED = 20260621
 FORMAT_VERSION = "academic_ru_v2"
+STYLE_PROFILE = "transfer_academic_ru_v1"
 
 SECTION_TITLES_RU = {
     "foundations": "Раздел 1. Основы работы с последовательными данными",
@@ -19,6 +23,92 @@ SECTION_TITLES_RU = {
     "transformer_encoder": "Раздел 4. Кодировщик трансформера",
     "autoregression": "Раздел 5. Авторегрессионное моделирование",
     "full_transformer": "Раздел 6. Полный трансформер",
+}
+
+HIGH_RISK_TOPICS = {"attention", "autoregression", "full_transformer"}
+
+TOPIC_CONTEXTS: dict[str, list[str]] = {
+    "foundations": [
+        "Рассматривается учебный конвейер обработки последовательностей, в котором важно сохранять сопоставимость экспериментов между разными моделями.",
+        "Предполагается, что данные проходят единый этап подготовки, где критично контролировать корректность формы входа и интерпретацию метрик качества.",
+        "Задача формулируется в прикладном формате: требуется обеспечить методически корректное сравнение моделей на одном и том же наборе последовательностей.",
+    ],
+    "rnn": [
+        "Анализируется практическая работа рекуррентных моделей на последовательных данных, где важно учитывать устойчивость обучения и перенос контекста между шагами.",
+        "Рассматривается учебный эксперимент с рекуррентными архитектурами, в котором решения оцениваются по качеству, устойчивости и вычислительным ограничениям.",
+        "Сравниваются варианты рекуррентных моделей в условиях, когда необходимо связать архитектурные свойства с ожидаемым поведением на данных.",
+    ],
+    "attention": [
+        "Изучается механизм внимания как способ выделения значимых частей входной последовательности при формировании выхода.",
+        "В центре внимания находится интерпретация распределения весов и проверка того, как она соотносится с качеством решения задачи.",
+        "Рассматривается прикладной сценарий, где требуется аккуратно отделять полезные сигналы внимания от избыточных или неоднозначных трактовок.",
+    ],
+    "transformer_encoder": [
+        "Исследуется кодировщик трансформера как последовательность блоков самовнимания и последующей нелинейной обработки признаков.",
+        "Рассматривается учебная постановка, в которой важно объяснить роль позиционной информации и устойчивость представлений на разных длинах входа.",
+        "Анализируется архитектура кодировщика в контексте практической диагностики: как отдельные компоненты влияют на итоговое качество модели.",
+    ],
+    "autoregression": [
+        "Рассматривается авторегрессионная модель, где каждый следующий элемент зависит от уже сформированного префикса последовательности.",
+        "В учебном контуре важно понять связь между режимом обучения, стратегией декодирования и устойчивостью генерации на длинных фрагментах.",
+        "Задача формулируется прикладно: требуется контролировать баланс между связностью текста, разнообразием и устойчивостью результатов.",
+    ],
+    "full_transformer": [
+        "Анализируется полный контур кодировщик-декодер, в котором качество решения зависит от согласованной работы обоих блоков.",
+        "Рассматривается практический сценарий преобразования последовательностей, где необходимо учитывать и точность, и устойчивость вывода.",
+        "В учебной постановке важно связать архитектурные решения полного трансформера с наблюдаемыми рисками на длинных зависимостях.",
+    ],
+}
+
+TOPIC_OPEN_HINTS: dict[str, list[str]] = {
+    "foundations": [
+        "Сначала обозначьте, какие этапы подготовки данных должны быть одинаковыми для всех сравниваемых моделей.",
+        "Затем объясните, как нарушение единых правил влияет на корректность сравнения метрик.",
+        "В завершение сформулируйте практический вывод для учебного эксперимента.",
+    ],
+    "rnn": [
+        "Сначала выделите критерии выбора архитектуры или настройки, которые зависят от характера данных.",
+        "Затем сопоставьте ожидаемый эффект этих критериев на устойчивость обучения и качество модели.",
+        "В конце приведите краткий обоснованный вывод для практического применения.",
+    ],
+    "attention": [
+        "Сначала укажите, какие элементы входа и выхода нужно сопоставить при анализе механизма внимания.",
+        "Затем опишите, какие наблюдения подтверждают содержательную работу внимания, а какие требуют дополнительной проверки.",
+        "В завершение предложите критерий, по которому можно сделать аккуратный интерпретационный вывод.",
+    ],
+    "transformer_encoder": [
+        "Сначала перечислите ключевые этапы преобразования входных данных внутри кодировщика.",
+        "Затем поясните роль каждого этапа в сохранении структуры последовательности и качества представлений.",
+        "В конце свяжите это с практической диагностикой возможных ошибок модели.",
+    ],
+    "autoregression": [
+        "Сначала определите, на каком этапе возникает наблюдаемая проблема: обучение, декодирование или оба этапа.",
+        "Затем предложите измеримые проверки и корректирующие действия для каждого этапа.",
+        "В завершение опишите, как подтвердить, что качество действительно улучшилось после правок.",
+    ],
+    "full_transformer": [
+        "Сначала разложите задачу на этапы взаимодействия кодировщика и декодера.",
+        "Затем объясните, какие метрики и наблюдения покажут, что оба блока работают согласованно.",
+        "В конце сформулируйте практический критерий устойчивого качества для учебной постановки.",
+    ],
+}
+
+TOPIC_LATEX_SNIPPETS: dict[str, str] = {
+    "foundations": "Для обозначений используйте стандартную запись последовательности вида $x_t$.",
+    "rnn": "Для формального описания шага рекурсии опирайтесь на представление скрытого состояния $h_t$.",
+    "attention": "При необходимости зафиксируйте вес внимания как коэффициент $\\alpha_{t,i}$.",
+    "transformer_encoder": "В вычислениях самовнимания ориентируйтесь на выражение $\\mathrm{softmax}(QK^\\top/\\sqrt{d_k})$.",
+    "autoregression": "Для формализации прогноза удобно использовать запись условной вероятности $p(x_t\\mid x_{<t})$.",
+    "full_transformer": "В режиме преобразования последовательностей можно опираться на зависимость $p(y_t\\mid y_{<t}, x)$.",
+}
+
+TOPIC_ALLOWED_ABBREV: dict[str, list[str]] = {
+    "foundations": ["F1"],
+    "rnn": ["RNN", "LSTM", "GRU", "seq2seq"],
+    "attention": ["seq2seq"],
+    "transformer_encoder": ["FFN"],
+    "autoregression": [],
+    "full_transformer": [],
 }
 
 QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
@@ -65,7 +155,7 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
                 "options": [
                     "Точность классификации",
                     "Полнота и точность по классам",
-                    "Мера F1",
+                    "F1-мера (F1)",
                     "Средняя абсолютная ошибка в регрессии",
                 ],
                 "correct": [0, 1, 2],
@@ -119,8 +209,8 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
     "rnn": {
         "single": [
             {
-                "title": "Преимущество архитектуры LSTM",
-                "prompt": "Какое свойство сети LSTM в первую очередь помогает удерживать долгий контекст?",
+                "title": "Преимущество архитектуры с долговременной краткосрочной памятью (LSTM)",
+                "prompt": "Какое свойство сети с долговременной краткосрочной памятью (LSTM) в первую очередь помогает удерживать долгий контекст?",
                 "options": [
                     "Наличие механизмов управления памятью через ворота",
                     "Полный отказ от рекуррентных связей",
@@ -141,8 +231,8 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
                 "correct": [0],
             },
             {
-                "title": "Особенность сети GRU",
-                "prompt": "Как обычно характеризуют сеть GRU по сравнению с LSTM в учебных задачах?",
+                "title": "Особенность сети с управляемым рекуррентным блоком (GRU)",
+                "prompt": "Как обычно характеризуют сеть с управляемым рекуррентным блоком (GRU) по сравнению с сетью с долговременной краткосрочной памятью (LSTM) в учебных задачах?",
                 "options": [
                     "Как более компактную модель с меньшим числом управляющих блоков",
                     "Как архитектуру без состояния",
@@ -154,7 +244,7 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
         ],
         "multiple": [
             {
-                "title": "Состав базовой схемы seq2seq",
+                "title": "Состав базовой схемы «последовательность в последовательность» (seq2seq)",
                 "prompt": "Какие компоненты входят в типовую схему «последовательность в последовательность» (seq2seq)?",
                 "options": [
                     "Кодировщик входной последовательности",
@@ -189,9 +279,9 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
         ],
         "open": [
             {
-                "title": "Выбор между GRU и LSTM",
-                "prompt": "Сравните практические условия выбора моделей GRU и LSTM для учебной задачи по последовательным данным.",
-                "reference": "GRU часто выбирают при ограниченных ресурсах из-за более компактной структуры, тогда как LSTM полезна при необходимости более гибкого контроля долговременной памяти.",
+                "title": "Выбор между моделями GRU и LSTM",
+                "prompt": "Сравните практические условия выбора модели с управляемым рекуррентным блоком (GRU) и модели с долговременной краткосрочной памятью (LSTM) для учебной задачи по последовательным данным.",
+                "reference": "Модель GRU часто выбирают при ограниченных ресурсах из-за более компактной структуры, тогда как модель LSTM полезна при необходимости более гибкого контроля долговременной памяти.",
                 "criteria": [
                     "Сопоставлены вычислительные и качественные аспекты",
                     "Указана зависимость выбора от характера данных",
@@ -249,7 +339,7 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
         "multiple": [
             {
                 "title": "Практические преимущества внимания",
-                "prompt": "Какие эффекты обычно наблюдаются при использовании механизма внимания в схеме seq2seq?",
+                "prompt": "Какие эффекты обычно наблюдаются при использовании механизма внимания в схеме «последовательность в последовательность» (seq2seq)?",
                 "options": [
                     "Более адресная работа с релевантным контекстом",
                     "Повышение интерпретируемости поведения модели",
@@ -506,8 +596,8 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
                 "correct": [0],
             },
             {
-                "title": "Роль режима teacher forcing",
-                "prompt": "Зачем при обучении схемы кодировщик-декодер используют режим teacher forcing?",
+                "title": "Роль режима обучения с подстановкой верного токена (teacher forcing)",
+                "prompt": "Зачем при обучении схемы кодировщик-декодер используют режим подстановки верного предыдущего токена (teacher forcing)?",
                 "options": [
                     "Чтобы стабилизировать обучение по целевой последовательности",
                     "Чтобы отменить функцию потерь",
@@ -601,29 +691,117 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def select_items(items: list[dict[str, Any]], count: int, variant: int) -> list[dict[str, Any]]:
+def stable_int_seed(*parts: object) -> int:
+    payload = "::".join(str(p) for p in parts).encode("utf-8")
+    digest = hashlib.sha256(payload).hexdigest()[:16]
+    return int(digest, 16)
+
+
+def select_items(
+    items: list[dict[str, Any]],
+    count: int,
+    variant: int,
+    seed: int,
+    topic_id: str,
+    qtype: str,
+) -> list[dict[str, Any]]:
     if not items:
         return []
-    offset = (variant - 1) * count
-    return [items[(offset + i) % len(items)] for i in range(count)]
+    if len(items) < count:
+        raise ValueError(f"topic '{topic_id}' qtype '{qtype}' has not enough questions")
+
+    rng = random.Random(stable_int_seed(seed, topic_id, qtype, variant))
+    indices = list(range(len(items)))
+    rng.shuffle(indices)
+    selected = sorted(indices[:count])
+    return [items[i] for i in selected]
 
 
-def build_section_questions(topic_id: str, variant: int) -> list[dict[str, Any]]:
+def contains_latex(text: str) -> bool:
+    return re.search(r"\$[^$\n]+\$", text) is not None
+
+
+def build_default_context(topic_id: str, variant: int, qtype: str, title: str, seed: int) -> str:
+    candidates = TOPIC_CONTEXTS.get(topic_id, ["Рассматривается учебная постановка задачи машинного обучения."])
+    idx = stable_int_seed(seed, topic_id, qtype, title, variant) % len(candidates)
+    return candidates[idx]
+
+
+def ensure_latex_marker(topic_id: str, context: str, task: str, requires_latex: bool) -> str:
+    if not requires_latex:
+        return context
+    if contains_latex(context) or contains_latex(task):
+        return context
+    snippet = TOPIC_LATEX_SNIPPETS.get(topic_id, "Для формализации используйте обозначения в формате $x_t$.")
+    return f"{context} {snippet}".strip()
+
+
+def normalize_question(
+    topic_id: str,
+    qtype: str,
+    item: dict[str, Any],
+    variant: int,
+    seed: int,
+) -> dict[str, Any]:
+    task = str(item.get("task") or item.get("prompt") or "").strip()
+    context = str(item.get("context") or build_default_context(topic_id, variant, qtype, str(item.get("title", "")), seed)).strip()
+
+    risk_level = str(item.get("risk_level") or ("high" if topic_id in HIGH_RISK_TOPICS else "normal"))
+    if risk_level not in {"normal", "high"}:
+        risk_level = "normal"
+
+    requires_latex = bool(item.get("requires_latex", qtype == "open"))
+    context = ensure_latex_marker(topic_id, context, task, requires_latex)
+
+    allowed_abbrev = list(item.get("allowed_abbrev") or TOPIC_ALLOWED_ABBREV.get(topic_id, []))
+    style_profile = str(item.get("style_profile") or STYLE_PROFILE)
+
+    if qtype == "open":
+        hint_steps = list(item.get("hint_steps") or TOPIC_OPEN_HINTS.get(topic_id, []))
+        if len(hint_steps) < 2:
+            hint_steps = TOPIC_OPEN_HINTS.get(topic_id, [])[:]
+        hint_steps = hint_steps[:3]
+    else:
+        hint_steps = []
+
+    normalized = {
+        **item,
+        "qtype": qtype,
+        "task": task,
+        "context": context,
+        "hint_steps": hint_steps,
+        "risk_level": risk_level,
+        "requires_latex": requires_latex,
+        "allowed_abbrev": allowed_abbrev,
+        "style_profile": style_profile,
+    }
+    return normalized
+
+
+def build_section_questions(topic_id: str, variant: int, seed: int) -> list[dict[str, Any]]:
     bank = QUESTION_BANK.get(topic_id)
     if not bank:
         return []
 
-    singles = select_items(bank["single"], 2, variant)
-    multiples = select_items(bank["multiple"], 2, variant)
-    opens = select_items(bank["open"], 1, variant)
+    singles = select_items(bank["single"], 2, variant, seed, topic_id, "single")
+    multiples = select_items(bank["multiple"], 2, variant, seed, topic_id, "multiple")
+    opens = select_items(bank["open"], 1, variant, seed, topic_id, "open")
 
     questions: list[dict[str, Any]] = []
     for item in singles:
-        questions.append({**item, "qtype": "single"})
+        questions.append(normalize_question(topic_id, "single", item, variant, seed))
     for item in multiples:
-        questions.append({**item, "qtype": "multiple"})
+        questions.append(normalize_question(topic_id, "multiple", item, variant, seed))
     for item in opens:
-        questions.append({**item, "qtype": "open"})
+        questions.append(normalize_question(topic_id, "open", item, variant, seed))
+
+    if not any(q.get("requires_latex") for q in questions):
+        for q in questions:
+            if q["qtype"] == "open":
+                q["requires_latex"] = True
+                q["context"] = ensure_latex_marker(topic_id, str(q["context"]), str(q["task"]), True)
+                break
+
     return questions
 
 
@@ -648,7 +826,12 @@ def qtype_choice_instruction(qtype: str) -> str:
     return ""
 
 
-def render_test_variant(variant: int, modules: list[dict[str, Any]], traceability: list[dict[str, Any]]) -> str:
+def render_test_variant(
+    variant: int,
+    modules: list[dict[str, Any]],
+    traceability: list[dict[str, Any]],
+    seed: int,
+) -> str:
     lines: list[str] = [
         f"# Вариант {variant}. Тест по дисциплине «Математические основы ИИ»",
         "",
@@ -661,10 +844,10 @@ def render_test_variant(variant: int, modules: list[dict[str, Any]], traceabilit
     ]
 
     q_counter = 1
-    for sec_idx, module in enumerate(modules):
+    for module in modules:
         lines.extend(["", "---", "", f"## {render_section_title(module)}", "", "---", ""])
 
-        questions = build_section_questions(str(module["topic_id"]), variant)
+        questions = build_section_questions(str(module["topic_id"]), variant, seed)
         for local_idx, q in enumerate(questions):
             if local_idx > 0:
                 lines.extend(["", "---", ""])
@@ -674,11 +857,15 @@ def render_test_variant(variant: int, modules: list[dict[str, Any]], traceabilit
             lines.append("")
             lines.append(f"Тип: {qtype_label(q['qtype'])}")
             lines.append("")
-            lines.append("Формулировка вопроса:")
-            lines.append(str(q["prompt"]))
+            lines.append("Контекст:")
+            lines.append(str(q["context"]))
+            lines.append("")
+            lines.append("Задание:")
+            lines.append(str(q["task"]))
             lines.append("")
 
             if q["qtype"] in {"single", "multiple"}:
+                lines.append("Инструкция:")
                 lines.append(qtype_choice_instruction(q["qtype"]))
                 lines.append("")
                 lines.append("Варианты ответа:")
@@ -686,7 +873,11 @@ def render_test_variant(variant: int, modules: list[dict[str, Any]], traceabilit
                 for idx, option in enumerate(q["options"], start=1):
                     lines.append(f"{idx}. {option}")
             else:
-                lines.append("Ответ представьте в развернутой форме (3-5 предложений).")
+                lines.append("Подсказка (ход рассуждения):")
+                for idx, step in enumerate(q["hint_steps"], start=1):
+                    lines.append(f"{idx}. {step}")
+                lines.append("")
+                lines.append("Ответ представьте в развернутой форме (5-7 предложений).")
 
             material_pool = module.get("materials", [])
             if material_pool:
@@ -708,11 +899,18 @@ def render_test_variant(variant: int, modules: list[dict[str, Any]], traceabilit
                     "material_id": material_id,
                     "source_path": source_path,
                     "title": q["title"],
-                    "prompt": q["prompt"],
+                    "context": q["context"],
+                    "task": q["task"],
+                    "prompt": q["task"],
+                    "hint_steps": q.get("hint_steps", []),
                     "correct": q.get("correct", []),
                     "reference": q.get("reference", ""),
                     "criteria": q.get("criteria", []),
                     "options": q.get("options", []),
+                    "risk_level": q["risk_level"],
+                    "requires_latex": q["requires_latex"],
+                    "allowed_abbrev": q["allowed_abbrev"],
+                    "style_profile": q["style_profile"],
                 }
             )
 
@@ -803,9 +1001,22 @@ def render_answer_key(variant: int, modules: list[dict[str, Any]], traceability:
             lines.append("")
             lines.append(f"Тип: {qtype_label(str(q['question_type']))}")
             lines.append("")
-            lines.append("Формулировка вопроса:")
-            lines.append(str(q["prompt"]))
+            lines.append("Контекст:")
+            lines.append(str(q["context"]))
             lines.append("")
+            lines.append("Задание:")
+            lines.append(str(q["task"]))
+            lines.append("")
+
+            if q["question_type"] in {"single", "multiple"}:
+                lines.append("Инструкция:")
+                lines.append(qtype_choice_instruction(str(q["question_type"])))
+                lines.append("")
+            else:
+                lines.append("Подсказка (ход рассуждения):")
+                for idx, step in enumerate(q.get("hint_steps", []), start=1):
+                    lines.append(f"{idx}. {step}")
+                lines.append("")
 
             if q["question_type"] == "single":
                 idx = int(q["correct"][0]) + 1
@@ -825,11 +1036,12 @@ def render_answer_key(variant: int, modules: list[dict[str, Any]], traceability:
                     lines.append(f"{idx}. {criterion}")
 
             lines.append("")
-            lines.append(
-                "Техническая трассируемость: "
-                f"{q['topic_id']} -> {q['material_id']} -> {q['module_slug']} -> {qid}"
-            )
-            lines.append(f"Источник материала: {q['source_path']}")
+            lines.append("Технический блок:")
+            lines.append(f"- Трассируемость: {q['topic_id']} -> {q['material_id']} -> {q['module_slug']} -> {qid}")
+            lines.append(f"- Источник материала: {q['source_path']}")
+            lines.append(f"- Уровень риска: {q['risk_level']}")
+            lines.append(f"- Требуется LaTeX: {'да' if q['requires_latex'] else 'нет'}")
+            lines.append(f"- Профиль стиля: {q.get('style_profile', STYLE_PROFILE)}")
             q_counter += 1
 
     return "\n".join(lines).rstrip() + "\n"
@@ -845,6 +1057,7 @@ def render_readme(traceability: list[dict[str, Any]]) -> str:
         f"- Сгенерировано (UTC): `{ts}`",
         "- Формат материалов: Markdown",
         f"- Версия контракта генерации: `{FORMAT_VERSION}`",
+        f"- Профиль стиля: `{STYLE_PROFILE}`",
         "- Количество вариантов теста: 2",
         "- Количество шаблонов ответов: 2",
         "- Количество файлов ключей: 2",
@@ -880,6 +1093,7 @@ def render_readme(traceability: list[dict[str, Any]]) -> str:
     lines.extend([
         "",
         "Файл `question_traceability.json` содержит полную трассируемость `topic -> material -> module -> question`.",
+        "Дополнительно в трассируемости фиксируются поля `risk_level`, `requires_latex`, `allowed_abbrev`, `style_profile`.",
         "",
     ])
     return "\n".join(lines)
@@ -887,7 +1101,7 @@ def render_readme(traceability: list[dict[str, Any]]) -> str:
 
 def main() -> int:
     args = parse_args()
-    _ = args.seed
+    seed = int(args.seed)
     project_root = Path(args.project_root).resolve()
     workspace_root = (project_root / args.workspace_root).resolve()
 
@@ -900,8 +1114,8 @@ def main() -> int:
 
     traceability: list[dict[str, Any]] = []
 
-    test_v1 = render_test_variant(1, modules, traceability)
-    test_v2 = render_test_variant(2, modules, traceability)
+    test_v1 = render_test_variant(1, modules, traceability, seed)
+    test_v2 = render_test_variant(2, modules, traceability, seed)
     template_v1 = render_answer_template(1, modules, traceability)
     template_v2 = render_answer_template(2, modules, traceability)
     key_v1 = render_answer_key(1, modules, traceability)
@@ -921,6 +1135,7 @@ def main() -> int:
 
     log(f"generated questions: {len(traceability)}")
     log(f"format version: {FORMAT_VERSION}")
+    log(f"seed: {seed}")
     log("done")
     return 0
 
