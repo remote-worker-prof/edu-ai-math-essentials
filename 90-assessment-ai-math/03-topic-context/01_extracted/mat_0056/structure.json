@@ -1,0 +1,67 @@
+{
+  "format": "md",
+  "line_count": 58,
+  "char_count": 1959,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Пошаговый разбор: `04-Autoregression / ЛР02 CPU` на `Tiny Shakespeare`"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Канонический порядок"
+    },
+    {
+      "line": 10,
+      "level": 2,
+      "title": "Зачем нужен отдельный CPU-ноутбук"
+    },
+    {
+      "line": 18,
+      "level": 2,
+      "title": "Что делает каждый `TODO`"
+    },
+    {
+      "line": 19,
+      "level": 3,
+      "title": "TODO 1: корпус и словарь"
+    },
+    {
+      "line": 24,
+      "level": 3,
+      "title": "TODO 2: окна и разбиение"
+    },
+    {
+      "line": 29,
+      "level": 3,
+      "title": "TODO 3: декодерный блок"
+    },
+    {
+      "line": 34,
+      "level": 3,
+      "title": "TODO 4: обучение и ориентир"
+    },
+    {
+      "line": 39,
+      "level": 3,
+      "title": "TODO 5: детерминированная генерация"
+    },
+    {
+      "line": 44,
+      "level": 3,
+      "title": "TODO 6: диагностика внимания"
+    },
+    {
+      "line": 49,
+      "level": 2,
+      "title": "Критерии прохождения"
+    },
+    {
+      "line": 55,
+      "level": 2,
+      "title": "Что должно остаться после `ЛР02 CPU`"
+    }
+  ]
+}

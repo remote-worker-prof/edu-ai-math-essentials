@@ -1,0 +1,16 @@
+material_id,source_path,material_role,score,assignment_reason
+mat_0002,themes/00-Foundations/examples/01_numpy_sequence_basics.ipynb,example,1.4,path_hint+keywords
+mat_0003,themes/00-Foundations/examples/02_minimal_keras_sequence_classifier.ipynb,example,1.4,path_hint+keywords
+mat_0004,themes/00-Foundations/examples/03_tokenization_padding_masking.ipynb,example,1.4,path_hint+keywords
+mat_0005,themes/00-Foundations/examples/04_attention_heatmap_toy.ipynb,example,1.4,path_hint+keywords
+mat_0006,themes/00-Foundations/showcases/01_imdb_many_to_one_showcase.ipynb,showcase,1.4,path_hint+keywords
+mat_0007,themes/00-Foundations/showcases/02_jena_climate_lstm_gru_showcase.ipynb,showcase,1.28,path_hint+keywords
+mat_0008,themes/00-Foundations/showcases/03_spa_eng_seq2seq_attention_showcase.ipynb,showcase,1.4,path_hint+keywords
+mat_0009,themes/00-Foundations/showcases/cards/01_imdb.md,showcase_card,0.92,path_hint+keywords
+mat_0010,themes/00-Foundations/showcases/cards/02_jena_climate.md,showcase_card,0.84,path_hint+keywords
+mat_0011,themes/00-Foundations/showcases/cards/03_spa_eng.md,showcase_card,0.84,path_hint+keywords
+mat_0012,themes/00-Foundations/showcases/cards/04_reuters.md,showcase_card,0.88,path_hint+keywords
+mat_0013,themes/00-Foundations/showcases/cards/05_uci_har.md,showcase_card,0.8,path_hint+keywords
+mat_0014,themes/00-Foundations/showcases/cards/06_shakespeare.md,showcase_card,0.88,path_hint+keywords
+mat_0015,themes/00-Foundations/showcases/cards/07_forda.md,showcase_card,0.84,path_hint+keywords
+mat_0016,themes/00-Foundations/theory/theory.md,theory,1.4,path_hint+keywords

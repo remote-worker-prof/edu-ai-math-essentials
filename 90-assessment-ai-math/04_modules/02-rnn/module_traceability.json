@@ -1,0 +1,143 @@
+{
+  "module_id": "module_02",
+  "module_slug": "02-rnn",
+  "topic_id": "rnn",
+  "topic_title": "RNN",
+  "section_title": "Раздел 2. RNN",
+  "materials": [
+    {
+      "material_id": "mat_0017",
+      "source_path": "themes/01-RNN/lab/01_simple_rnn_many_to_one_toy.ipynb",
+      "material_role": "lab",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0018",
+      "source_path": "themes/01-RNN/lab/02_lstm_many_to_many_toy.ipynb",
+      "material_role": "lab",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0019",
+      "source_path": "themes/01-RNN/lab/03_gru_seq2seq_reverse_toy.ipynb",
+      "material_role": "lab",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0020",
+      "source_path": "themes/01-RNN/lab/guides/00_prerequisites_and_notation.md",
+      "material_role": "lab_guide",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0021",
+      "source_path": "themes/01-RNN/lab/guides/00_self_study_debugging_playbook.md",
+      "material_role": "lab_guide",
+      "score": "1.12",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0022",
+      "source_path": "themes/01-RNN/lab/guides/01_simple_rnn_many_to_one_beginner.md",
+      "material_role": "lab_guide",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0023",
+      "source_path": "themes/01-RNN/lab/guides/01_simple_rnn_walkthrough.md",
+      "material_role": "lab_guide",
+      "score": "1.28",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0024",
+      "source_path": "themes/01-RNN/lab/guides/02_lstm_many_to_many_beginner.md",
+      "material_role": "lab_guide",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0025",
+      "source_path": "themes/01-RNN/lab/guides/02_lstm_walkthrough.md",
+      "material_role": "lab_guide",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0026",
+      "source_path": "themes/01-RNN/lab/guides/03_gru_seq2seq_tokens_beginner.md",
+      "material_role": "lab_guide",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0027",
+      "source_path": "themes/01-RNN/lab/guides/03_gru_seq2seq_walkthrough.md",
+      "material_role": "lab_guide",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0028",
+      "source_path": "themes/01-RNN/lab/solutions/01_simple_rnn_many_to_one_toy_solution.ipynb",
+      "material_role": "lab_solution",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0029",
+      "source_path": "themes/01-RNN/lab/solutions/02_lstm_many_to_many_toy_solution.ipynb",
+      "material_role": "lab_solution",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0030",
+      "source_path": "themes/01-RNN/lab/solutions/03_gru_seq2seq_reverse_toy_solution.ipynb",
+      "material_role": "lab_solution",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0031",
+      "source_path": "themes/01-RNN/theory/ERRATA.md",
+      "material_role": "theory",
+      "score": "1.28",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0032",
+      "source_path": "themes/01-RNN/theory/theory.md",
+      "material_role": "theory",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    }
+  ],
+  "question_blueprint": [
+    {
+      "position_in_section": 1,
+      "question_type": "single"
+    },
+    {
+      "position_in_section": 2,
+      "question_type": "single"
+    },
+    {
+      "position_in_section": 3,
+      "question_type": "multiple"
+    },
+    {
+      "position_in_section": 4,
+      "question_type": "multiple"
+    },
+    {
+      "position_in_section": 5,
+      "question_type": "open"
+    }
+  ]
+}

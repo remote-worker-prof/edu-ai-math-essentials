@@ -1,0 +1,247 @@
+[cell 001 | markdown]
+# Демонстрация 1: IMDB many-to-one классификация тональности
+
+Перед запуском полезно открыть dataset card [IMDB](./cards/01_imdb.md).
+
+Fast-mode идея:
+- взять небольшую подвыборку;
+- паддить отзывы до общей длины;
+- сравнить `SimpleRNN`, `LSTM`, `GRU` на одной и той же задаче.
+
+[cell 002 | code]
+import random
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+
+tf.keras.utils.set_random_seed(11)
+np.random.seed(11)
+random.seed(11)
+
+[cell 003 | markdown]
+## Выбор runtime
+
+Здесь вы выбираете, где и на чём запускать notebook.
+
+Что обычно выбирать:
+- `auto` — лучший вариант по умолчанию. Если TensorFlow видит GPU, будет выбран GPU. Если GPU нет, notebook спокойно останется на CPU.
+- `local-cpu` — локальный запуск только на CPU, даже если видеокарта есть.
+- `local-gpu` — локальный запуск с обязательным GPU. Если GPU не настроен, notebook специально остановится с понятной ошибкой.
+- `colab-cpu` / `colab-gpu` — запуск в Google Colab.
+- `kaggle-cpu` / `kaggle-gpu` — запуск в Kaggle Notebooks.
+
+Что важно:
+- после изменения `RUNTIME_MODE` используйте `Restart & Run All`;
+- `COURSE_REPO_HTTPS_URL` нужен только для Colab/Kaggle, если репозиторий ещё не клонирован в runtime;
+- пока в ячейке стоит placeholder-URL, cloud auto-bootstrap не сможет сам скачать курс;
+- guide `05` отвечает на вопрос, где и как запускать notebook;
+- guide `06` нужен, если вы хотите именно локальный GPU и не уверены в версиях `TensorFlow` / `CUDA`;
+- локальный GPU-path курса: `Linux + NVIDIA` или `Windows -> WSL2 + Ubuntu`;
+- если `local-gpu` упирается в локальные CUDA/PTX ошибки, это обычно уже проблема GPU-стека, а не notebook. В таком случае спокойно переключайтесь на `local-cpu`, `colab-gpu` или `kaggle-gpu`.
+
+Подробные guides:
+- `themes/00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md`
+- `themes/00-Foundations/guides/06_tensorflow_cuda_version_selection.md`
+
+[cell 004 | code]
+import importlib.util
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+RUNTIME_MODE = os.environ.get("COURSE_RUNTIME_MODE", "auto")
+COURSE_REPO_HTTPS_URL = os.environ.get(
+    "COURSE_REPO_HTTPS_URL",
+    "https://github.com/<org>/<repo>.git",
+)
+NOTEBOOK_REQUIREMENTS = "themes/00-Foundations/requirements.txt"
+
+
+def _detect_notebook_platform():
+    if os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or Path("/kaggle").exists():
+        return "kaggle"
+    if os.environ.get("COLAB_RELEASE_TAG") or "google.colab" in sys.modules:
+        return "colab"
+    return "local"
+
+
+def _looks_like_repo_root(path: Path) -> bool:
+    return (
+        path.is_dir()
+        and (path / "themes").is_dir()
+        and (path / "course_runtime.py").is_file()
+    )
+
+
+def _canonical_cloud_repo_root(platform: str) -> Path:
+    if platform == "colab":
+        return Path("/content/students-AI_math_essentials")
+    if platform == "kaggle":
+        return Path("/kaggle/working/students-AI_math_essentials")
+    raise ValueError(f"Unexpected cloud platform: {platform}")
+
+
+def _is_placeholder_repo_url(repo_url: str) -> bool:
+    return repo_url.strip() == "https://github.com/<org>/<repo>.git"
+
+
+def _find_repo_root_from_cwd():
+    for candidate in (Path.cwd(), *Path.cwd().parents):
+        if _looks_like_repo_root(candidate):
+            return candidate
+    return None
+
+
+def _ensure_course_runtime_importable(runtime_mode: str, repo_url: str) -> None:
+    if importlib.util.find_spec("course_runtime") is not None:
+        return
+
+    local_repo_root = _find_repo_root_from_cwd()
+    if local_repo_root is not None:
+        if str(local_repo_root) not in sys.path:
+            sys.path.insert(0, str(local_repo_root))
+        return
+
+    platform = _detect_notebook_platform()
+    if platform == "local":
+        raise ModuleNotFoundError(
+            "Не удалось импортировать course_runtime.py. Для локального запуска "
+            "открывайте репозиторий через `.venv/bin/jupyter notebook` из корня проекта."
+        )
+
+    repo_root = _canonical_cloud_repo_root(platform)
+    if not _looks_like_repo_root(repo_root):
+        if _is_placeholder_repo_url(repo_url):
+            raise RuntimeError(
+                "Для cloud auto-bootstrap нужен публичный HTTPS URL курса. "
+                "Замените COURSE_REPO_HTTPS_URL на реальный адрес репозитория."
+            )
+        repo_root.parent.mkdir(parents=True, exist_ok=True)
+        if repo_root.exists() and any(repo_root.iterdir()):
+            raise RuntimeError(
+                f"Каталог {repo_root} уже существует, но не выглядит как корень курса. "
+                "Очистите runtime или используйте новый notebook session."
+            )
+        print(f"Bootstrapping course repository into {repo_root} ...")
+        subprocess.run(["git", "clone", repo_url, str(repo_root)], check=True)
+
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+
+
+_ensure_course_runtime_importable(RUNTIME_MODE, COURSE_REPO_HTTPS_URL)
+
+from course_runtime import setup_notebook_runtime
+
+runtime_info = setup_notebook_runtime(
+    runtime_mode=RUNTIME_MODE,
+    course_repo_https_url=COURSE_REPO_HTTPS_URL,
+    notebook_requirements=NOTEBOOK_REQUIREMENTS,
+)
+runtime_info.as_dict()
+
+[cell 005 | code]
+vocab_size = 8000
+maxlen = 140
+train_subset = 3000
+test_subset = 1500
+
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.imdb.load_data(num_words=vocab_size)
+
+x_train = tf.keras.utils.pad_sequences(x_train[:train_subset], maxlen=maxlen, padding='post')
+y_train = y_train[:train_subset]
+x_test = tf.keras.utils.pad_sequences(x_test[:test_subset], maxlen=maxlen, padding='post')
+y_test = y_test[:test_subset]
+
+x_train, x_val, y_train, y_val = train_test_split(
+    x_train, y_train, test_size=0.2, random_state=11, stratify=y_train
+)
+
+print('x_train shape:', x_train.shape)
+print('x_val shape  :', x_val.shape)
+print('x_test shape :', x_test.shape)
+print('Positive rate:', y_train.mean())
+
+[cell 006 | code]
+def build_model(cell_name: str) -> tf.keras.Model:
+    if cell_name == 'SimpleRNN':
+        recurrent = tf.keras.layers.SimpleRNN(32)
+    elif cell_name == 'LSTM':
+        recurrent = tf.keras.layers.LSTM(32)
+    elif cell_name == 'GRU':
+        recurrent = tf.keras.layers.GRU(32)
+    else:
+        raise ValueError(cell_name)
+
+    model = tf.keras.Sequential(
+        [
+            tf.keras.layers.Input(shape=(maxlen,)),
+            tf.keras.layers.Embedding(vocab_size, 32, mask_zero=True),
+            recurrent,
+            tf.keras.layers.Dense(1, activation='sigmoid'),
+        ]
+    )
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+
+histories = {}
+summaries = []
+models = {}
+
+for name in ['SimpleRNN', 'LSTM', 'GRU']:
+    model = build_model(name)
+    history = model.fit(
+        x_train,
+        y_train,
+        validation_data=(x_val, y_val),
+        epochs=2,
+        batch_size=64,
+        verbose=0,
+    )
+    loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
+    histories[name] = history.history
+    summaries.append({'model': name, 'test_loss': float(loss), 'test_accuracy': float(accuracy)})
+    models[name] = model
+
+pd.DataFrame(summaries).sort_values('test_accuracy', ascending=False)
+
+[cell 007 | code]
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+for name, history in histories.items():
+    axes[0].plot(history['val_accuracy'], marker='o', label=name)
+    axes[1].plot(history['val_loss'], marker='o', label=name)
+
+axes[0].set_title('IMDB fast-mode: validation accuracy')
+axes[0].set_xlabel('Epoch')
+axes[0].set_ylabel('Accuracy')
+axes[0].legend()
+
+axes[1].set_title('IMDB fast-mode: validation loss')
+axes[1].set_xlabel('Epoch')
+axes[1].set_ylabel('Loss')
+axes[1].legend()
+
+plt.tight_layout()
+plt.show()
+
+[cell 008 | code]
+sample_batch = x_test[:4]
+for name, model in models.items():
+    probs = model.predict(sample_batch, verbose=0).ravel()
+    preds = (probs >= 0.5).astype(np.int32)
+    print(name)
+    for idx, (prob, pred, target) in enumerate(zip(probs, preds, y_test[:4]), start=1):
+        print(f'  sample={idx} prob={prob:.3f} pred={pred} target={int(target)}')
+    print()
+
+[cell 009 | markdown]
+## Что заметить
+
+- Логика задачи осталась той же, что и в `many-to-one` toy notebook: одна последовательность -> одна метка.
+- Из synthetic labs сюда почти без изменений переезжает shape `(batch, time)` для token ids и итоговая метка `(batch,)`.
+- Разница между `SimpleRNN`, `LSTM` и `GRU` видна даже в fast-mode, но этот notebook нужен прежде всего для переноса интуиции, а не для честного leaderboard.

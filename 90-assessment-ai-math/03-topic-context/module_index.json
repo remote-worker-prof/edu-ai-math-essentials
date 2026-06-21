@@ -1,0 +1,704 @@
+{
+  "modules": [
+    {
+      "module_id": "module_01",
+      "module_slug": "01-foundations",
+      "module_title": "Раздел 1. Foundations",
+      "topic_id": "foundations",
+      "topic_title": "Foundations",
+      "material_ids": [
+        "mat_0002",
+        "mat_0003",
+        "mat_0004",
+        "mat_0005",
+        "mat_0006",
+        "mat_0007",
+        "mat_0008",
+        "mat_0009",
+        "mat_0010",
+        "mat_0011",
+        "mat_0012",
+        "mat_0013",
+        "mat_0014",
+        "mat_0015",
+        "mat_0016"
+      ],
+      "materials": [
+        {
+          "material_id": "mat_0002",
+          "source_path": "themes/00-Foundations/examples/01_numpy_sequence_basics.ipynb",
+          "material_role": "example",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0003",
+          "source_path": "themes/00-Foundations/examples/02_minimal_keras_sequence_classifier.ipynb",
+          "material_role": "example",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0004",
+          "source_path": "themes/00-Foundations/examples/03_tokenization_padding_masking.ipynb",
+          "material_role": "example",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0005",
+          "source_path": "themes/00-Foundations/examples/04_attention_heatmap_toy.ipynb",
+          "material_role": "example",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0006",
+          "source_path": "themes/00-Foundations/showcases/01_imdb_many_to_one_showcase.ipynb",
+          "material_role": "showcase",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0007",
+          "source_path": "themes/00-Foundations/showcases/02_jena_climate_lstm_gru_showcase.ipynb",
+          "material_role": "showcase",
+          "score": "1.28",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0008",
+          "source_path": "themes/00-Foundations/showcases/03_spa_eng_seq2seq_attention_showcase.ipynb",
+          "material_role": "showcase",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0009",
+          "source_path": "themes/00-Foundations/showcases/cards/01_imdb.md",
+          "material_role": "showcase_card",
+          "score": "0.92",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0010",
+          "source_path": "themes/00-Foundations/showcases/cards/02_jena_climate.md",
+          "material_role": "showcase_card",
+          "score": "0.84",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0011",
+          "source_path": "themes/00-Foundations/showcases/cards/03_spa_eng.md",
+          "material_role": "showcase_card",
+          "score": "0.84",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0012",
+          "source_path": "themes/00-Foundations/showcases/cards/04_reuters.md",
+          "material_role": "showcase_card",
+          "score": "0.88",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0013",
+          "source_path": "themes/00-Foundations/showcases/cards/05_uci_har.md",
+          "material_role": "showcase_card",
+          "score": "0.8",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0014",
+          "source_path": "themes/00-Foundations/showcases/cards/06_shakespeare.md",
+          "material_role": "showcase_card",
+          "score": "0.88",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0015",
+          "source_path": "themes/00-Foundations/showcases/cards/07_forda.md",
+          "material_role": "showcase_card",
+          "score": "0.84",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0016",
+          "source_path": "themes/00-Foundations/theory/theory.md",
+          "material_role": "theory",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        }
+      ],
+      "question_blueprint": [
+        "single",
+        "single",
+        "multiple",
+        "multiple",
+        "open"
+      ],
+      "paths": {
+        "module_summary": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/01-foundations/module_summary.md",
+        "module_sources": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/01-foundations/module_sources.csv",
+        "module_traceability": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/01-foundations/module_traceability.json",
+        "test_focus": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/01-foundations/test_focus.md"
+      }
+    },
+    {
+      "module_id": "module_02",
+      "module_slug": "02-rnn",
+      "module_title": "Раздел 2. RNN",
+      "topic_id": "rnn",
+      "topic_title": "RNN",
+      "material_ids": [
+        "mat_0017",
+        "mat_0018",
+        "mat_0019",
+        "mat_0020",
+        "mat_0021",
+        "mat_0022",
+        "mat_0023",
+        "mat_0024",
+        "mat_0025",
+        "mat_0026",
+        "mat_0027",
+        "mat_0028",
+        "mat_0029",
+        "mat_0030",
+        "mat_0031",
+        "mat_0032"
+      ],
+      "materials": [
+        {
+          "material_id": "mat_0017",
+          "source_path": "themes/01-RNN/lab/01_simple_rnn_many_to_one_toy.ipynb",
+          "material_role": "lab",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0018",
+          "source_path": "themes/01-RNN/lab/02_lstm_many_to_many_toy.ipynb",
+          "material_role": "lab",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0019",
+          "source_path": "themes/01-RNN/lab/03_gru_seq2seq_reverse_toy.ipynb",
+          "material_role": "lab",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0020",
+          "source_path": "themes/01-RNN/lab/guides/00_prerequisites_and_notation.md",
+          "material_role": "lab_guide",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0021",
+          "source_path": "themes/01-RNN/lab/guides/00_self_study_debugging_playbook.md",
+          "material_role": "lab_guide",
+          "score": "1.12",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0022",
+          "source_path": "themes/01-RNN/lab/guides/01_simple_rnn_many_to_one_beginner.md",
+          "material_role": "lab_guide",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0023",
+          "source_path": "themes/01-RNN/lab/guides/01_simple_rnn_walkthrough.md",
+          "material_role": "lab_guide",
+          "score": "1.28",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0024",
+          "source_path": "themes/01-RNN/lab/guides/02_lstm_many_to_many_beginner.md",
+          "material_role": "lab_guide",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0025",
+          "source_path": "themes/01-RNN/lab/guides/02_lstm_walkthrough.md",
+          "material_role": "lab_guide",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0026",
+          "source_path": "themes/01-RNN/lab/guides/03_gru_seq2seq_tokens_beginner.md",
+          "material_role": "lab_guide",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0027",
+          "source_path": "themes/01-RNN/lab/guides/03_gru_seq2seq_walkthrough.md",
+          "material_role": "lab_guide",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0028",
+          "source_path": "themes/01-RNN/lab/solutions/01_simple_rnn_many_to_one_toy_solution.ipynb",
+          "material_role": "lab_solution",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0029",
+          "source_path": "themes/01-RNN/lab/solutions/02_lstm_many_to_many_toy_solution.ipynb",
+          "material_role": "lab_solution",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0030",
+          "source_path": "themes/01-RNN/lab/solutions/03_gru_seq2seq_reverse_toy_solution.ipynb",
+          "material_role": "lab_solution",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0031",
+          "source_path": "themes/01-RNN/theory/ERRATA.md",
+          "material_role": "theory",
+          "score": "1.28",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0032",
+          "source_path": "themes/01-RNN/theory/theory.md",
+          "material_role": "theory",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        }
+      ],
+      "question_blueprint": [
+        "single",
+        "single",
+        "multiple",
+        "multiple",
+        "open"
+      ],
+      "paths": {
+        "module_summary": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/02-rnn/module_summary.md",
+        "module_sources": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/02-rnn/module_sources.csv",
+        "module_traceability": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/02-rnn/module_traceability.json",
+        "test_focus": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/02-rnn/test_focus.md"
+      }
+    },
+    {
+      "module_id": "module_03",
+      "module_slug": "03-attention",
+      "module_title": "Раздел 3. Attention",
+      "topic_id": "attention",
+      "topic_title": "Attention",
+      "material_ids": [
+        "mat_0033",
+        "mat_0034",
+        "mat_0035",
+        "mat_0036",
+        "mat_0037",
+        "mat_0038",
+        "mat_0039"
+      ],
+      "materials": [
+        {
+          "material_id": "mat_0033",
+          "source_path": "themes/02-Attention/lab/01_gru_seq2seq_attention_reverse_toy.ipynb",
+          "material_role": "lab",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0034",
+          "source_path": "themes/02-Attention/lab/guides/00_attention_prerequisites.md",
+          "material_role": "lab_guide",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0035",
+          "source_path": "themes/02-Attention/lab/guides/01_gru_seq2seq_attention_beginner.md",
+          "material_role": "lab_guide",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0036",
+          "source_path": "themes/02-Attention/lab/guides/02_attention_walkthrough.md",
+          "material_role": "lab_guide",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0037",
+          "source_path": "themes/02-Attention/lab/guides/03_attention_debugging_playbook.md",
+          "material_role": "lab_guide",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0038",
+          "source_path": "themes/02-Attention/lab/solutions/01_gru_seq2seq_attention_reverse_toy_solution.ipynb",
+          "material_role": "lab_solution",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0039",
+          "source_path": "themes/02-Attention/theory/theory.md",
+          "material_role": "theory",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        }
+      ],
+      "question_blueprint": [
+        "single",
+        "single",
+        "multiple",
+        "multiple",
+        "open"
+      ],
+      "paths": {
+        "module_summary": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/03-attention/module_summary.md",
+        "module_sources": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/03-attention/module_sources.csv",
+        "module_traceability": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/03-attention/module_traceability.json",
+        "test_focus": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/03-attention/test_focus.md"
+      }
+    },
+    {
+      "module_id": "module_04",
+      "module_slug": "04-transformer-encoder",
+      "module_title": "Раздел 4. Transformer Encoder",
+      "topic_id": "transformer_encoder",
+      "topic_title": "Transformer Encoder",
+      "material_ids": [
+        "mat_0040",
+        "mat_0041",
+        "mat_0042",
+        "mat_0043",
+        "mat_0044",
+        "mat_0045",
+        "mat_0046",
+        "mat_0047",
+        "mat_0048",
+        "mat_0049"
+      ],
+      "materials": [
+        {
+          "material_id": "mat_0040",
+          "source_path": "themes/03-Transformer/lab/01_transformer_encoder_order_toy.ipynb",
+          "material_role": "lab",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0041",
+          "source_path": "themes/03-Transformer/lab/02_transformer_encoder_imdb.ipynb",
+          "material_role": "lab",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0042",
+          "source_path": "themes/03-Transformer/lab/guides/00_transformer_prerequisites.md",
+          "material_role": "lab_guide",
+          "score": "1.08",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0043",
+          "source_path": "themes/03-Transformer/lab/guides/01_self_attention_and_positional_encoding_beginner.md",
+          "material_role": "lab_guide",
+          "score": "1.2",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0044",
+          "source_path": "themes/03-Transformer/lab/guides/02_transformer_encoder_toy_walkthrough.md",
+          "material_role": "lab_guide",
+          "score": "1.2",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0045",
+          "source_path": "themes/03-Transformer/lab/guides/03_transformer_encoder_imdb_walkthrough.md",
+          "material_role": "lab_guide",
+          "score": "1.16",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0046",
+          "source_path": "themes/03-Transformer/lab/guides/04_transformer_debugging_playbook.md",
+          "material_role": "lab_guide",
+          "score": "1.04",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0047",
+          "source_path": "themes/03-Transformer/lab/solutions/01_transformer_encoder_order_toy_solution.ipynb",
+          "material_role": "lab_solution",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0048",
+          "source_path": "themes/03-Transformer/lab/solutions/02_transformer_encoder_imdb_solution.ipynb",
+          "material_role": "lab_solution",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0049",
+          "source_path": "themes/03-Transformer/theory/theory.md",
+          "material_role": "theory",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        }
+      ],
+      "question_blueprint": [
+        "single",
+        "single",
+        "multiple",
+        "multiple",
+        "open"
+      ],
+      "paths": {
+        "module_summary": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/04-transformer-encoder/module_summary.md",
+        "module_sources": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/04-transformer-encoder/module_sources.csv",
+        "module_traceability": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/04-transformer-encoder/module_traceability.json",
+        "test_focus": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/04-transformer-encoder/test_focus.md"
+      }
+    },
+    {
+      "module_id": "module_05",
+      "module_slug": "05-autoregression",
+      "module_title": "Раздел 5. Autoregression",
+      "topic_id": "autoregression",
+      "topic_title": "Autoregression",
+      "material_ids": [
+        "mat_0050",
+        "mat_0051",
+        "mat_0052",
+        "mat_0053",
+        "mat_0054",
+        "mat_0055",
+        "mat_0056",
+        "mat_0057",
+        "mat_0058",
+        "mat_0059",
+        "mat_0060",
+        "mat_0061",
+        "mat_0062",
+        "mat_0063",
+        "mat_0064"
+      ],
+      "materials": [
+        {
+          "material_id": "mat_0050",
+          "source_path": "themes/04-Autoregression/lab/01_decoder_only_causal_toy.ipynb",
+          "material_role": "lab",
+          "score": "1.36",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0051",
+          "source_path": "themes/04-Autoregression/lab/02_decoder_only_tiny_shakespeare.ipynb",
+          "material_role": "lab",
+          "score": "1.28",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0052",
+          "source_path": "themes/04-Autoregression/lab/02_decoder_only_tiny_shakespeare_gpu.ipynb",
+          "material_role": "lab",
+          "score": "1.24",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0053",
+          "source_path": "themes/04-Autoregression/lab/guides/00_autoregression_prerequisites.md",
+          "material_role": "lab_guide",
+          "score": "0.96",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0054",
+          "source_path": "themes/04-Autoregression/lab/guides/01_decoder_only_toy_walkthrough.md",
+          "material_role": "lab_guide",
+          "score": "0.96",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0055",
+          "source_path": "themes/04-Autoregression/lab/guides/02_autoregression_debugging_playbook.md",
+          "material_role": "lab_guide",
+          "score": "0.84",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0056",
+          "source_path": "themes/04-Autoregression/lab/guides/03_tiny_shakespeare_walkthrough.md",
+          "material_role": "lab_guide",
+          "score": "0.84",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0057",
+          "source_path": "themes/04-Autoregression/lab/guides/04_tiny_shakespeare_debugging_playbook.md",
+          "material_role": "lab_guide",
+          "score": "0.84",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0058",
+          "source_path": "themes/04-Autoregression/lab/guides/05_tiny_shakespeare_gpu_walkthrough.md",
+          "material_role": "lab_guide",
+          "score": "0.88",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0059",
+          "source_path": "themes/04-Autoregression/lab/guides/06_tiny_shakespeare_gpu_debugging_playbook.md",
+          "material_role": "lab_guide",
+          "score": "0.92",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0060",
+          "source_path": "themes/04-Autoregression/lab/guides/07_lr04_local_gpu_tf221_checklist.md",
+          "material_role": "lab_guide",
+          "score": "1.0",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0061",
+          "source_path": "themes/04-Autoregression/lab/solutions/01_decoder_only_causal_toy_solution.ipynb",
+          "material_role": "lab_solution",
+          "score": "1.36",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0062",
+          "source_path": "themes/04-Autoregression/lab/solutions/02_decoder_only_tiny_shakespeare_gpu_solution.ipynb",
+          "material_role": "lab_solution",
+          "score": "1.28",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0063",
+          "source_path": "themes/04-Autoregression/lab/solutions/02_decoder_only_tiny_shakespeare_solution.ipynb",
+          "material_role": "lab_solution",
+          "score": "1.24",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0064",
+          "source_path": "themes/04-Autoregression/theory/theory.md",
+          "material_role": "theory",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        }
+      ],
+      "question_blueprint": [
+        "single",
+        "single",
+        "multiple",
+        "multiple",
+        "open"
+      ],
+      "paths": {
+        "module_summary": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/05-autoregression/module_summary.md",
+        "module_sources": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/05-autoregression/module_sources.csv",
+        "module_traceability": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/05-autoregression/module_traceability.json",
+        "test_focus": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/05-autoregression/test_focus.md"
+      }
+    },
+    {
+      "module_id": "module_06",
+      "module_slug": "06-full-transformer",
+      "module_title": "Раздел 6. Full Transformer",
+      "topic_id": "full_transformer",
+      "topic_title": "Full Transformer",
+      "material_ids": [
+        "mat_0065",
+        "mat_0066",
+        "mat_0067",
+        "mat_0068",
+        "mat_0069",
+        "mat_0070"
+      ],
+      "materials": [
+        {
+          "material_id": "mat_0065",
+          "source_path": "themes/05-Full-Transformer/lab/01_full_transformer_tiny_shakespeare.ipynb",
+          "material_role": "lab",
+          "score": "1.32",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0066",
+          "source_path": "themes/05-Full-Transformer/lab/guides/00_full_transformer_prerequisites.md",
+          "material_role": "lab_guide",
+          "score": "0.88",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0067",
+          "source_path": "themes/05-Full-Transformer/lab/guides/01_full_transformer_walkthrough.md",
+          "material_role": "lab_guide",
+          "score": "0.88",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0068",
+          "source_path": "themes/05-Full-Transformer/lab/guides/02_full_transformer_debugging_playbook.md",
+          "material_role": "lab_guide",
+          "score": "0.84",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0069",
+          "source_path": "themes/05-Full-Transformer/lab/solutions/01_full_transformer_wikitext2_solution.ipynb",
+          "material_role": "lab_solution",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        },
+        {
+          "material_id": "mat_0070",
+          "source_path": "themes/05-Full-Transformer/theory/theory.md",
+          "material_role": "theory",
+          "score": "1.4",
+          "assignment_reason": "path_hint+keywords"
+        }
+      ],
+      "question_blueprint": [
+        "single",
+        "single",
+        "multiple",
+        "multiple",
+        "open"
+      ],
+      "paths": {
+        "module_summary": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/06-full-transformer/module_summary.md",
+        "module_sources": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/06-full-transformer/module_sources.csv",
+        "module_traceability": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/06-full-transformer/module_traceability.json",
+        "test_focus": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/04_modules/06-full-transformer/test_focus.md"
+      }
+    }
+  ],
+  "stats": {
+    "module_count": 6,
+    "total_material_links": 69
+  }
+}

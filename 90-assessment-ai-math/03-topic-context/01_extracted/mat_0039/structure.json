@@ -1,0 +1,72 @@
+{
+  "format": "md",
+  "line_count": 212,
+  "char_count": 7240,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Attention для seq2seq: мостик от GRU к Transformer"
+    },
+    {
+      "line": 8,
+      "level": 2,
+      "title": "1. Почему plain seq2seq упирается в bottleneck"
+    },
+    {
+      "line": 29,
+      "level": 2,
+      "title": "2. Интуиция `query`, `key`, `value`"
+    },
+    {
+      "line": 49,
+      "level": 2,
+      "title": "3. Dot-product attention (Luong attention)"
+    },
+    {
+      "line": 83,
+      "level": 2,
+      "title": "4. Чем cross-attention отличается от self-attention"
+    },
+    {
+      "line": 102,
+      "level": 2,
+      "title": "5. Как attention ведет к Transformer"
+    },
+    {
+      "line": 125,
+      "level": 2,
+      "title": "6. Расшифровка каждой закорючки: attention как таблица соответствий"
+    },
+    {
+      "line": 129,
+      "level": 3,
+      "title": "6.1 Что это значит словами"
+    },
+    {
+      "line": 144,
+      "level": 3,
+      "title": "6.2 Что означает каждый символ"
+    },
+    {
+      "line": 157,
+      "level": 3,
+      "title": "6.3 Shape-contract и heatmap axes"
+    },
+    {
+      "line": 171,
+      "level": 3,
+      "title": "6.4 Мини-числовой пример"
+    },
+    {
+      "line": 199,
+      "level": 3,
+      "title": "6.5 Где это в TODO"
+    },
+    {
+      "line": 205,
+      "level": 3,
+      "title": "6.6 Типичная ошибка и способ поймать её"
+    }
+  ]
+}

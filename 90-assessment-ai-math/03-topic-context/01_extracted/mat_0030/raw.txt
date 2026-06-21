@@ -1,0 +1,769 @@
+[cell 001 | markdown]
+# Лабораторная 3: GRU encoder-decoder для задачи seq2seq (решение)
+
+**Навигация:** Блок `01-RNN` · `ЛР03` · Шаг 3 курса
+
+## Цель
+Реализовать модель `seq2seq (решение)` на базе `GRU`, которая разворачивает входную последовательность в обратном порядке.
+
+Формат `seq2seq (решение)` означает: длина входа и длина выхода могут различаться, а генерация выхода идет пошагово.
+
+[cell 002 | markdown]
+## Что нужно знать до старта
+
+Вы сейчас здесь: `01-RNN / ЛР03` — локальная ЛР03 блока `RNN`, Шаг 3 курса.
+Предыдущий шаг: `01-RNN / ЛР02`.
+Следующий шаг: `02-Attention / ЛР01`.
+
+Перед стартом откройте:
+- [Foundations entry-point](../../../00-Foundations/README.md)
+- [Shared-guide по токенам и decoder shift](../../../00-Foundations/guides/02_tokens_padding_and_decoder_shift.md)
+- [База по обозначениям и формам](../guides/00_prerequisites_and_notation.md)
+- [Beginner guide по токенам и seq2seq](../guides/03_gru_seq2seq_tokens_beginner.md)
+- [walkthrough для этой ЛР](../guides/03_gru_seq2seq_walkthrough.md)
+- [shared debugging playbook](../../../00-Foundations/guides/04_self_study_debugging_playbook.md)
+
+Что важно помнить:
+- здесь мы уже работаем не с вещественными признаками, а с дискретными токенами из словаря;
+- специальные токены `PAD`, `SOS`, `EOS` управляют выравниванием, стартом декодера и завершением вывода;
+- `decoder_input` и `decoder_target` сдвинуты на один шаг относительно друг друга;
+- во время обучения используется `teacher forcing`, поэтому декодер видит правильный предыдущий токен.
+
+[cell 003 | markdown]
+## Выбор runtime
+
+Здесь вы выбираете, где и на чём запускать notebook.
+
+Что обычно выбирать:
+- `auto` — лучший вариант по умолчанию. Если TensorFlow видит GPU, будет выбран GPU. Если GPU нет, notebook спокойно останется на CPU.
+- `local-cpu` — локальный запуск только на CPU, даже если видеокарта есть.
+- `local-gpu` — локальный запуск с обязательным GPU. Если GPU не настроен, notebook специально остановится с понятной ошибкой.
+- `colab-cpu` / `colab-gpu` — запуск в Google Colab.
+- `kaggle-cpu` / `kaggle-gpu` — запуск в Kaggle Notebooks.
+
+Что важно:
+- после изменения `RUNTIME_MODE` используйте `Restart & Run All`;
+- `COURSE_REPO_HTTPS_URL` нужен только для Colab/Kaggle, если репозиторий ещё не клонирован в runtime;
+- пока в ячейке стоит placeholder-URL, cloud auto-bootstrap не сможет сам скачать курс;
+- guide `05` отвечает на вопрос, где и как запускать notebook;
+- guide `06` нужен, если вы хотите именно локальный GPU и не уверены в версиях `TensorFlow` / `CUDA`;
+- локальный GPU-path курса: `Linux + NVIDIA` или `Windows -> WSL2 + Ubuntu`;
+- если `local-gpu` упирается в локальные CUDA/PTX ошибки, это обычно уже проблема GPU-стека, а не notebook. В таком случае спокойно переключайтесь на `local-cpu`, `colab-gpu` или `kaggle-gpu`.
+
+Подробные guides:
+- `themes/00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md`
+- `themes/00-Foundations/guides/06_tensorflow_cuda_version_selection.md`
+
+[cell 004 | code]
+import importlib.util
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+RUNTIME_MODE = os.environ.get("COURSE_RUNTIME_MODE", "auto")
+COURSE_REPO_HTTPS_URL = os.environ.get(
+    "COURSE_REPO_HTTPS_URL",
+    "https://github.com/<org>/<repo>.git",
+)
+NOTEBOOK_REQUIREMENTS = "themes/01-RNN/lab/requirements.txt"
+
+
+def _detect_notebook_platform():
+    if os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or Path("/kaggle").exists():
+        return "kaggle"
+    if os.environ.get("COLAB_RELEASE_TAG") or "google.colab" in sys.modules:
+        return "colab"
+    return "local"
+
+
+def _looks_like_repo_root(path: Path) -> bool:
+    return (
+        path.is_dir()
+        and (path / "themes").is_dir()
+        and (path / "course_runtime.py").is_file()
+    )
+
+
+def _canonical_cloud_repo_root(platform: str) -> Path:
+    if platform == "colab":
+        return Path("/content/students-AI_math_essentials")
+    if platform == "kaggle":
+        return Path("/kaggle/working/students-AI_math_essentials")
+    raise ValueError(f"Unexpected cloud platform: {platform}")
+
+
+def _is_placeholder_repo_url(repo_url: str) -> bool:
+    return repo_url.strip() == "https://github.com/<org>/<repo>.git"
+
+
+def _find_repo_root_from_cwd():
+    for candidate in (Path.cwd(), *Path.cwd().parents):
+        if _looks_like_repo_root(candidate):
+            return candidate
+    return None
+
+
+def _ensure_course_runtime_importable(runtime_mode: str, repo_url: str) -> None:
+    if importlib.util.find_spec("course_runtime") is not None:
+        return
+
+    local_repo_root = _find_repo_root_from_cwd()
+    if local_repo_root is not None:
+        if str(local_repo_root) not in sys.path:
+            sys.path.insert(0, str(local_repo_root))
+        return
+
+    platform = _detect_notebook_platform()
+    if platform == "local":
+        raise ModuleNotFoundError(
+            "Не удалось импортировать course_runtime.py. Для локального запуска "
+            "открывайте репозиторий через `.venv/bin/jupyter notebook` из корня проекта."
+        )
+
+    repo_root = _canonical_cloud_repo_root(platform)
+    if not _looks_like_repo_root(repo_root):
+        if _is_placeholder_repo_url(repo_url):
+            raise RuntimeError(
+                "Для cloud auto-bootstrap нужен публичный HTTPS URL курса. "
+                "Замените COURSE_REPO_HTTPS_URL на реальный адрес репозитория."
+            )
+        repo_root.parent.mkdir(parents=True, exist_ok=True)
+        if repo_root.exists() and any(repo_root.iterdir()):
+            raise RuntimeError(
+                f"Каталог {repo_root} уже существует, но не выглядит как корень курса. "
+                "Очистите runtime или используйте новый notebook session."
+            )
+        print(f"Bootstrapping course repository into {repo_root} ...")
+        subprocess.run(["git", "clone", repo_url, str(repo_root)], check=True)
+
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+
+
+_ensure_course_runtime_importable(RUNTIME_MODE, COURSE_REPO_HTTPS_URL)
+
+from course_runtime import setup_notebook_runtime
+
+runtime_info = setup_notebook_runtime(
+    runtime_mode=RUNTIME_MODE,
+    course_repo_https_url=COURSE_REPO_HTTPS_URL,
+    notebook_requirements=NOTEBOOK_REQUIREMENTS,
+)
+runtime_info.as_dict()
+
+[cell 005 | markdown]
+## Интуиция задачи без формул
+
+Энкодер сначала читает входную последовательность и сжимает её смысл в скрытое состояние. Затем декодер, опираясь на это состояние, начинает выдавать ответ по одному токену за шаг. В нашей toy-задаче ответом является та же последовательность, но в обратном порядке.
+
+Главное новое отличие от прошлых лабораторных: вход и выход здесь разделены. Мы не просто ставим метку входу, а генерируем целую новую последовательность. Поэтому появляется декодер, сдвиг `decoder_input`/`decoder_target` и специальный токен начала `SOS`.
+
+[cell 006 | markdown]
+## Как проходить эту ЛР без преподавателя
+
+Рекомендуемый self-study маршрут:
+1. Прочитайте [пререквизиты](../guides/00_prerequisites_and_notation.md), [beginner guide](../guides/03_gru_seq2seq_tokens_beginner.md), [walkthrough](../guides/03_gru_seq2seq_walkthrough.md) и [debugging playbook](../guides/00_self_study_debugging_playbook.md).
+2. Идите по notebook строго сверху вниз и после каждого `TODO` запускайте ближайшую мини-проверку.
+3. Если застряли на одном шаге, открывайте walkthrough только для текущего блока, а не для всей лабораторной сразу.
+4. [Solution notebook](./03_gru_seq2seq_reverse_toy_solution.ipynb) открывайте только после собственной попытки и ручной проверки сдвига decoder.
+5. Если notebook подозрительно запутался в старом состоянии, используйте `Restart & Run All`.
+
+[cell 007 | markdown]
+## Что изменилось после `01-RNN / ЛР02`
+
+В `01-RNN / ЛР02` модель ставила метку на каждом шаге той же последовательности.
+
+Теперь меняется сам формат задачи:
+- encoder читает одну последовательность;
+- decoder генерирует другую;
+- появляются два входа модели и отдельный целевой тензор decoder;
+- вместо локальной метки на шаге теперь нужен выбор токена из словаря.
+
+Главный практический вывод: здесь важно не только собрать модель, но и идеально понять сдвиг `decoder_input` / `decoder_target`.
+
+[cell 008 | markdown]
+## Контракт данных
+Используются целочисленные токены:
+- `1..9` — содержательные значения;
+- `PAD=0` — заполнение;
+- `SOS=10` — старт декодера;
+- `EOS=11` — конец последовательности.
+
+Формируются три связанных тензора:
+- `encoder_input`;
+- `decoder_input`;
+- `decoder_target`.
+
+[cell 009 | markdown]
+## Таблица форм тензоров
+
+| Тензор | Форма | Смысл | Где используется |
+|---|---|---|---|
+| `encoder_input` | `(N, T_in)` | Вход кодировщика | `model.fit`/`model.predict` |
+| `decoder_input` | `(N, T_out)` | Вход декодера со сдвигом | `model.fit`/`model.predict` |
+| `decoder_target` | `(N, T_out, 1)` | Истинные выходные токены | Функция потерь |
+| `probs` | `(N_test, T_out, V)` | Распределения вероятностей по словарю | `model.predict` |
+| `preds` | `(N_test, T_out)` | Предсказанные индексы токенов | Оценка |
+| `mask` | `(N_test, T_out)` | Маска значимых токенов (`!= PAD`) | `exact_match` |
+| `exact_match` | скаляр | Доля полностью верных последовательностей | Итоговая метрика |
+
+[cell 010 | markdown]
+## Шпаргалка по обозначениям и формам
+
+Короткая карта обозначений:
+- `V` - размер словаря вместе со специальными токенами.
+- `encoder_input`: входная последовательность токенов для энкодера.
+- `decoder_input`: последовательность для входа декодера, начинающаяся с `SOS`.
+- `decoder_target`: правильная целевая последовательность для обучения декодера.
+- `PAD`, `SOS`, `EOS` - специальные токены паддинга, старта и конца.
+- `mask` - маска, которая помогает игнорировать `PAD`.
+
+Формы тензоров:
+- `encoder_input`: `(N, T_in)`.
+- `decoder_input`: `(N, T_out)`.
+- `decoder_target`: `(N, T_out, 1)`.
+- выход модели: `(batch, T_out, V)`.
+- `token_accuracy` смотрит на отдельные позиции, а `exact_match` требует полностью правильную последовательность.
+
+[cell 011 | markdown]
+## Контракт модели
+- В `model.fit` передается список входов `[encoder_input, decoder_input]` и `decoder_target`.
+- Выход модели: распределение вероятностей по словарю на каждом шаге декодера.
+- Для функции потерь `sparse_categorical_crossentropy` целевые значения задаются целыми индексами классов.
+
+[cell 012 | markdown]
+## Мини-теория
+`seq2seq` с кодировщиком и декодером в нотации теории:
+
+$$
+h_t^{enc} = f_{enc}(x_t, h_{t-1}^{enc}), \quad c_{enc}=h_{T_{in}}^{enc}
+$$
+
+$$
+h_t^{dec} = f_{dec}(E(y_{t-1}^{in}), h_{t-1}^{dec}, c_{enc}), \quad
+s_t^{dec} = W_{out}h_t^{dec} + b_{out}, \quad
+\hat{y}_t = \mathrm{softmax}(s_t^{dec})
+$$
+
+На обучении используется обучение с учителем по предыдущему токену (`teacher forcing`).
+
+[cell 013 | markdown]
+## Ручной разбор одного примера
+
+Пусть вход для энкодера равен `[2, 5, 7]`, а задача - выдать его в обратном порядке.
+
+Тогда:
+- правильный ответ без служебных токенов: `[7, 5, 2]`
+- `decoder_input`: `[SOS, 7, 5, 2]`
+- `decoder_target`: `[7, 5, 2, EOS]`
+
+Смысл сдвига такой: на каждом шаге декодер получает предыдущий правильный токен и учится предсказать следующий. Именно поэтому `decoder_input` и `decoder_target` почти одинаковы, но сдвинуты на одну позицию.
+
+[cell 014 | code]
+PAD, SOS, EOS = 0, 10, 11
+seq = [2, 5, 7]
+reversed_seq = list(reversed(seq))
+decoder_input = [SOS] + reversed_seq
+decoder_target = reversed_seq + [EOS]
+
+print('encoder_input :', seq)
+print('target tokens :', reversed_seq)
+print('decoder_input :', decoder_input)
+print('decoder_target:', decoder_target)
+
+[cell 015 | code]
+import numpy as np
+import tensorflow as tf
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
+
+def set_seed(seed: int = 42) -> None:
+    np.random.seed(seed)
+    tf.random.set_seed(seed)
+
+
+set_seed(42)
+print('Версия TensorFlow:', tf.__version__)
+
+[cell 016 | markdown]
+## Генерация данных
+**Что сделать:** подготовить `encoder_input`, `decoder_input`, `decoder_target` со сдвигом на один шаг.
+
+**Почему:** декодер обучается предсказывать следующий токен по предыдущему.
+
+**Ожидаемые формы:** `(N,T_in)`, `(N,T_out)`, `(N,T_out,1)`.
+
+**Частая ошибка:** неверный сдвиг между входом и целями декодера.
+
+[cell 017 | markdown]
+### Подсказка к TODO 1-3: данные
+
+Концептуальная подсказка:
+- здесь нужно не просто развернуть последовательность, а подготовить три связанные версии одного примера: `encoder_input`, `decoder_input`, `decoder_target`.
+
+Implementation hint:
+- `rev = seq[::-1]`;
+- `decoder_input` начинается с `SOS`;
+- `decoder_target` заканчивается на `EOS`;
+- итоговая форма `decoder_target` должна быть `(N, T_out, 1)`.
+
+Если застряли, откройте раздел про TODO 1-3 в [walkthrough](../guides/03_gru_seq2seq_walkthrough.md).
+
+[cell 018 | code]
+PAD_ID = 0
+SOS_ID = 10
+EOS_ID = 11
+VOCAB_SIZE = 12
+ENC_LEN = 6
+DEC_LEN = ENC_LEN + 1
+
+
+def make_one_sample(min_len: int = 3, max_len: int = ENC_LEN):
+    length = np.random.randint(min_len, max_len + 1)
+    seq = np.random.randint(1, 10, size=length, dtype=np.int32)
+    rev = seq[::-1]
+    return seq, rev
+
+
+def pad_sequence(seq, target_len, pad_value=PAD_ID):
+    out = np.full((target_len,), pad_value, dtype=np.int32)
+    out[:len(seq)] = seq
+    return out
+
+
+def make_dataset(n_samples: int = 7000):
+    encoder_input = np.zeros((n_samples, ENC_LEN), dtype=np.int32)
+    decoder_input = np.zeros((n_samples, DEC_LEN), dtype=np.int32)
+    decoder_target = np.zeros((n_samples, DEC_LEN), dtype=np.int32)
+
+    for i in range(n_samples):
+        seq, rev = make_one_sample()
+        enc = pad_sequence(seq, ENC_LEN)
+
+        dec_in = np.concatenate([[SOS_ID], rev])
+        dec_out = np.concatenate([rev, [EOS_ID]])
+
+        encoder_input[i] = pad_sequence(enc, ENC_LEN)
+        decoder_input[i] = pad_sequence(dec_in, DEC_LEN)
+        decoder_target[i] = pad_sequence(dec_out, DEC_LEN)
+
+    return encoder_input, decoder_input, decoder_target[..., None]
+
+
+enc_in, dec_in, dec_tgt = make_dataset()
+
+enc_train, enc_test, dec_in_train, dec_in_test, dec_tgt_train, dec_tgt_test = train_test_split(
+    enc_in,
+    dec_in,
+    dec_tgt,
+    test_size=0.2,
+    random_state=42,
+)
+
+print('Форма enc_train    :', enc_train.shape)
+print('Форма dec_in_train :', dec_in_train.shape)
+print('Форма dec_tgt_train:', dec_tgt_train.shape)
+
+[cell 019 | markdown]
+### Разбор TODO 1-3: данные
+
+После заполнения блока проверьте логику, а не только синтаксис:
+- `rev` действительно разворачивает порядок токенов;
+- `decoder_input` и `decoder_target` сдвинуты на один шаг;
+- `PAD` используется только для выравнивания длины, а не как содержательный токен.
+
+[cell 020 | code]
+# Мини-проверка данных
+assert enc_in.ndim == 2 and dec_in.ndim == 2, 'encoder_input и decoder_input должны быть двумерными'
+assert dec_tgt.ndim == 3 and dec_tgt.shape[-1] == 1, 'decoder_target должен иметь форму (N,T,1)'
+assert enc_in.shape[1] == ENC_LEN and dec_in.shape[1] == DEC_LEN
+print('Мини-проверка данных: OK')
+
+[cell 021 | markdown]
+### Что должно получиться после шага "Данные"
+
+Ожидаемые сигналы:
+- `enc_train.shape == (N_train, ENC_LEN)`;
+- `dec_in_train.shape == (N_train, DEC_LEN)`;
+- `dec_tgt_train.shape == (N_train, DEC_LEN, 1)`;
+- мини-проверка данных проходит без ошибок.
+
+Self-check checkpoint:
+- выберите один пример;
+- вручную выпишите `rev`, `decoder_input` и `decoder_target`;
+- убедитесь, что `decoder_input[0] == SOS`, а последний значимый токен `decoder_target` равен `EOS`.
+
+[cell 022 | markdown]
+## Модель
+Используется гибридная схема:
+- кодировщик и встраивание декодера собираются через `Sequential.add(...)`;
+- объединение двух входов выполняется через функциональный граф (`Functional API`).
+
+Такой вариант сохраняет прозрачную структуру и поддерживает два входа `seq2seq`.
+
+[cell 023 | markdown]
+### Подсказка к TODO 4-9: модель
+
+Концептуальная подсказка:
+- encoder должен сжать вход в контекст, а decoder — развернуть этот контекст обратно в последовательность токенов.
+
+Implementation hint:
+- в encoder нужен `Embedding(..., mask_zero=True)` и `GRU`;
+- в decoder нужен свой `Embedding(..., mask_zero=True)` и `GRU(return_sequences=True)`;
+- финальный слой должен выдавать распределение по словарю `VOCAB_SIZE`;
+- компиляция идёт через `sparse_categorical_crossentropy`, потому что таргет хранит индексы токенов.
+
+Если форма выхода не сходится, откройте [walkthrough](../guides/03_gru_seq2seq_walkthrough.md).
+
+[cell 024 | code]
+def build_model(vocab_size: int = VOCAB_SIZE, emb_dim: int = 24, latent_dim: int = 48):
+    encoder_inputs = tf.keras.layers.Input(shape=(ENC_LEN,), name='encoder_inputs')
+
+    encoder_seq = tf.keras.Sequential(name='encoder_seq')
+    encoder_seq.add(tf.keras.layers.Embedding(vocab_size, emb_dim, mask_zero=True, name='enc_embedding'))
+    encoder_seq.add(tf.keras.layers.GRU(latent_dim, name='enc_gru'))
+    context = encoder_seq(encoder_inputs)
+
+    decoder_inputs = tf.keras.layers.Input(shape=(DEC_LEN,), name='decoder_inputs')
+    decoder_seq = tf.keras.Sequential(name='decoder_seq')
+    decoder_seq.add(tf.keras.layers.Embedding(vocab_size, emb_dim, mask_zero=True, name='dec_embedding'))
+    dec_emb = decoder_seq(decoder_inputs)
+
+    dec_gru = tf.keras.layers.GRU(latent_dim, return_sequences=True, name='dec_gru')
+    dec_out = dec_gru(dec_emb, initial_state=context)
+
+    head_seq = tf.keras.Sequential(name='output_head')
+    head_seq.add(tf.keras.layers.Dense(vocab_size, activation='softmax'))
+    outputs = head_seq(dec_out)
+
+    model = tf.keras.Model([encoder_inputs, decoder_inputs], outputs, name='gru_seq2seq')
+    model.compile(
+        optimizer='adam',
+        loss='sparse_categorical_crossentropy',
+        metrics=['accuracy'],
+    )
+    return model
+
+
+model = build_model()
+model.summary()
+
+[cell 025 | markdown]
+### Разбор TODO 4-9: модель
+
+После заполнения блока проверьте четыре идеи:
+- encoder действительно отдаёт контекст для decoder;
+- decoder возвращает последовательность скрытых состояний, а не один вектор;
+- `Dense(VOCAB_SIZE, activation='softmax')` строит распределение по словарю на каждом шаге;
+- `model.output_shape` должен стать `(None, DEC_LEN, VOCAB_SIZE)`.
+
+[cell 026 | code]
+# Мини-проверка модели
+assert model.output_shape[1] == DEC_LEN, 'Длина выхода должна совпадать с DEC_LEN'
+assert model.output_shape[2] == VOCAB_SIZE, 'Последняя ось должна быть равна размеру словаря'
+print('Мини-проверка модели: OK')
+
+[cell 027 | markdown]
+### Что должно получиться после шага "Модель"
+
+Ожидаемые сигналы:
+- `model.summary()` показывает два входа и выход формы `(None, DEC_LEN, VOCAB_SIZE)`;
+- мини-проверка модели проходит;
+- вы можете словами объяснить, почему последняя ось выхода равна размеру словаря, а не `1`.
+
+Self-check checkpoint:
+- представьте один батч из 64 объектов;
+- объясните, почему модель должна вернуть `64 × DEC_LEN` распределений по `VOCAB_SIZE` токенам.
+
+[cell 028 | markdown]
+## Трассировка одного примера через модель
+Проверка форм тензоров:
+1. входы кодировщика и декодера;
+2. выход рекуррентного слоя декодера;
+3. итоговое распределение вероятностей по словарю.
+
+[cell 029 | code]
+sample_enc = enc_train[:1]
+sample_dec = dec_in_train[:1]
+
+trace_model = tf.keras.Model(
+    inputs=model.inputs,
+    outputs=[model.get_layer('dec_gru').output, model.output],
+)
+
+dec_gru_out, probs_out = trace_model.predict([sample_enc, sample_dec], verbose=0)
+
+print('Вход encoder_input :', sample_enc.shape)
+print('Вход decoder_input :', sample_dec.shape)
+print('После GRU декодера :', dec_gru_out.shape)
+print('После выходного слоя:', probs_out.shape)
+print('Первые 3 предсказанных индекса:', probs_out.argmax(axis=-1)[0, :3])
+
+[cell 030 | markdown]
+## Как идет обучение внутри эпохи
+По каждому мини-батчу выполняется цикл:
+1. прямой проход (`forward pass`) для `encoder` и `decoder`;
+2. расчет функции потерь по всем шагам декодера;
+3. обратное распространение через время (`BPTT`) через оба рекуррентных блока;
+4. обновление параметров.
+
+Для `GRU` управление памятью задается воротами обновления и сброса, что обычно дает компромисс между устойчивостью обучения и скоростью по сравнению с более тяжелой `LSTM`.
+
+[cell 031 | markdown]
+## Обучение
+В `fit` подается пара входов `[encoder_input, decoder_input]` и целевой тензор `decoder_target`.
+
+Для контроля обобщения используется `validation_split=0.2` на обучающей части.
+
+[cell 032 | markdown]
+### Подсказка к TODO 10: обучение
+
+Концептуальная подсказка:
+- логика `fit` похожа на прошлые лабораторные, но теперь модель получает два входа сразу.
+
+Implementation hint:
+- передавайте в `fit` пару `[enc_train, dec_in_train]`;
+- целевой тензор — `dec_tgt_train`;
+- используйте `validation_split=0.2`, `batch_size=64` и аргумент `epochs`.
+
+Если история обучения не создаётся, откройте [debugging playbook](../guides/00_self_study_debugging_playbook.md).
+
+[cell 033 | code]
+def train_model(model, enc_train, dec_in_train, dec_tgt_train, epochs: int = 16):
+    history = model.fit(
+        [enc_train, dec_in_train],
+        dec_tgt_train,
+        validation_split=0.2,
+        epochs=epochs,
+        batch_size=64,
+        verbose=0,
+    )
+    return history
+
+
+history = train_model(model, enc_train, dec_in_train, dec_tgt_train)
+
+[cell 034 | markdown]
+### Разбор TODO 10: обучение
+
+После заполнения блока проверьте, что вы понимаете каждый аргумент `fit`:
+- какие данные идут в encoder и decoder;
+- почему `validation_split` берётся только от train;
+- почему на этом шаге вы ещё не видите `exact_match` в истории Keras.
+
+[cell 035 | code]
+# Мини-проверка обучения
+assert 'val_loss' in history.history and 'val_accuracy' in history.history
+print('Последняя val_accuracy:', float(history.history['val_accuracy'][-1]))
+print('Мини-проверка обучения: OK')
+
+[cell 036 | markdown]
+### Что должно получиться после шага "Обучение"
+
+Ожидаемые сигналы:
+- в `history.history` есть `loss`, `val_loss`, `accuracy`, `val_accuracy`;
+- `token_accuracy` заметно растёт выше случайного уровня;
+- кривая `loss` имеет понятный нисходящий тренд.
+
+Self-check checkpoint:
+- можете ли вы объяснить, почему хорошая `val_accuracy` ещё не гарантирует высокий `exact_match`?
+
+[cell 037 | markdown]
+## Оценка и диагностика
+Считаются:
+- `token_accuracy` — доля корректных токенов;
+- `exact_match` — доля последовательностей, полностью совпавших по значимым токенам.
+
+`exact_match` вычисляется с маской `target != PAD`.
+
+[cell 038 | markdown]
+### Подсказка к TODO 11: метрики
+
+Концептуальная подсказка:
+- `token_accuracy` смотрит на отдельные позиции, а `exact_match` требует безошибочной последовательности целиком.
+
+Implementation hint:
+- сначала получите `preds = probs.argmax(axis=-1)`;
+- затем сравните `preds` и `target` только по значимым позициям;
+- PAD-позиции нужно выключить маской `target != PAD_ID`.
+
+Если застряли, откройте раздел про `exact_match` в [walkthrough](../guides/03_gru_seq2seq_walkthrough.md).
+
+[cell 039 | code]
+def evaluate_model(model, enc_test, dec_in_test, dec_tgt_test):
+    loss, token_acc = model.evaluate([enc_test, dec_in_test], dec_tgt_test, verbose=0)
+    probs = model.predict([enc_test, dec_in_test], verbose=0)
+    preds = probs.argmax(axis=-1)
+    target = dec_tgt_test[:, :, 0]
+    mask = (target != PAD_ID)
+
+    per_token_ok = (preds == target)
+    per_seq_ok = np.all(per_token_ok | (~mask), axis=1)
+    exact_match = per_seq_ok.mean()
+
+    return {
+        'loss': float(loss),
+        'token_accuracy': float(token_acc),
+        'exact_match': float(exact_match),
+        'preds': preds,
+        'target': target,
+        'mask': mask,
+        'probs': probs,
+    }
+
+
+metrics = evaluate_model(model, enc_test, dec_in_test, dec_tgt_test)
+print({k: v for k, v in metrics.items() if k in ('loss', 'token_accuracy', 'exact_match')})
+
+[cell 040 | markdown]
+### Разбор TODO 11: метрики
+
+После заполнения блока проверьте логику строгой оценки:
+- `preds` и `target` должны иметь одинаковую форму `(N, T_out)`;
+- маска должна игнорировать только PAD-позиции;
+- `exact_match` усредняется по объектам, а не по токенам.
+
+[cell 041 | code]
+# Мини-проверка метрик
+assert 0.0 <= metrics['token_accuracy'] <= 1.0
+assert 0.0 <= metrics['exact_match'] <= 1.0
+if metrics['exact_match'] >= 0.80:
+    print('Целевой порог достигнут: exact_match >= 0.80')
+else:
+    print('Целевой порог не достигнут: проверьте сдвиг decoder_input/decoder_target и параметры обучения')
+
+[cell 042 | markdown]
+### Что должно получиться после шага "Метрики"
+
+Ожидаемые сигналы:
+- словарь метрик содержит `loss`, `token_accuracy`, `exact_match`;
+- `token_accuracy` обычно выше `exact_match`;
+- мини-проверка метрик проходит без ошибок.
+
+Self-check checkpoint:
+- возьмите один тестовый пример;
+- сравните `preds` и `target` по шагам;
+- найдите первую позицию, где локальная ошибка ломает полное совпадение последовательности.
+
+[cell 043 | markdown]
+## Как читать графики и метрики
+
+В seq2seq важны две перспективы:
+- `token_accuracy` отвечает на вопрос, насколько часто модель угадывает отдельный следующий токен;
+- `exact_match` отвечает на вопрос, совпала ли вся последовательность целиком.
+
+Поэтому `token_accuracy` почти всегда растёт быстрее и выглядит оптимистичнее. Но для реального качества генерации более строгий индикатор - именно `exact_match`.
+
+Если `token_accuracy` уже неплохая, а `exact_match` почти не растёт, обычно проблема в накоплении небольших локальных ошибок: каждая позиция по отдельности часто верна, но полностью правильная последовательность всё ещё редка.
+
+[cell 044 | markdown]
+## Что ожидать на практике
+- В начале обучения `token_accuracy` может расти быстрее `exact_match`.
+- Малейшая ошибка в середине последовательности резко снижает `exact_match`.
+- Если обе метрики не растут, сначала проверить корректность сдвига `decoder_input` и `decoder_target`.
+- Для корректной реализации обычно достигается `exact_match >= 0.80`.
+
+[cell 045 | code]
+# Визуализация динамики обучения
+plt.figure(figsize=(12, 4))
+
+plt.subplot(1, 2, 1)
+plt.plot(history.history['loss'], label='train_loss')
+plt.plot(history.history['val_loss'], label='val_loss')
+plt.title('Динамика функции потерь')
+plt.xlabel('Эпоха')
+plt.legend()
+
+plt.subplot(1, 2, 2)
+plt.plot(history.history['accuracy'], label='train_token_accuracy')
+plt.plot(history.history['val_accuracy'], label='val_token_accuracy')
+plt.title('Динамика token_accuracy')
+plt.xlabel('Эпоха')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+[cell 046 | markdown]
+## Если не получилось с первого раза
+
+Это нормальная лабораторная для первой серьёзной путаницы в `seq2seq`.
+
+Порядок возврата к задаче:
+1. Ещё раз прочитайте [guide по токенам и seq2seq](../guides/03_gru_seq2seq_tokens_beginner.md).
+2. Затем откройте [walkthrough](../guides/03_gru_seq2seq_walkthrough.md) только для текущего шага.
+3. Если проблема в shapes или порядке запуска ячеек, откройте [debugging playbook](../guides/00_self_study_debugging_playbook.md).
+4. И только после этого сравнивайте свой блок с solution notebook.
+
+[cell 047 | markdown]
+## Если застряли: порядок диагностики
+
+Порядок проверки лучше держать простым: сначала данные, потом формы тензоров, потом модель, и только после этого метрики и визуализации.
+
+1. Проверьте словарь и специальные токены: `PAD`, `SOS`, `EOS` должны иметь фиксированные и понятные роли.
+2. Проверьте формы `encoder_input`, `decoder_input`, `decoder_target`.
+3. Проверьте сдвиг: `decoder_input` должен начинаться с `SOS`, а `decoder_target` заканчиваться `EOS`.
+4. Убедитесь, что размер последней оси выхода модели равен `VOCAB_SIZE`.
+5. Если `token_accuracy` есть, а `exact_match` почти нулевой, вручную разберите один пример по позициям и найдите, где начинает накапливаться ошибка.
+
+[cell 048 | markdown]
+## Чек-лист перед сдачей
+
+- Понимаю роли `PAD`, `SOS`, `EOS`.
+- Могу вручную построить `decoder_input` и `decoder_target` для одного примера.
+- Проверил формы `(N, T_in)`, `(N, T_out)` и `(N, T_out, 1)`.
+- Понимаю, что делает `teacher forcing` во время обучения.
+- Могу объяснить, почему `token_accuracy` обычно выше, чем `exact_match`.
+
+[cell 049 | markdown]
+## Как использовать решение без самообмана
+
+Полезный режим такой:
+1. Сначала собственная попытка.
+2. Потом walkthrough для текущего `TODO`.
+3. Потом точечная сверка с solution notebook.
+4. Потом короткая запись своими словами: что именно было непонятно и почему решение работает.
+
+Если сразу копировать весь блок целиком, можно получить рабочий notebook и пропустить самую важную часть ЛР — понимание decoder shift и строгой метрики `exact_match`.
+
+[cell 050 | markdown]
+## Мини-экзамен
+
+Перед тем как считать `01-RNN / ЛР03` закрытой, попробуйте без запуска кода ответить на вопросы:
+1. Почему в `seq2seq` появляются два входа модели?
+2. Чем `decoder_input` отличается от `decoder_target`?
+3. Зачем нужен `SOS`, если decoder и так получает начальное состояние?
+4. Почему `Dense(VOCAB_SIZE)` логичнее, чем `Dense(1)`?
+5. Почему `token_accuracy` и `exact_match` почти всегда расходятся?
+6. Почему PAD-позиции нельзя учитывать в строгой оценке качества?
+
+[cell 051 | markdown]
+## Что дальше
+
+Следующий шаг курса: Шаг 4 = `02-Attention / ЛР01`.
+
+Важно: это первая локальная ЛР нового блока `Attention`, а не отдельная “новая ЛР03”.
+
+На следующем шаге сохранятся:
+- токены и словарь;
+- `PAD`, `SOS`, `EOS`;
+- `decoder_input` / `decoder_target`;
+- teacher forcing и `exact_match`.
+
+Но появится новый слой логики: decoder начнёт смотреть на все `encoder_outputs` через attention, а не только на один финальный контекст.
+
+[cell 052 | markdown]
+## Вопросы для самопроверки
+1. Почему для `seq2seq` требуется два входа в `model.fit`?
+2. Как сдвиг `decoder_input`/`decoder_target` связан с `teacher forcing`?
+3. Почему `exact_match` обычно ниже `token_accuracy`?
+4. Как маска `target != PAD` влияет на итоговую оценку качества?
+
+[cell 053 | markdown]
+## Типичные ошибки (симптом -> причина -> исправление)
+- Низкий `exact_match` при приемлемом `token_accuracy` -> нарушен сдвиг токенов -> проверить `[SOS] + rev` и `rev + [EOS]`.
+- Ошибка функции потерь -> неверная форма `decoder_target` -> использовать форму `(N,T,1)` с целыми индексами.
+- Нестабильная метрика последовательности -> PAD учитывается как обычный токен -> считать метрику по маске значимых позиций.
+- Обучение не запускается -> передан только один вход -> передавать `[encoder_input, decoder_input]`.

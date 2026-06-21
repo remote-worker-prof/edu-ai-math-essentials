@@ -1,0 +1,7 @@
+material_id,source_path,material_role,score,assignment_reason
+mat_0065,themes/05-Full-Transformer/lab/01_full_transformer_tiny_shakespeare.ipynb,lab,1.32,path_hint+keywords
+mat_0066,themes/05-Full-Transformer/lab/guides/00_full_transformer_prerequisites.md,lab_guide,0.88,path_hint+keywords
+mat_0067,themes/05-Full-Transformer/lab/guides/01_full_transformer_walkthrough.md,lab_guide,0.88,path_hint+keywords
+mat_0068,themes/05-Full-Transformer/lab/guides/02_full_transformer_debugging_playbook.md,lab_guide,0.84,path_hint+keywords
+mat_0069,themes/05-Full-Transformer/lab/solutions/01_full_transformer_wikitext2_solution.ipynb,lab_solution,1.4,path_hint+keywords
+mat_0070,themes/05-Full-Transformer/theory/theory.md,theory,1.4,path_hint+keywords

@@ -1,0 +1,117 @@
+{
+  "format": "md",
+  "line_count": 223,
+  "char_count": 8747,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Beginner Guide: Prerequisites and Notation for RNN Labs"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Зачем читать этот файл"
+    },
+    {
+      "line": 15,
+      "level": 2,
+      "title": "Что нужно знать до старта"
+    },
+    {
+      "line": 26,
+      "level": 2,
+      "title": "Самая важная идея курса"
+    },
+    {
+      "line": 40,
+      "level": 2,
+      "title": "Мини-словарь обозначений"
+    },
+    {
+      "line": 53,
+      "level": 2,
+      "title": "Что такое последовательность, шаг времени и признак"
+    },
+    {
+      "line": 68,
+      "level": 2,
+      "title": "Как читать форму `(batch, time, features)`"
+    },
+    {
+      "line": 81,
+      "level": 2,
+      "title": "Что такое скрытое состояние"
+    },
+    {
+      "line": 92,
+      "level": 2,
+      "title": "Logit, probability, class"
+    },
+    {
+      "line": 104,
+      "level": 2,
+      "title": "Loss и accuracy: это не одно и то же"
+    },
+    {
+      "line": 117,
+      "level": 2,
+      "title": "Train, validation, test"
+    },
+    {
+      "line": 125,
+      "level": 2,
+      "title": "Как проходить notebook самостоятельно"
+    },
+    {
+      "line": 139,
+      "level": 2,
+      "title": "NumPy minimum для ЛР1 и ЛР2"
+    },
+    {
+      "line": 160,
+      "level": 2,
+      "title": "Keras minimum для этих лабораторных"
+    },
+    {
+      "line": 178,
+      "level": 2,
+      "title": "Как пользоваться ноутбуками"
+    },
+    {
+      "line": 189,
+      "level": 2,
+      "title": "Когда идти в теорию"
+    },
+    {
+      "line": 197,
+      "level": 2,
+      "title": "Частые beginner-проблемы"
+    },
+    {
+      "line": 207,
+      "level": 2,
+      "title": "Что читать дальше"
+    },
+    {
+      "line": 212,
+      "level": 2,
+      "title": "Навигация по курсу"
+    },
+    {
+      "line": 213,
+      "level": 3,
+      "title": "Где вы сейчас"
+    },
+    {
+      "line": 216,
+      "level": 3,
+      "title": "Что было до этого"
+    },
+    {
+      "line": 219,
+      "level": 3,
+      "title": "Что дальше"
+    }
+  ]
+}

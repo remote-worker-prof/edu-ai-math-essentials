@@ -1,0 +1,73 @@
+{
+  "module_id": "module_06",
+  "module_slug": "06-full-transformer",
+  "topic_id": "full_transformer",
+  "topic_title": "Full Transformer",
+  "section_title": "Раздел 6. Full Transformer",
+  "materials": [
+    {
+      "material_id": "mat_0065",
+      "source_path": "themes/05-Full-Transformer/lab/01_full_transformer_tiny_shakespeare.ipynb",
+      "material_role": "lab",
+      "score": "1.32",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0066",
+      "source_path": "themes/05-Full-Transformer/lab/guides/00_full_transformer_prerequisites.md",
+      "material_role": "lab_guide",
+      "score": "0.88",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0067",
+      "source_path": "themes/05-Full-Transformer/lab/guides/01_full_transformer_walkthrough.md",
+      "material_role": "lab_guide",
+      "score": "0.88",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0068",
+      "source_path": "themes/05-Full-Transformer/lab/guides/02_full_transformer_debugging_playbook.md",
+      "material_role": "lab_guide",
+      "score": "0.84",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0069",
+      "source_path": "themes/05-Full-Transformer/lab/solutions/01_full_transformer_wikitext2_solution.ipynb",
+      "material_role": "lab_solution",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0070",
+      "source_path": "themes/05-Full-Transformer/theory/theory.md",
+      "material_role": "theory",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    }
+  ],
+  "question_blueprint": [
+    {
+      "position_in_section": 1,
+      "question_type": "single"
+    },
+    {
+      "position_in_section": 2,
+      "question_type": "single"
+    },
+    {
+      "position_in_section": 3,
+      "question_type": "multiple"
+    },
+    {
+      "position_in_section": 4,
+      "question_type": "multiple"
+    },
+    {
+      "position_in_section": 5,
+      "question_type": "open"
+    }
+  ]
+}

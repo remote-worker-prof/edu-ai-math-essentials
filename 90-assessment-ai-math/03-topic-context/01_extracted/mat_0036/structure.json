@@ -1,0 +1,147 @@
+{
+  "format": "md",
+  "line_count": 132,
+  "char_count": 5467,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Walkthrough: `02-Attention / ЛР01` `GRU seq2seq + attention`"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Как пользоваться этим walkthrough"
+    },
+    {
+      "line": 10,
+      "level": 2,
+      "title": "Что изменилось после `01-RNN / ЛР03`"
+    },
+    {
+      "line": 22,
+      "level": 2,
+      "title": "TODO 1-3: reverse-последовательность и decoder shift"
+    },
+    {
+      "line": 23,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 27,
+      "level": 3,
+      "title": "Логика решения"
+    },
+    {
+      "line": 33,
+      "level": 3,
+      "title": "Ожидаемые результаты"
+    },
+    {
+      "line": 38,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 43,
+      "level": 2,
+      "title": "TODO 4-13: encoder, decoder и attention"
+    },
+    {
+      "line": 44,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 50,
+      "level": 3,
+      "title": "Логика решения"
+    },
+    {
+      "line": 60,
+      "level": 3,
+      "title": "Ожидаемые результаты"
+    },
+    {
+      "line": 65,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 71,
+      "level": 3,
+      "title": "Self-check"
+    },
+    {
+      "line": 75,
+      "level": 2,
+      "title": "TODO 14: обучение"
+    },
+    {
+      "line": 76,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 80,
+      "level": 3,
+      "title": "Ожидаемые результаты"
+    },
+    {
+      "line": 85,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 90,
+      "level": 2,
+      "title": "TODO 15: `exact_match`"
+    },
+    {
+      "line": 91,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 95,
+      "level": 3,
+      "title": "Логика решения"
+    },
+    {
+      "line": 101,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 106,
+      "level": 2,
+      "title": "Как читать heatmap после решения"
+    },
+    {
+      "line": 116,
+      "level": 2,
+      "title": "Что должно получиться в конце"
+    },
+    {
+      "line": 124,
+      "level": 2,
+      "title": "Навигация по курсу"
+    },
+    {
+      "line": 125,
+      "level": 3,
+      "title": "Где вы сейчас"
+    },
+    {
+      "line": 128,
+      "level": 3,
+      "title": "Что было до этого"
+    },
+    {
+      "line": 131,
+      "level": 3,
+      "title": "Что дальше"
+    }
+  ]
+}

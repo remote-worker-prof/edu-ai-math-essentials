@@ -1,0 +1,157 @@
+{
+  "format": "md",
+  "line_count": 145,
+  "char_count": 5472,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Walkthrough: `01-RNN / ЛР03` `GRU seq2seq`"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Как пользоваться этим walkthrough"
+    },
+    {
+      "line": 10,
+      "level": 2,
+      "title": "Что меняется после `01-RNN / ЛР02`"
+    },
+    {
+      "line": 22,
+      "level": 2,
+      "title": "TODO 1-3: reverse-последовательность и сдвиг decoder"
+    },
+    {
+      "line": 23,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 28,
+      "level": 3,
+      "title": "Логика решения"
+    },
+    {
+      "line": 34,
+      "level": 3,
+      "title": "Ожидаемые результаты"
+    },
+    {
+      "line": 39,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 44,
+      "level": 3,
+      "title": "Self-check"
+    },
+    {
+      "line": 50,
+      "level": 2,
+      "title": "TODO 4-9: сборка encoder-decoder модели"
+    },
+    {
+      "line": 51,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 57,
+      "level": 3,
+      "title": "Логика решения"
+    },
+    {
+      "line": 64,
+      "level": 3,
+      "title": "Ожидаемые результаты"
+    },
+    {
+      "line": 69,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 74,
+      "level": 3,
+      "title": "Self-check"
+    },
+    {
+      "line": 78,
+      "level": 2,
+      "title": "TODO 10: обучение"
+    },
+    {
+      "line": 79,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 84,
+      "level": 3,
+      "title": "Ожидаемые результаты"
+    },
+    {
+      "line": 89,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 94,
+      "level": 2,
+      "title": "TODO 11: `exact_match`"
+    },
+    {
+      "line": 95,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 100,
+      "level": 3,
+      "title": "Логика решения"
+    },
+    {
+      "line": 106,
+      "level": 3,
+      "title": "Worked example"
+    },
+    {
+      "line": 120,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 125,
+      "level": 3,
+      "title": "Self-check"
+    },
+    {
+      "line": 129,
+      "level": 2,
+      "title": "Что должно получиться в конце"
+    },
+    {
+      "line": 137,
+      "level": 2,
+      "title": "Навигация по курсу"
+    },
+    {
+      "line": 138,
+      "level": 3,
+      "title": "Где вы сейчас"
+    },
+    {
+      "line": 141,
+      "level": 3,
+      "title": "Что было до этого"
+    },
+    {
+      "line": 144,
+      "level": 3,
+      "title": "Что дальше"
+    }
+  ]
+}

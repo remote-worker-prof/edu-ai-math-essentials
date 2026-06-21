@@ -1,0 +1,67 @@
+{
+  "format": "md",
+  "line_count": 60,
+  "char_count": 2073,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Пошаговый разбор: `04-Autoregression / ЛР01`"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Канонический порядок"
+    },
+    {
+      "line": 10,
+      "level": 2,
+      "title": "Методическая цель"
+    },
+    {
+      "line": 20,
+      "level": 2,
+      "title": "Что делает каждый `TODO`"
+    },
+    {
+      "line": 21,
+      "level": 3,
+      "title": "TODO 1: данные и разбиение"
+    },
+    {
+      "line": 26,
+      "level": 3,
+      "title": "TODO 2: причинная маска"
+    },
+    {
+      "line": 31,
+      "level": 3,
+      "title": "TODO 3: декодерный блок"
+    },
+    {
+      "line": 36,
+      "level": 3,
+      "title": "TODO 4: обучение и метрики"
+    },
+    {
+      "line": 41,
+      "level": 3,
+      "title": "TODO 5: генерация"
+    },
+    {
+      "line": 46,
+      "level": 3,
+      "title": "TODO 6: диагностика внимания"
+    },
+    {
+      "line": 51,
+      "level": 2,
+      "title": "Контрольные ориентиры"
+    },
+    {
+      "line": 57,
+      "level": 2,
+      "title": "Что должно остаться после ЛР01"
+    }
+  ]
+}

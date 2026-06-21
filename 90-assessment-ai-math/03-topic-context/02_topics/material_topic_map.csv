@@ -1,0 +1,71 @@
+material_id,source_path,material_role,topic_id,topic_title,score,assigned,assignment_reason,keyword_hits
+mat_0001,00-initial/01-RNN/Конспект - рекуррентные нейронные сети для начинающих.pdf,legacy_context,,,0.0,False,below_threshold,0
+mat_0002,themes/00-Foundations/examples/01_numpy_sequence_basics.ipynb,example,foundations,Foundations,1.4,True,path_hint+keywords,32
+mat_0003,themes/00-Foundations/examples/02_minimal_keras_sequence_classifier.ipynb,example,foundations,Foundations,1.4,True,path_hint+keywords,32
+mat_0004,themes/00-Foundations/examples/03_tokenization_padding_masking.ipynb,example,foundations,Foundations,1.4,True,path_hint+keywords,89
+mat_0005,themes/00-Foundations/examples/04_attention_heatmap_toy.ipynb,example,foundations,Foundations,1.4,True,path_hint+keywords,15
+mat_0006,themes/00-Foundations/showcases/01_imdb_many_to_one_showcase.ipynb,showcase,foundations,Foundations,1.4,True,path_hint+keywords,25
+mat_0007,themes/00-Foundations/showcases/02_jena_climate_lstm_gru_showcase.ipynb,showcase,foundations,Foundations,1.28,True,path_hint+keywords,12
+mat_0008,themes/00-Foundations/showcases/03_spa_eng_seq2seq_attention_showcase.ipynb,showcase,foundations,Foundations,1.4,True,path_hint+keywords,92
+mat_0009,themes/00-Foundations/showcases/cards/01_imdb.md,showcase_card,foundations,Foundations,0.92,True,path_hint+keywords,3
+mat_0010,themes/00-Foundations/showcases/cards/02_jena_climate.md,showcase_card,foundations,Foundations,0.84,True,path_hint+keywords,1
+mat_0011,themes/00-Foundations/showcases/cards/03_spa_eng.md,showcase_card,foundations,Foundations,0.84,True,path_hint+keywords,1
+mat_0012,themes/00-Foundations/showcases/cards/04_reuters.md,showcase_card,foundations,Foundations,0.88,True,path_hint+keywords,2
+mat_0013,themes/00-Foundations/showcases/cards/05_uci_har.md,showcase_card,foundations,Foundations,0.8,True,path_hint+keywords,0
+mat_0014,themes/00-Foundations/showcases/cards/06_shakespeare.md,showcase_card,foundations,Foundations,0.88,True,path_hint+keywords,2
+mat_0015,themes/00-Foundations/showcases/cards/07_forda.md,showcase_card,foundations,Foundations,0.84,True,path_hint+keywords,1
+mat_0016,themes/00-Foundations/theory/theory.md,theory,foundations,Foundations,1.4,True,path_hint+keywords,27
+mat_0017,themes/01-RNN/lab/01_simple_rnn_many_to_one_toy.ipynb,lab,rnn,RNN,1.4,True,path_hint+keywords,62
+mat_0018,themes/01-RNN/lab/02_lstm_many_to_many_toy.ipynb,lab,rnn,RNN,1.4,True,path_hint+keywords,69
+mat_0019,themes/01-RNN/lab/03_gru_seq2seq_reverse_toy.ipynb,lab,rnn,RNN,1.4,True,path_hint+keywords,79
+mat_0020,themes/01-RNN/lab/guides/00_prerequisites_and_notation.md,lab_guide,rnn,RNN,1.4,True,path_hint+keywords,30
+mat_0021,themes/01-RNN/lab/guides/00_self_study_debugging_playbook.md,lab_guide,rnn,RNN,1.12,True,path_hint+keywords,8
+mat_0022,themes/01-RNN/lab/guides/01_simple_rnn_many_to_one_beginner.md,lab_guide,rnn,RNN,1.4,True,path_hint+keywords,19
+mat_0023,themes/01-RNN/lab/guides/01_simple_rnn_walkthrough.md,lab_guide,rnn,RNN,1.28,True,path_hint+keywords,12
+mat_0024,themes/01-RNN/lab/guides/02_lstm_many_to_many_beginner.md,lab_guide,rnn,RNN,1.4,True,path_hint+keywords,25
+mat_0025,themes/01-RNN/lab/guides/02_lstm_walkthrough.md,lab_guide,rnn,RNN,1.4,True,path_hint+keywords,17
+mat_0026,themes/01-RNN/lab/guides/03_gru_seq2seq_tokens_beginner.md,lab_guide,rnn,RNN,1.4,True,path_hint+keywords,17
+mat_0027,themes/01-RNN/lab/guides/03_gru_seq2seq_walkthrough.md,lab_guide,rnn,RNN,1.4,True,path_hint+keywords,25
+mat_0028,themes/01-RNN/lab/solutions/01_simple_rnn_many_to_one_toy_solution.ipynb,lab_solution,rnn,RNN,1.4,True,path_hint+keywords,66
+mat_0029,themes/01-RNN/lab/solutions/02_lstm_many_to_many_toy_solution.ipynb,lab_solution,rnn,RNN,1.4,True,path_hint+keywords,74
+mat_0030,themes/01-RNN/lab/solutions/03_gru_seq2seq_reverse_toy_solution.ipynb,lab_solution,rnn,RNN,1.4,True,path_hint+keywords,81
+mat_0031,themes/01-RNN/theory/ERRATA.md,theory,rnn,RNN,1.28,True,path_hint+keywords,12
+mat_0032,themes/01-RNN/theory/theory.md,theory,rnn,RNN,1.4,True,path_hint+keywords,131
+mat_0033,themes/02-Attention/lab/01_gru_seq2seq_attention_reverse_toy.ipynb,lab,attention,Attention,1.4,True,path_hint+keywords,114
+mat_0034,themes/02-Attention/lab/guides/00_attention_prerequisites.md,lab_guide,attention,Attention,1.4,True,path_hint+keywords,22
+mat_0035,themes/02-Attention/lab/guides/01_gru_seq2seq_attention_beginner.md,lab_guide,attention,Attention,1.4,True,path_hint+keywords,20
+mat_0036,themes/02-Attention/lab/guides/02_attention_walkthrough.md,lab_guide,attention,Attention,1.4,True,path_hint+keywords,22
+mat_0037,themes/02-Attention/lab/guides/03_attention_debugging_playbook.md,lab_guide,attention,Attention,1.4,True,path_hint+keywords,20
+mat_0038,themes/02-Attention/lab/solutions/01_gru_seq2seq_attention_reverse_toy_solution.ipynb,lab_solution,attention,Attention,1.4,True,path_hint+keywords,114
+mat_0039,themes/02-Attention/theory/theory.md,theory,attention,Attention,1.4,True,path_hint+keywords,34
+mat_0040,themes/03-Transformer/lab/01_transformer_encoder_order_toy.ipynb,lab,transformer_encoder,Transformer Encoder,1.4,True,path_hint+keywords,62
+mat_0041,themes/03-Transformer/lab/02_transformer_encoder_imdb.ipynb,lab,transformer_encoder,Transformer Encoder,1.4,True,path_hint+keywords,47
+mat_0042,themes/03-Transformer/lab/guides/00_transformer_prerequisites.md,lab_guide,transformer_encoder,Transformer Encoder,1.08,True,path_hint+keywords,7
+mat_0043,themes/03-Transformer/lab/guides/01_self_attention_and_positional_encoding_beginner.md,lab_guide,transformer_encoder,Transformer Encoder,1.2,True,path_hint+keywords,10
+mat_0044,themes/03-Transformer/lab/guides/02_transformer_encoder_toy_walkthrough.md,lab_guide,transformer_encoder,Transformer Encoder,1.2,True,path_hint+keywords,10
+mat_0045,themes/03-Transformer/lab/guides/03_transformer_encoder_imdb_walkthrough.md,lab_guide,transformer_encoder,Transformer Encoder,1.16,True,path_hint+keywords,9
+mat_0046,themes/03-Transformer/lab/guides/04_transformer_debugging_playbook.md,lab_guide,transformer_encoder,Transformer Encoder,1.04,True,path_hint+keywords,6
+mat_0047,themes/03-Transformer/lab/solutions/01_transformer_encoder_order_toy_solution.ipynb,lab_solution,transformer_encoder,Transformer Encoder,1.4,True,path_hint+keywords,67
+mat_0048,themes/03-Transformer/lab/solutions/02_transformer_encoder_imdb_solution.ipynb,lab_solution,transformer_encoder,Transformer Encoder,1.4,True,path_hint+keywords,53
+mat_0049,themes/03-Transformer/theory/theory.md,theory,transformer_encoder,Transformer Encoder,1.4,True,path_hint+keywords,37
+mat_0050,themes/04-Autoregression/lab/01_decoder_only_causal_toy.ipynb,lab,autoregression,Autoregression,1.36,True,path_hint+keywords,14
+mat_0051,themes/04-Autoregression/lab/02_decoder_only_tiny_shakespeare.ipynb,lab,autoregression,Autoregression,1.28,True,path_hint+keywords,12
+mat_0052,themes/04-Autoregression/lab/02_decoder_only_tiny_shakespeare_gpu.ipynb,lab,autoregression,Autoregression,1.24,True,path_hint+keywords,11
+mat_0053,themes/04-Autoregression/lab/guides/00_autoregression_prerequisites.md,lab_guide,autoregression,Autoregression,0.96,True,path_hint+keywords,4
+mat_0054,themes/04-Autoregression/lab/guides/01_decoder_only_toy_walkthrough.md,lab_guide,autoregression,Autoregression,0.96,True,path_hint+keywords,4
+mat_0055,themes/04-Autoregression/lab/guides/02_autoregression_debugging_playbook.md,lab_guide,autoregression,Autoregression,0.84,True,path_hint+keywords,1
+mat_0056,themes/04-Autoregression/lab/guides/03_tiny_shakespeare_walkthrough.md,lab_guide,autoregression,Autoregression,0.84,True,path_hint+keywords,1
+mat_0057,themes/04-Autoregression/lab/guides/04_tiny_shakespeare_debugging_playbook.md,lab_guide,autoregression,Autoregression,0.84,True,path_hint+keywords,1
+mat_0058,themes/04-Autoregression/lab/guides/05_tiny_shakespeare_gpu_walkthrough.md,lab_guide,autoregression,Autoregression,0.88,True,path_hint+keywords,2
+mat_0059,themes/04-Autoregression/lab/guides/06_tiny_shakespeare_gpu_debugging_playbook.md,lab_guide,autoregression,Autoregression,0.92,True,path_hint+keywords,3
+mat_0060,themes/04-Autoregression/lab/guides/07_lr04_local_gpu_tf221_checklist.md,lab_guide,autoregression,Autoregression,1.0,True,path_hint+keywords,5
+mat_0061,themes/04-Autoregression/lab/solutions/01_decoder_only_causal_toy_solution.ipynb,lab_solution,autoregression,Autoregression,1.36,True,path_hint+keywords,14
+mat_0062,themes/04-Autoregression/lab/solutions/02_decoder_only_tiny_shakespeare_gpu_solution.ipynb,lab_solution,autoregression,Autoregression,1.28,True,path_hint+keywords,12
+mat_0063,themes/04-Autoregression/lab/solutions/02_decoder_only_tiny_shakespeare_solution.ipynb,lab_solution,autoregression,Autoregression,1.24,True,path_hint+keywords,11
+mat_0064,themes/04-Autoregression/theory/theory.md,theory,autoregression,Autoregression,1.4,True,path_hint+keywords,26
+mat_0065,themes/05-Full-Transformer/lab/01_full_transformer_tiny_shakespeare.ipynb,lab,full_transformer,Full Transformer,1.32,True,path_hint+keywords,13
+mat_0066,themes/05-Full-Transformer/lab/guides/00_full_transformer_prerequisites.md,lab_guide,full_transformer,Full Transformer,0.88,True,path_hint+keywords,2
+mat_0067,themes/05-Full-Transformer/lab/guides/01_full_transformer_walkthrough.md,lab_guide,full_transformer,Full Transformer,0.88,True,path_hint+keywords,2
+mat_0068,themes/05-Full-Transformer/lab/guides/02_full_transformer_debugging_playbook.md,lab_guide,full_transformer,Full Transformer,0.84,True,path_hint+keywords,1
+mat_0069,themes/05-Full-Transformer/lab/solutions/01_full_transformer_wikitext2_solution.ipynb,lab_solution,full_transformer,Full Transformer,1.4,True,path_hint+keywords,16
+mat_0070,themes/05-Full-Transformer/theory/theory.md,theory,full_transformer,Full Transformer,1.4,True,path_hint+keywords,15

@@ -1,0 +1,82 @@
+{
+  "format": "md",
+  "line_count": 122,
+  "char_count": 4399,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Debugging Playbook: `02-Attention / ЛР01`"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "С чего начинать, если attention-лабораторная не сходится"
+    },
+    {
+      "line": 11,
+      "level": 2,
+      "title": "Шаг 1. Проверка данных"
+    },
+    {
+      "line": 24,
+      "level": 2,
+      "title": "Шаг 2. Проверка plain `seq2seq`-логики"
+    },
+    {
+      "line": 35,
+      "level": 2,
+      "title": "Шаг 3. Проверка encoder и decoder"
+    },
+    {
+      "line": 44,
+      "level": 2,
+      "title": "Шаг 4. Проверка attention-вызова"
+    },
+    {
+      "line": 59,
+      "level": 2,
+      "title": "Шаг 5. Проверка форм analysis-тензоров"
+    },
+    {
+      "line": 68,
+      "level": 2,
+      "title": "Шаг 6. Проверка метрик"
+    },
+    {
+      "line": 79,
+      "level": 2,
+      "title": "Шаг 7. Проверка heatmap"
+    },
+    {
+      "line": 92,
+      "level": 2,
+      "title": "Частые симптомы и быстрые проверки"
+    },
+    {
+      "line": 102,
+      "level": 2,
+      "title": "Как пользоваться solution notebook без самообмана"
+    },
+    {
+      "line": 114,
+      "level": 2,
+      "title": "Навигация по курсу"
+    },
+    {
+      "line": 115,
+      "level": 3,
+      "title": "Где вы сейчас"
+    },
+    {
+      "line": 118,
+      "level": 3,
+      "title": "Что было до этого"
+    },
+    {
+      "line": 121,
+      "level": 3,
+      "title": "Что дальше"
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+[cell 001 | markdown]
+# Разминка 1: основы последовательностей в NumPy
+
+Этот notebook связан с guide [Sequence Shapes and Metrics](../guides/01_sequence_shapes_and_metrics.md).
+
+Цель:
+- спокойно проговорить оси `(batch, time, features)`;
+- руками увидеть разницу между `many-to-one` и `many-to-many`;
+- потренироваться в `sum`, `cumsum`, padding и mask без нейросети.
+
+[cell 002 | code]
+import numpy as np
+
+np.set_printoptions(linewidth=120)
+
+X = np.array(
+    [
+        [-1,  1,  1, -1,  1],
+        [ 1,  1, -1, -1, -1],
+        [ 1, -1,  1,  1,  1],
+    ],
+    dtype=np.int32,
+)
+
+print('X shape:', X.shape)
+print(X)
+
+[cell 003 | markdown]
+## Как читать эту форму
+
+`X.shape == (3, 5)` означает:
+- `3` последовательности в batch;
+- `5` шагов времени;
+- пока нет отдельной оси признаков, потому что на каждом шаге лежит одно число.
+
+[cell 004 | code]
+many_to_one_scores = X.sum(axis=1)
+y_many_to_one = (many_to_one_scores > 0).astype(np.float32)
+
+cumsum = np.cumsum(X, axis=1)
+y_many_to_many = (cumsum > 0).astype(np.float32)
+
+X_features = X[..., None].astype(np.float32)
+y_many_to_many_features = y_many_to_many[..., None]
+
+print('many_to_one_scores shape:', many_to_one_scores.shape)
+print(many_to_one_scores)
+print('y_many_to_one shape:', y_many_to_one.shape)
+print(y_many_to_one)
+print()
+print('cumsum shape:', cumsum.shape)
+print(cumsum)
+print('y_many_to_many shape:', y_many_to_many.shape)
+print(y_many_to_many)
+print()
+print('X_features shape:', X_features.shape)
+print('y_many_to_many_features shape:', y_many_to_many_features.shape)
+
+[cell 005 | markdown]
+## Ручная проверка одного примера
+
+Для первой последовательности:
+- итоговая сумма даёт `many-to-one` метку;
+- накопленная сумма на каждом шаге даёт `many-to-many` метки.
+
+[cell 006 | code]
+example = X[0]
+running_sum = 0
+step_labels = []
+
+print('sequence:', example.tolist())
+for step, value in enumerate(example, start=1):
+    running_sum += int(value)
+    label = float(running_sum > 0)
+    step_labels.append(label)
+    print(f'step={step:>2} value={value:+d} running_sum={running_sum:+d} label={label:.0f}')
+
+print() 
+print('Expected many-to-one label:', float(example.sum() > 0))
+print('Expected many-to-many labels:', step_labels)
+
+[cell 007 | markdown]
+## Padding и mask без TensorFlow
+
+Здесь мы специально берём последовательности разной длины и выравниваем их вручную.
+
+[cell 008 | code]
+variable_sequences = [
+    [4, 7, 2],
+    [3, 1],
+    [9, 8, 5, 6],
+]
+pad_id = 0
+max_len = max(len(seq) for seq in variable_sequences)
+
+padded = np.full((len(variable_sequences), max_len), pad_id, dtype=np.int32)
+for row, seq in enumerate(variable_sequences):
+    padded[row, : len(seq)] = seq
+
+mask = (padded != pad_id).astype(np.float32)
+
+print('padded shape:', padded.shape)
+print(padded)
+print()
+print('mask shape:', mask.shape)
+print(mask)
+
+[cell 009 | markdown]
+## Что взять с собой дальше
+
+- `sum(axis=1)` часто отвечает за агрегацию по времени.
+- `cumsum(axis=1)` удобно показывает смысл пошаговой разметки.
+- `[..., None]` добавляет ось признаков и превращает `(N, T)` в `(N, T, 1)`.
+- `mask` почти всегда начинается с простого вопроса: где здесь настоящие данные, а где только padding.

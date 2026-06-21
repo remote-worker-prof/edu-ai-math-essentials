@@ -1,0 +1,87 @@
+{
+  "format": "md",
+  "line_count": 116,
+  "char_count": 4238,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Beginner Guide: What to Know Before the Attention Lab"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Когда открывать этот файл"
+    },
+    {
+      "line": 12,
+      "level": 2,
+      "title": "Что изменилось после `01-RNN / ЛР03`"
+    },
+    {
+      "line": 21,
+      "level": 2,
+      "title": "Что уже должно быть знакомо"
+    },
+    {
+      "line": 29,
+      "level": 2,
+      "title": "В чём проблема plain `seq2seq`"
+    },
+    {
+      "line": 42,
+      "level": 2,
+      "title": "Интуиция attention"
+    },
+    {
+      "line": 53,
+      "level": 2,
+      "title": "`query`, `key`, `value` без перегруза"
+    },
+    {
+      "line": 65,
+      "level": 2,
+      "title": "`attention_scores`"
+    },
+    {
+      "line": 75,
+      "level": 2,
+      "title": "`context`"
+    },
+    {
+      "line": 82,
+      "level": 2,
+      "title": "`cross-attention` и `self-attention`"
+    },
+    {
+      "line": 95,
+      "level": 2,
+      "title": "Как читать heatmap"
+    },
+    {
+      "line": 102,
+      "level": 2,
+      "title": "Что должно остаться перед стартом ЛР"
+    },
+    {
+      "line": 108,
+      "level": 2,
+      "title": "Навигация по курсу"
+    },
+    {
+      "line": 109,
+      "level": 3,
+      "title": "Где вы сейчас"
+    },
+    {
+      "line": 112,
+      "level": 3,
+      "title": "Что было до этого"
+    },
+    {
+      "line": 115,
+      "level": 3,
+      "title": "Что дальше"
+    }
+  ]
+}

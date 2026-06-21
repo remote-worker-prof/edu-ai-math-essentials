@@ -1,0 +1,52 @@
+{
+  "format": "md",
+  "line_count": 138,
+  "char_count": 4596,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Foundations: теоретический хаб от нуля до профессионального чтения курса"
+    },
+    {
+      "line": 5,
+      "level": 2,
+      "title": "1. Кому читать"
+    },
+    {
+      "line": 11,
+      "level": 2,
+      "title": "2. Главная нить курса `00 -> 05`"
+    },
+    {
+      "line": 22,
+      "level": 2,
+      "title": "3. Минимум обозначений: что означает каждая буква"
+    },
+    {
+      "line": 36,
+      "level": 2,
+      "title": "4. Shape-contract: один шаблон для всего курса"
+    },
+    {
+      "line": 54,
+      "level": 2,
+      "title": "5. Маски: padding, causal, cross"
+    },
+    {
+      "line": 86,
+      "level": 2,
+      "title": "6. Математический минимум sequence/attention/transformer"
+    },
+    {
+      "line": 119,
+      "level": 2,
+      "title": "7. Внешний обзор архитектур"
+    },
+    {
+      "line": 132,
+      "level": 2,
+      "title": "8. Мини-чеклист перед любой лабораторной"
+    }
+  ]
+}

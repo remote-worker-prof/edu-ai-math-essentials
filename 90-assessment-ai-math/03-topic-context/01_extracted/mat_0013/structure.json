@@ -1,0 +1,47 @@
+{
+  "format": "md",
+  "line_count": 32,
+  "char_count": 810,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Dataset Card: UCI HAR"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Тип задачи"
+    },
+    {
+      "line": 6,
+      "level": 2,
+      "title": "Подходящие архитектуры"
+    },
+    {
+      "line": 11,
+      "level": 2,
+      "title": "Загрузка"
+    },
+    {
+      "line": 14,
+      "level": 2,
+      "title": "Ожидаемые формы"
+    },
+    {
+      "line": 23,
+      "level": 2,
+      "title": "CPU-friendly subset"
+    },
+    {
+      "line": 28,
+      "level": 2,
+      "title": "Главный учебный вывод"
+    },
+    {
+      "line": 31,
+      "level": 2,
+      "title": "Следующий шаг"
+    }
+  ]
+}

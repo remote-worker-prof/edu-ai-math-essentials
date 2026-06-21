@@ -1,0 +1,342 @@
+{
+  "format": "ipynb",
+  "cell_count": 56,
+  "cells": [
+    {
+      "index": 1,
+      "cell_type": "markdown",
+      "char_count": 284,
+      "line_count": 8
+    },
+    {
+      "index": 2,
+      "cell_type": "markdown",
+      "char_count": 1106,
+      "line_count": 21
+    },
+    {
+      "index": 3,
+      "cell_type": "markdown",
+      "char_count": 1408,
+      "line_count": 23
+    },
+    {
+      "index": 4,
+      "cell_type": "code",
+      "char_count": 3249,
+      "line_count": 96
+    },
+    {
+      "index": 5,
+      "cell_type": "markdown",
+      "char_count": 516,
+      "line_count": 5
+    },
+    {
+      "index": 6,
+      "cell_type": "markdown",
+      "char_count": 735,
+      "line_count": 8
+    },
+    {
+      "index": 7,
+      "cell_type": "markdown",
+      "char_count": 510,
+      "line_count": 8
+    },
+    {
+      "index": 8,
+      "cell_type": "markdown",
+      "char_count": 291,
+      "line_count": 6
+    },
+    {
+      "index": 9,
+      "cell_type": "markdown",
+      "char_count": 617,
+      "line_count": 11
+    },
+    {
+      "index": 10,
+      "cell_type": "markdown",
+      "char_count": 647,
+      "line_count": 16
+    },
+    {
+      "index": 11,
+      "cell_type": "markdown",
+      "char_count": 343,
+      "line_count": 5
+    },
+    {
+      "index": 12,
+      "cell_type": "markdown",
+      "char_count": 493,
+      "line_count": 5
+    },
+    {
+      "index": 13,
+      "cell_type": "markdown",
+      "char_count": 452,
+      "line_count": 19
+    },
+    {
+      "index": 14,
+      "cell_type": "markdown",
+      "char_count": 421,
+      "line_count": 11
+    },
+    {
+      "index": 15,
+      "cell_type": "code",
+      "char_count": 322,
+      "line_count": 12
+    },
+    {
+      "index": 16,
+      "cell_type": "code",
+      "char_count": 280,
+      "line_count": 13
+    },
+    {
+      "index": 17,
+      "cell_type": "markdown",
+      "char_count": 278,
+      "line_count": 8
+    },
+    {
+      "index": 18,
+      "cell_type": "markdown",
+      "char_count": 427,
+      "line_count": 11
+    },
+    {
+      "index": 19,
+      "cell_type": "code",
+      "char_count": 611,
+      "line_count": 21
+    },
+    {
+      "index": 20,
+      "cell_type": "markdown",
+      "char_count": 283,
+      "line_count": 6
+    },
+    {
+      "index": 21,
+      "cell_type": "code",
+      "char_count": 268,
+      "line_count": 5
+    },
+    {
+      "index": 22,
+      "cell_type": "markdown",
+      "char_count": 383,
+      "line_count": 12
+    },
+    {
+      "index": 23,
+      "cell_type": "markdown",
+      "char_count": 185,
+      "line_count": 6
+    },
+    {
+      "index": 24,
+      "cell_type": "markdown",
+      "char_count": 447,
+      "line_count": 11
+    },
+    {
+      "index": 25,
+      "cell_type": "code",
+      "char_count": 452,
+      "line_count": 14
+    },
+    {
+      "index": 26,
+      "cell_type": "markdown",
+      "char_count": 309,
+      "line_count": 6
+    },
+    {
+      "index": 27,
+      "cell_type": "code",
+      "char_count": 151,
+      "line_count": 3
+    },
+    {
+      "index": 28,
+      "cell_type": "markdown",
+      "char_count": 377,
+      "line_count": 10
+    },
+    {
+      "index": 29,
+      "cell_type": "markdown",
+      "char_count": 149,
+      "line_count": 5
+    },
+    {
+      "index": 30,
+      "cell_type": "code",
+      "char_count": 454,
+      "line_count": 12
+    },
+    {
+      "index": 31,
+      "cell_type": "markdown",
+      "char_count": 384,
+      "line_count": 8
+    },
+    {
+      "index": 32,
+      "cell_type": "markdown",
+      "char_count": 140,
+      "line_count": 2
+    },
+    {
+      "index": 33,
+      "cell_type": "markdown",
+      "char_count": 429,
+      "line_count": 10
+    },
+    {
+      "index": 34,
+      "cell_type": "code",
+      "char_count": 224,
+      "line_count": 7
+    },
+    {
+      "index": 35,
+      "cell_type": "markdown",
+      "char_count": 233,
+      "line_count": 5
+    },
+    {
+      "index": 36,
+      "cell_type": "code",
+      "char_count": 212,
+      "line_count": 4
+    },
+    {
+      "index": 37,
+      "cell_type": "markdown",
+      "char_count": 416,
+      "line_count": 9
+    },
+    {
+      "index": 38,
+      "cell_type": "markdown",
+      "char_count": 238,
+      "line_count": 6
+    },
+    {
+      "index": 39,
+      "cell_type": "markdown",
+      "char_count": 392,
+      "line_count": 14
+    },
+    {
+      "index": 40,
+      "cell_type": "markdown",
+      "char_count": 419,
+      "line_count": 15
+    },
+    {
+      "index": 41,
+      "cell_type": "markdown",
+      "char_count": 458,
+      "line_count": 11
+    },
+    {
+      "index": 42,
+      "cell_type": "code",
+      "char_count": 681,
+      "line_count": 18
+    },
+    {
+      "index": 43,
+      "cell_type": "markdown",
+      "char_count": 327,
+      "line_count": 6
+    },
+    {
+      "index": 44,
+      "cell_type": "code",
+      "char_count": 309,
+      "line_count": 7
+    },
+    {
+      "index": 45,
+      "cell_type": "markdown",
+      "char_count": 475,
+      "line_count": 11
+    },
+    {
+      "index": 46,
+      "cell_type": "markdown",
+      "char_count": 655,
+      "line_count": 9
+    },
+    {
+      "index": 47,
+      "cell_type": "markdown",
+      "char_count": 337,
+      "line_count": 5
+    },
+    {
+      "index": 48,
+      "cell_type": "code",
+      "char_count": 511,
+      "line_count": 19
+    },
+    {
+      "index": 49,
+      "cell_type": "markdown",
+      "char_count": 619,
+      "line_count": 8
+    },
+    {
+      "index": 50,
+      "cell_type": "markdown",
+      "char_count": 624,
+      "line_count": 9
+    },
+    {
+      "index": 51,
+      "cell_type": "markdown",
+      "char_count": 307,
+      "line_count": 7
+    },
+    {
+      "index": 52,
+      "cell_type": "markdown",
+      "char_count": 507,
+      "line_count": 9
+    },
+    {
+      "index": 53,
+      "cell_type": "markdown",
+      "char_count": 403,
+      "line_count": 8
+    },
+    {
+      "index": 54,
+      "cell_type": "markdown",
+      "char_count": 318,
+      "line_count": 8
+    },
+    {
+      "index": 55,
+      "cell_type": "markdown",
+      "char_count": 291,
+      "line_count": 5
+    },
+    {
+      "index": 56,
+      "cell_type": "markdown",
+      "char_count": 601,
+      "line_count": 6
+    }
+  ]
+}

@@ -1,0 +1,892 @@
+[cell 001 | markdown]
+# Лабораторная 1: декодерный трансформер для предсказания следующего токена
+
+## Что нужно знать до старта
+Перед началом лабораторной полезно открыть:
+- [../README.md](./README.md)
+- [guides/00_autoregression_prerequisites.md](./guides/00_autoregression_prerequisites.md)
+- [guides/01_decoder_only_toy_walkthrough.md](./guides/01_decoder_only_toy_walkthrough.md)
+- [../theory/theory.md](../theory/theory.md)
+
+Это первая лабораторная блока `04-Autoregression` и Шаг 7 общего курса.
+
+[cell 002 | markdown]
+## Выбор среды выполнения
+
+Рекомендуемый стартовый режим: `auto`.
+
+Если нужна полностью воспроизводимая проверка на центральном процессоре, выберите `local-cpu` и выполните `Restart & Run All`.
+
+[cell 003 | code]
+import importlib.util
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+RUNTIME_MODE = os.environ.get("COURSE_RUNTIME_MODE", "auto")
+COURSE_REPO_HTTPS_URL = os.environ.get(
+    "COURSE_REPO_HTTPS_URL",
+    "https://github.com/<org>/<repo>.git",
+)
+NOTEBOOK_REQUIREMENTS = "themes/04-Autoregression/lab/requirements.txt"
+
+
+def _detect_notebook_platform():
+    """Определяет тип среды выполнения текущей тетради.
+
+    Аргументы:
+      Нет.
+
+    Возвращает:
+      Строка из множества `{'local', 'colab', 'kaggle'}`.
+
+    Исключения:
+      RuntimeError: Не выбрасывается в штатном режиме.
+    """
+    if os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or Path("/kaggle").exists():
+        return "kaggle"
+    if os.environ.get("COLAB_RELEASE_TAG") or "google.colab" in sys.modules:
+        return "colab"
+    return "local"
+
+
+def _looks_like_repo_root(path: Path) -> bool:
+    """Проверяет, похож ли путь на корень учебного репозитория.
+
+    Аргументы:
+      path: Проверяемый путь.
+
+    Возвращает:
+      `True`, если обнаружены ключевые признаки корня репозитория.
+
+    Исключения:
+      RuntimeError: Не выбрасывается в штатном режиме.
+    """
+    return (
+        path.is_dir()
+        and (path / "themes").is_dir()
+        and (path / "course_runtime.py").is_file()
+    )
+
+
+def _canonical_cloud_repo_root(platform: str) -> Path:
+    """Возвращает стандартный путь клонирования для облачной платформы.
+
+    Аргументы:
+      platform: Имя платформы (`'colab'` или `'kaggle'`).
+
+    Возвращает:
+      Абсолютный путь каталога репозитория.
+
+    Исключения:
+      ValueError: Если передано неподдерживаемое имя платформы.
+    """
+    if platform == "colab":
+        return Path("/content/students-AI_math_essentials")
+    if platform == "kaggle":
+        return Path("/kaggle/working/students-AI_math_essentials")
+    raise ValueError(f"Unexpected cloud platform: {platform}")
+
+
+def _is_placeholder_repo_url(repo_url: str) -> bool:
+    """Проверяет, остался ли в настройке шаблонный URL репозитория.
+
+    Аргументы:
+      repo_url: Проверяемый URL репозитория.
+
+    Возвращает:
+      `True`, если URL имеет вид шаблона-заглушки.
+
+    Исключения:
+      RuntimeError: Не выбрасывается в штатном режиме.
+    """
+    return repo_url.strip() == "https://github.com/<org>/<repo>.git"
+
+
+def _find_repo_root_from_cwd():
+    """Ищет корень курса, поднимаясь от текущего каталога вверх.
+
+    Аргументы:
+      Нет.
+
+    Возвращает:
+      Объект `Path` корня репозитория или `None`, если путь не найден.
+
+    Исключения:
+      RuntimeError: Не выбрасывается в штатном режиме.
+    """
+    for candidate in (Path.cwd(), *Path.cwd().parents):
+        if _looks_like_repo_root(candidate):
+            return candidate
+    return None
+
+
+def _ensure_course_runtime_importable(runtime_mode: str, repo_url: str) -> None:
+    """Обеспечивает доступность модуля `course_runtime` для текущей среды.
+
+    Аргументы:
+      runtime_mode: Режим запуска тетради.
+      repo_url: URL репозитория курса для облачной автозагрузки.
+
+    Возвращает:
+      `None`.
+
+    Исключения:
+      ModuleNotFoundError: Если локальный запуск выполнен вне корректного корня репозитория.
+      RuntimeError: Если в облаке отсутствует валидный URL репозитория или каталог повреждён.
+      subprocess.CalledProcessError: Если команда `git clone` завершается с ошибкой.
+    """
+    if importlib.util.find_spec("course_runtime") is not None:
+        return
+
+    local_repo_root = _find_repo_root_from_cwd()
+    if local_repo_root is not None:
+        if str(local_repo_root) not in sys.path:
+            sys.path.insert(0, str(local_repo_root))
+        return
+
+    platform = _detect_notebook_platform()
+    if platform == "local":
+        raise ModuleNotFoundError(
+            "Не удалось импортировать course_runtime.py. Для локального запуска "
+            "открывайте репозиторий через `.venv/bin/jupyter notebook` из корня проекта."
+        )
+
+    repo_root = _canonical_cloud_repo_root(platform)
+    if not _looks_like_repo_root(repo_root):
+        if _is_placeholder_repo_url(repo_url):
+            raise RuntimeError(
+                "Для cloud auto-bootstrap нужен публичный HTTPS URL курса. "
+                "Замените COURSE_REPO_HTTPS_URL на реальный адрес репозитория."
+            )
+        repo_root.parent.mkdir(parents=True, exist_ok=True)
+        if repo_root.exists() and any(repo_root.iterdir()):
+            raise RuntimeError(
+                f"Каталог {repo_root} уже существует, но не выглядит как корень курса. "
+                "Очистите runtime или используйте новый notebook session."
+            )
+        print(f"Bootstrapping course repository into {repo_root} ...")
+        subprocess.run(["git", "clone", repo_url, str(repo_root)], check=True)
+
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+
+
+_ensure_course_runtime_importable(RUNTIME_MODE, COURSE_REPO_HTTPS_URL)
+
+from course_runtime import setup_notebook_runtime
+
+runtime_info = setup_notebook_runtime(
+    runtime_mode=RUNTIME_MODE,
+    course_repo_https_url=COURSE_REPO_HTTPS_URL,
+    notebook_requirements=NOTEBOOK_REQUIREMENTS,
+)
+runtime_info.as_dict()
+
+[cell 004 | markdown]
+## Интуиция задачи без формул
+
+Модель предсказывает следующий токен, опираясь только на прошлые позиции. Для этого в блоке внимания используется причинная маска (causal mask).
+
+[cell 005 | markdown]
+## Как проходить работу
+
+Маршрут строго фиксирован: данные → маска → блок декодера → обучение → генерация → диагностика внимания.
+
+[cell 006 | markdown]
+## Контракт данных
+
+В этой лабораторной используются последовательности фиксированной максимальной длины.
+
+- Вход `X`: идентификаторы токенов без последнего шага, форма `(N, T)`.
+- Цель `Y`: те же последовательности, сдвинутые на один шаг влево, форма `(N, T)`.
+- Дополнение пустыми позициями задаётся токеном `PAD = 0`.
+
+Разбиение на обучение, проверку и тест выполняется строго индексами без перемешивания.
+
+[cell 007 | markdown]
+## Таблица ключевых форм
+
+| Сущность | Смысл | Форма |
+|---|---|---|
+| `X` | входные токены | `(N, T)` |
+| `Y` | цели следующего токена | `(N, T)` |
+| `mask` | причинная маска | `(T, T)` |
+| `attention_scores` | веса внимания | `(N, H, T, T)` |
+| `y_pred` | вероятности токенов | `(N, T, V)` |
+
+[cell 008 | markdown]
+## Ручной пример
+
+Пусть последовательность имеет вид:
+
+```text
+<BOS> A B C <EOS> <PAD> <PAD>
+```
+
+Тогда пара для обучения следующему токену строится так:
+
+```text
+X: <BOS> A B C <EOS> <PAD>
+Y: A B C <EOS> <PAD> <PAD>
+```
+
+То есть на каждом шаге модель должна восстановить токен, стоящий на одну позицию правее.
+
+[cell 009 | code]
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
+SEED = 13
+PAD_ID = 0
+BOS_ID = 1
+EOS_ID = 2
+TOKEN_A = 3
+TOKEN_B = 4
+TOKEN_C = 5
+TOKEN_D = 6
+
+ID_TO_TOKEN = {
+    PAD_ID: '<PAD>',
+    BOS_ID: '<BOS>',
+    EOS_ID: '<EOS>',
+    TOKEN_A: 'A',
+    TOKEN_B: 'B',
+    TOKEN_C: 'C',
+    TOKEN_D: 'D',
+}
+VOCAB_SIZE = len(ID_TO_TOKEN)
+MAX_SEQ_LEN = 18
+PAYLOAD_LEN = 9
+CHECK_NEW_TOKENS = 4
+TRAIN_SAMPLES = 4096
+VAL_SAMPLES = 512
+TEST_SAMPLES = 512
+TOTAL_SAMPLES = TRAIN_SAMPLES + VAL_SAMPLES + TEST_SAMPLES
+
+EMBED_DIM = 64
+NUM_HEADS = 4
+FF_DIM = 128
+BATCH_SIZE = 64
+EPOCHS = 16
+
+plt.style.use('default')
+keras.utils.set_random_seed(SEED)
+
+[cell 010 | markdown]
+## Шаг 1: подготовка детерминированных данных
+
+[cell 011 | code]
+START_PAIRS = np.array(
+    [
+        [TOKEN_A, TOKEN_B],
+        [TOKEN_B, TOKEN_C],
+        [TOKEN_C, TOKEN_A],
+        [TOKEN_D, TOKEN_B],
+        [TOKEN_A, TOKEN_D],
+        [TOKEN_D, TOKEN_A],
+    ],
+    dtype=np.int32,
+)
+
+
+def next_payload_token(prev_prev, prev):
+    """Возвращает следующий токен по детерминированному правилу второго порядка.
+
+    Аргументы:
+      prev_prev: Предыдущий токен с лагом 2.
+      prev: Предыдущий токен с лагом 1.
+
+    Возвращает:
+      Идентификатор следующего токена.
+
+    Исключения:
+      ValueError: Если токен не принадлежит учебному словарю полезных токенов.
+    """
+    valid_tokens = {TOKEN_A, TOKEN_B, TOKEN_C, TOKEN_D}
+    if prev_prev not in valid_tokens or prev not in valid_tokens:
+        raise ValueError('Ожидаются только полезные токены A/B/C/D.')
+
+    map_if_ac = {
+        TOKEN_A: TOKEN_B,
+        TOKEN_B: TOKEN_C,
+        TOKEN_C: TOKEN_A,
+        TOKEN_D: TOKEN_B,
+    }
+    map_if_bd = {
+        TOKEN_A: TOKEN_C,
+        TOKEN_B: TOKEN_A,
+        TOKEN_C: TOKEN_D,
+        TOKEN_D: TOKEN_A,
+    }
+    return map_if_ac[prev] if prev_prev in (TOKEN_A, TOKEN_C) else map_if_bd[prev]
+
+
+def build_synthetic_corpus(num_samples, max_seq_len=MAX_SEQ_LEN, seed=SEED):
+    """Создаёт детерминированный корпус для next-token задачи.
+
+    Следующий токен зависит от двух предыдущих токенов полезной части,
+    поэтому задача не сводится к одношаговому соответствию.
+
+    Аргументы:
+      num_samples: Число последовательностей в корпусе.
+      max_seq_len: Максимальная длина последовательности с учётом дополнения.
+      seed: Зерно случайности для воспроизводимости.
+
+    Возвращает:
+      Кортеж `(X, Y)`, где обе матрицы имеют форму `(num_samples, max_seq_len - 1)`.
+
+    Исключения:
+      ValueError: Если `max_seq_len` недостаточен.
+    """
+    if max_seq_len < PAYLOAD_LEN + 2:
+        raise ValueError('max_seq_len должен быть не меньше PAYLOAD_LEN + 2.')
+
+    rng = np.random.default_rng(seed)
+    data = np.full((num_samples, max_seq_len), PAD_ID, dtype=np.int32)
+
+    for row_index in range(num_samples):
+        start_pair = START_PAIRS[rng.integers(0, len(START_PAIRS))]
+        payload = [int(start_pair[0]), int(start_pair[1])]
+
+        while len(payload) < PAYLOAD_LEN:
+            payload.append(next_payload_token(payload[-2], payload[-1]))
+
+        sequence = [BOS_ID, *payload, EOS_ID]
+        data[row_index, : len(sequence)] = np.asarray(sequence, dtype=np.int32)
+
+    X = data[:, :-1].copy()
+    Y = data[:, 1:].copy()
+    # Первые две целевые позиции не имеют полного контекста длины 2.
+    Y[:, :2] = PAD_ID
+    return X, Y
+
+
+def ids_to_text(token_ids):
+    """Преобразует список идентификаторов токенов в читаемую строку.
+
+    Аргументы:
+      token_ids: Последовательность целых идентификаторов.
+
+    Возвращает:
+      Строка с токенами в порядке следования.
+
+    Исключения:
+      RuntimeError: Не выбрасывается в штатном режиме.
+    """
+    return ' '.join(ID_TO_TOKEN.get(int(token), f'<UNK:{int(token)}>') for token in token_ids)
+
+
+X_all, y_all = build_synthetic_corpus(TOTAL_SAMPLES, seed=SEED)
+X_train = X_all[:TRAIN_SAMPLES]
+y_train = y_all[:TRAIN_SAMPLES]
+
+X_val = X_all[TRAIN_SAMPLES:TRAIN_SAMPLES + VAL_SAMPLES]
+y_val = y_all[TRAIN_SAMPLES:TRAIN_SAMPLES + VAL_SAMPLES]
+
+X_test = X_all[TRAIN_SAMPLES + VAL_SAMPLES:]
+y_test = y_all[TRAIN_SAMPLES + VAL_SAMPLES:]
+
+[cell 012 | code]
+k = 8
+x_a, y_a = build_synthetic_corpus(k, seed=SEED + 101)
+x_b, y_b = build_synthetic_corpus(k, seed=SEED + 101)
+
+assert np.array_equal(x_a, x_b), 'Первые k примеров не воспроизводятся при одинаковом seed.'
+assert np.array_equal(y_a, y_b), 'Целевые значения не воспроизводятся при одинаковом seed.'
+assert next_payload_token(TOKEN_A, TOKEN_B) != next_payload_token(TOKEN_D, TOKEN_B), (
+    'Переход должен зависеть от двух предыдущих токенов.'
+)
+assert np.all(y_a[:, :2] == PAD_ID), (
+    'Первые две целевые позиции должны быть замаскированы как PAD_ID.'
+)
+
+print('X_train shape:', X_train.shape)
+print('y_train shape:', y_train.shape)
+print('Пример X[0]:', ids_to_text(X_train[0]))
+print('Пример y[0]:', ids_to_text(y_train[0]))
+
+[cell 013 | markdown]
+## Шаг 2: причинная маска и её проверка
+
+[cell 014 | code]
+def build_causal_mask(seq_len):
+    """Строит нижнетреугольную причинную маску.
+
+    Аргументы:
+      seq_len: Длина последовательности.
+
+    Возвращает:
+      Булев тензор формы `(seq_len, seq_len)`.
+
+    Исключения:
+      tf.errors.InvalidArgumentError: Если `seq_len` не является положительным.
+    """
+    seq_len = tf.cast(seq_len, tf.int32)
+    tf.debugging.assert_positive(seq_len, message='seq_len должен быть положительным.')
+    shape = tf.stack([seq_len, seq_len])
+    return tf.linalg.band_part(tf.ones(shape, dtype=tf.bool), -1, 0)
+
+[cell 015 | markdown]
+## Шаг 3: декодерный блок и метрики
+
+[cell 016 | code]
+class TokenAndPositionEmbedding(layers.Layer):
+    """Складывает векторы токенов и позиций в едином представлении.
+
+    Аргументы:
+      maxlen: Максимальная длина последовательности.
+      vocab_size: Размер словаря токенов.
+      embed_dim: Размер скрытого представления.
+      **kwargs: Дополнительные аргументы базового слоя Keras.
+
+    Возвращает:
+      Экземпляр слоя встраивания.
+
+    Исключения:
+      ValueError: Если `embed_dim` меньше 1.
+    """
+
+    def __init__(self, maxlen, vocab_size, embed_dim, **kwargs):
+        """Инициализирует таблицы токенных и позиционных векторов.
+
+        Аргументы:
+          maxlen: Максимальная длина последовательности.
+          vocab_size: Размер словаря.
+          embed_dim: Размер векторного представления.
+          **kwargs: Дополнительные аргументы базового класса.
+
+        Возвращает:
+          None.
+
+        Исключения:
+          ValueError: Если `embed_dim` меньше 1.
+        """
+        super().__init__(**kwargs)
+        if embed_dim < 1:
+            raise ValueError('embed_dim должен быть положительным.')
+        self.maxlen = maxlen
+        self.token_embedding = layers.Embedding(vocab_size, embed_dim, mask_zero=True)
+        self.position_embedding = layers.Embedding(maxlen, embed_dim)
+
+    def call(self, inputs):
+        """Вычисляет сумму токенных и позиционных векторов.
+
+        Аргументы:
+          inputs: Матрица идентификаторов токенов формы `(batch, time)`.
+
+        Возвращает:
+          Тензор формы `(batch, time, embed_dim)`.
+
+        Исключения:
+          RuntimeError: Не выбрасывается в штатном режиме.
+        """
+        positions = tf.range(start=0, limit=tf.shape(inputs)[-1], delta=1)
+        token_vectors = self.token_embedding(inputs)
+        position_vectors = self.position_embedding(positions)
+        return token_vectors + position_vectors
+
+    def compute_mask(self, inputs, mask=None):
+        """Переадресует маску непустых токенов из слоя токенных векторов.
+
+        Аргументы:
+          inputs: Матрица идентификаторов токенов.
+          mask: Входная маска базового уровня.
+
+        Возвращает:
+          Булева маска формы `(batch, time)`.
+
+        Исключения:
+          RuntimeError: Не выбрасывается в штатном режиме.
+        """
+        return self.token_embedding.compute_mask(inputs)
+
+
+class CausalDecoderBlock(layers.Layer):
+    """Минимальный декодерный блок с причинной маской.
+
+    Аргументы:
+      embed_dim: Размер скрытого представления.
+      num_heads: Число голов внимания.
+      ff_dim: Ширина промежуточного слоя позиционно-независимой сети.
+      rate: Доля отключаемых нейронов в регуляризации.
+      **kwargs: Дополнительные аргументы базового слоя Keras.
+
+    Возвращает:
+      Экземпляр декодерного блока.
+
+    Исключения:
+      ValueError: Если `embed_dim` не делится на `num_heads`.
+    """
+
+    def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1, **kwargs):
+        """Создаёт внутренние слои блока.
+
+        Аргументы:
+          embed_dim: Размер скрытого представления.
+          num_heads: Число голов внимания.
+          ff_dim: Ширина промежуточного слоя позициионно-независимой сети.
+          rate: Доля отключаемых нейронов в регуляризации.
+          **kwargs: Дополнительные аргументы базового класса.
+
+        Возвращает:
+          None.
+
+        Исключения:
+          ValueError: Если `embed_dim` не делится на `num_heads`.
+        """
+        super().__init__(**kwargs)
+        if embed_dim % num_heads != 0:
+            raise ValueError('embed_dim должен делиться на num_heads без остатка.')
+
+        self.self_attention = layers.MultiHeadAttention(
+            num_heads=num_heads,
+            key_dim=embed_dim // num_heads,
+            dropout=rate,
+        )
+        self.ffn = keras.Sequential(
+            [
+                layers.Dense(ff_dim, activation='relu'),
+                layers.Dense(embed_dim),
+            ],
+            name='positionwise_ffn',
+        )
+        self.norm_1 = layers.LayerNormalization(epsilon=1e-6)
+        self.norm_2 = layers.LayerNormalization(epsilon=1e-6)
+        self.dropout_1 = layers.Dropout(rate)
+        self.dropout_2 = layers.Dropout(rate)
+
+    def call(self, inputs, padding_mask=None, training=None, return_attention_scores=False):
+        """Прогоняет вход через внимание и позиционно-независимую сеть.
+
+        Аргументы:
+          inputs: Тензор формы `(batch, time, embed_dim)`.
+          padding_mask: Булева маска непустых позиций формы `(batch, time)`.
+          training: Признак режима обучения.
+          return_attention_scores: Нужно ли вернуть веса внимания.
+
+        Возвращает:
+          Если `return_attention_scores=False`, возвращается тензор признаков.
+          Если `return_attention_scores=True`, возвращается кортеж
+          `(признаки, веса_внимания)`.
+
+        Исключения:
+          RuntimeError: Не выбрасывается в штатном режиме.
+        """
+        seq_len = tf.shape(inputs)[1]
+        causal_mask = build_causal_mask(seq_len)[tf.newaxis, :, :]
+
+        if padding_mask is None:
+            attention_mask = causal_mask
+        else:
+            # Ключи и запросы одновременно ограничиваются непустыми позициями.
+            key_mask = tf.cast(padding_mask[:, tf.newaxis, :], tf.bool)
+            query_mask = tf.cast(padding_mask[:, :, tf.newaxis], tf.bool)
+            attention_mask = causal_mask & key_mask & query_mask
+
+        attention_output, attention_scores = self.self_attention(
+            query=inputs,
+            value=inputs,
+            key=inputs,
+            attention_mask=attention_mask,
+            return_attention_scores=True,
+            training=training,
+        )
+
+        x = self.norm_1(inputs + self.dropout_1(attention_output, training=training))
+        y = self.ffn(x)
+        output = self.norm_2(x + self.dropout_2(y, training=training))
+
+        if return_attention_scores:
+            return output, attention_scores
+        return output
+
+    def compute_mask(self, inputs, mask=None):
+        """Отключает автоматическое пробрасывание маски в выход блока.
+
+        Аргументы:
+          inputs: Входной тензор признаков.
+          mask: Текущая маска, пришедшая из предыдущего слоя.
+
+        Возвращает:
+          `None`, чтобы Keras не применял маскирование к уже агрегированной
+          функции потерь `masked_sparse_crossentropy`.
+
+        Исключения:
+          RuntimeError: Не выбрасывается в штатном режиме.
+        """
+        return None
+
+
+def masked_sparse_crossentropy(y_true, y_pred):
+    """Считает перекрёстную энтропию только по непустым позициям.
+
+    Аргументы:
+      y_true: Истинные идентификаторы токенов.
+      y_pred: Предсказанные вероятности токенов.
+
+    Возвращает:
+      Среднее значение функции потерь по непустым позициям.
+
+    Исключения:
+      RuntimeError: Не выбрасывается в штатном режиме.
+    """
+    per_token = tf.keras.losses.sparse_categorical_crossentropy(y_true, y_pred)
+    mask = tf.cast(tf.not_equal(y_true, PAD_ID), tf.float32)
+    masked = per_token * mask
+    return tf.reduce_sum(masked) / tf.reduce_sum(mask)
+
+
+def masked_token_accuracy(y_true, y_pred):
+    """Считает токенную точность только по непустым позициям.
+
+    Аргументы:
+      y_true: Истинные идентификаторы токенов.
+      y_pred: Предсказанные вероятности токенов.
+
+    Возвращает:
+      Доля верных предсказаний по непустым позициям.
+
+    Исключения:
+      RuntimeError: Не выбрасывается в штатном режиме.
+    """
+    predicted = tf.argmax(y_pred, axis=-1, output_type=y_true.dtype)
+    correct = tf.cast(tf.equal(y_true, predicted), tf.float32)
+    mask = tf.cast(tf.not_equal(y_true, PAD_ID), tf.float32)
+    return tf.reduce_sum(correct * mask) / tf.reduce_sum(mask)
+
+
+def perplexity_from_loss(loss_value):
+    """Преобразует среднюю перекрёстную энтропию в перплексию.
+
+    Аргументы:
+      loss_value: Среднее значение функции потерь.
+
+    Возвращает:
+      Значение перплексии.
+
+    Исключения:
+      RuntimeError: Не выбрасывается в штатном режиме.
+    """
+    return float(np.exp(loss_value))
+
+[cell 017 | markdown]
+## Шаг 4: сборка и обучение модели
+
+[cell 018 | code]
+keras.utils.set_random_seed(SEED)
+
+token_ids = keras.Input(shape=(MAX_SEQ_LEN - 1,), dtype='int32', name='token_ids')
+padding_mask = layers.Lambda(lambda t: tf.not_equal(t, PAD_ID), name='padding_mask')(token_ids)
+
+embedding_layer = TokenAndPositionEmbedding(
+    maxlen=MAX_SEQ_LEN - 1,
+    vocab_size=VOCAB_SIZE,
+    embed_dim=EMBED_DIM,
+    name='token_and_position',
+)
+decoder_layer = CausalDecoderBlock(
+    embed_dim=EMBED_DIM,
+    num_heads=NUM_HEADS,
+    ff_dim=FF_DIM,
+    rate=0.0,
+    name='causal_decoder',
+)
+
+x = embedding_layer(token_ids)
+x = decoder_layer(x, padding_mask=padding_mask)
+next_token_probs = layers.Dense(VOCAB_SIZE, activation='softmax', name='next_token_probs')(x)
+
+model = keras.Model(inputs=token_ids, outputs=next_token_probs, name='decoder_only_toy_model')
+model.compile(
+    optimizer=keras.optimizers.Adam(learning_rate=1e-3),
+    loss=masked_sparse_crossentropy,
+    metrics=[masked_token_accuracy],
+)
+
+history = model.fit(
+    X_train,
+    y_train,
+    validation_data=(X_val, y_val),
+    epochs=EPOCHS,
+    batch_size=BATCH_SIZE,
+    shuffle=False,
+    verbose=2,
+)
+
+model.summary()
+
+[cell 019 | code]
+plt.figure(figsize=(11, 4))
+
+plt.subplot(1, 2, 1)
+plt.plot(history.history['loss'], label='обучение')
+plt.plot(history.history['val_loss'], label='проверка')
+plt.title('Перекрёстная энтропия по эпохам')
+plt.xlabel('Эпоха')
+plt.ylabel('loss')
+plt.legend()
+plt.grid(alpha=0.3)
+
+plt.subplot(1, 2, 2)
+train_ppl = [perplexity_from_loss(v) for v in history.history['loss']]
+val_ppl = [perplexity_from_loss(v) for v in history.history['val_loss']]
+plt.plot(train_ppl, label='обучение')
+plt.plot(val_ppl, label='проверка')
+plt.title('Перплексия по эпохам')
+plt.xlabel('Эпоха')
+plt.ylabel('perplexity')
+plt.legend()
+plt.grid(alpha=0.3)
+
+plt.tight_layout()
+
+[cell 020 | code]
+test_loss, test_token_acc = model.evaluate(X_test, y_test, verbose=0)
+test_perplexity = perplexity_from_loss(test_loss)
+
+print(f'test_loss            : {test_loss:.4f}')
+print(f'test_token_accuracy  : {test_token_acc:.4f}')
+print(f'test_perplexity      : {test_perplexity:.4f}')
+
+assert test_token_acc >= 0.97, 'Токенная точность ниже целевого порога 0.97.'
+assert test_perplexity <= 1.30, 'Перплексия выше целевого порога 1.30.'
+
+[cell 021 | markdown]
+## Шаг 5: детерминированная генерация
+
+[cell 022 | code]
+def generate_greedy(model, prompt_ids, max_new_tokens, max_seq_len=MAX_SEQ_LEN - 1):
+    """Генерирует продолжение в детерминированном режиме argmax.
+
+    Аргументы:
+      model: Обученная модель предсказания следующего токена.
+      prompt_ids: Начальная последовательность идентификаторов токенов.
+      max_new_tokens: Максимум новых шагов генерации.
+      max_seq_len: Рабочая длина входа модели.
+
+    Возвращает:
+      Список идентификаторов с учётом исходной подсказки и сгенерированных токенов.
+
+    Исключения:
+      ValueError: Если подсказка пуста.
+    """
+    if len(prompt_ids) == 0:
+        raise ValueError('prompt_ids не может быть пустым.')
+
+    generated = list(prompt_ids)
+    for _ in range(max_new_tokens):
+        model_input = np.full((1, max_seq_len), PAD_ID, dtype=np.int32)
+        clipped = generated[:max_seq_len]
+        model_input[0, : len(clipped)] = clipped
+
+        probs = model.predict(model_input, verbose=0)[0]
+        query_index = min(len(clipped) - 1, max_seq_len - 1)
+        next_token = int(np.argmax(probs[query_index]))
+        generated.append(next_token)
+
+        if next_token == EOS_ID or len(generated) >= max_seq_len:
+            break
+    return generated
+
+
+def expected_payload_steps(prompt_ids, steps):
+    """Строит эталонное продолжение по правилу второго порядка.
+
+    Аргументы:
+      prompt_ids: Начальная последовательность токенов вида `[BOS, t1, t2, ...]`.
+      steps: Сколько новых токенов нужно построить.
+
+    Возвращает:
+      Список из `steps` токенов эталонного продолжения.
+
+    Исключения:
+      ValueError: Если полезная часть подсказки короче двух токенов.
+    """
+    payload = [token for token in prompt_ids if token in (TOKEN_A, TOKEN_B, TOKEN_C, TOKEN_D)]
+    if len(payload) < 2:
+        raise ValueError('Для эталонного продолжения нужно минимум два полезных токена.')
+
+    generated = []
+    history = list(payload)
+    for _ in range(steps):
+        next_token = next_payload_token(history[-2], history[-1])
+        generated.append(next_token)
+        history.append(next_token)
+    return generated
+
+
+base_prompts = [
+    [BOS_ID, TOKEN_A, TOKEN_B],
+    [BOS_ID, TOKEN_B, TOKEN_C],
+    [BOS_ID, TOKEN_C, TOKEN_A],
+    [BOS_ID, TOKEN_D, TOKEN_B],
+    [BOS_ID, TOKEN_A, TOKEN_D],
+]
+prompts = base_prompts * 4
+success_count = 0
+
+for prompt in prompts:
+    generated = generate_greedy(model, prompt, max_new_tokens=CHECK_NEW_TOKENS)
+    produced_segment = generated[len(prompt):len(prompt) + CHECK_NEW_TOKENS]
+    target_segment = expected_payload_steps(prompt, CHECK_NEW_TOKENS)
+    if produced_segment == target_segment:
+        success_count += 1
+
+print(f'Корректных продолжений: {success_count} из {len(prompts)}')
+assert success_count >= 18, 'Детерминированная генерация не достигла порога 18/20.'
+
+for prompt in base_prompts[:4]:
+    generated = generate_greedy(model, prompt, max_new_tokens=8)
+    print('prompt:', ids_to_text(prompt), '| generated:', ids_to_text(generated))
+
+[cell 023 | markdown]
+## Шаг 6: диагностика внимания
+
+[cell 024 | code]
+trace_token_ids = keras.Input(shape=(MAX_SEQ_LEN - 1,), dtype='int32', name='trace_token_ids')
+trace_padding_mask = layers.Lambda(lambda t: tf.not_equal(t, PAD_ID), name='trace_padding_mask')(trace_token_ids)
+trace_embeddings = embedding_layer(trace_token_ids)
+_, trace_attention_scores = decoder_layer(
+    trace_embeddings,
+    padding_mask=trace_padding_mask,
+    return_attention_scores=True,
+)
+trace_model = keras.Model(trace_token_ids, trace_attention_scores, name='attention_trace_model')
+
+sample_tokens = X_test[:1]
+attention_scores = trace_model.predict(sample_tokens, verbose=0)
+mean_scores = attention_scores[0].mean(axis=0)
+
+useful_len = int(np.sum(sample_tokens[0] != PAD_ID))
+heatmap = mean_scores[:useful_len, :useful_len]
+
+future_mass = float(np.triu(heatmap, k=1).sum())
+total_mass = float(heatmap.sum())
+future_ratio = future_mass / total_mass if total_mass > 0 else 0.0
+
+print(f'Отношение массы внимания в будущем: {future_ratio:.8f}')
+assert future_ratio < 1e-4, 'Обнаружено заметное внимание к будущим позициям.'
+
+labels = [ID_TO_TOKEN[int(t)] for t in sample_tokens[0][:useful_len]]
+plt.figure(figsize=(6, 5))
+plt.imshow(heatmap, cmap='magma')
+plt.colorbar()
+plt.xticks(range(useful_len), labels, rotation=45)
+plt.yticks(range(useful_len), labels)
+plt.title('Средняя карта внимания без доступа в будущее')
+plt.xlabel('Позиция ключа')
+plt.ylabel('Позиция запроса')
+plt.tight_layout()
+
+[cell 025 | markdown]
+## Чек-лист перед завершением
+1. Все `TODO` закрыты.
+2. Воспроизводимость данных подтверждена на первых `k` примерах.
+3. Токенная точность и перплексия проходят пороги.
+4. Детерминированная генерация выполняет порог `18/20`.
+5. Карта внимания не содержит доступа к будущим позициям.

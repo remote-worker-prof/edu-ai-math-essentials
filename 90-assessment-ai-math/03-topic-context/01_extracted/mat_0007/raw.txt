@@ -1,0 +1,264 @@
+[cell 001 | markdown]
+# Демонстрация 2: Jena Climate с LSTM и GRU
+
+Перед запуском полезно открыть dataset card [Jena Climate](./cards/02_jena_climate.md).
+
+Fast-mode идея:
+- взять ограниченный по времени фрагмент;
+- предсказывать следующую температуру по окну из нескольких часов;
+- сравнить `LSTM` и `GRU` на одном и том же multivariate input.
+
+[cell 002 | code]
+import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+
+tf.keras.utils.set_random_seed(13)
+np.random.seed(13)
+
+[cell 003 | markdown]
+## Выбор runtime
+
+Здесь вы выбираете, где и на чём запускать notebook.
+
+Что обычно выбирать:
+- `auto` — лучший вариант по умолчанию. Если TensorFlow видит GPU, будет выбран GPU. Если GPU нет, notebook спокойно останется на CPU.
+- `local-cpu` — локальный запуск только на CPU, даже если видеокарта есть.
+- `local-gpu` — локальный запуск с обязательным GPU. Если GPU не настроен, notebook специально остановится с понятной ошибкой.
+- `colab-cpu` / `colab-gpu` — запуск в Google Colab.
+- `kaggle-cpu` / `kaggle-gpu` — запуск в Kaggle Notebooks.
+
+Что важно:
+- после изменения `RUNTIME_MODE` используйте `Restart & Run All`;
+- `COURSE_REPO_HTTPS_URL` нужен только для Colab/Kaggle, если репозиторий ещё не клонирован в runtime;
+- пока в ячейке стоит placeholder-URL, cloud auto-bootstrap не сможет сам скачать курс;
+- guide `05` отвечает на вопрос, где и как запускать notebook;
+- guide `06` нужен, если вы хотите именно локальный GPU и не уверены в версиях `TensorFlow` / `CUDA`;
+- локальный GPU-path курса: `Linux + NVIDIA` или `Windows -> WSL2 + Ubuntu`;
+- если `local-gpu` упирается в локальные CUDA/PTX ошибки, это обычно уже проблема GPU-стека, а не notebook. В таком случае спокойно переключайтесь на `local-cpu`, `colab-gpu` или `kaggle-gpu`.
+
+Подробные guides:
+- `themes/00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md`
+- `themes/00-Foundations/guides/06_tensorflow_cuda_version_selection.md`
+
+[cell 004 | code]
+import importlib.util
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+RUNTIME_MODE = os.environ.get("COURSE_RUNTIME_MODE", "auto")
+COURSE_REPO_HTTPS_URL = os.environ.get(
+    "COURSE_REPO_HTTPS_URL",
+    "https://github.com/<org>/<repo>.git",
+)
+NOTEBOOK_REQUIREMENTS = "themes/00-Foundations/requirements.txt"
+
+
+def _detect_notebook_platform():
+    if os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or Path("/kaggle").exists():
+        return "kaggle"
+    if os.environ.get("COLAB_RELEASE_TAG") or "google.colab" in sys.modules:
+        return "colab"
+    return "local"
+
+
+def _looks_like_repo_root(path: Path) -> bool:
+    return (
+        path.is_dir()
+        and (path / "themes").is_dir()
+        and (path / "course_runtime.py").is_file()
+    )
+
+
+def _canonical_cloud_repo_root(platform: str) -> Path:
+    if platform == "colab":
+        return Path("/content/students-AI_math_essentials")
+    if platform == "kaggle":
+        return Path("/kaggle/working/students-AI_math_essentials")
+    raise ValueError(f"Unexpected cloud platform: {platform}")
+
+
+def _is_placeholder_repo_url(repo_url: str) -> bool:
+    return repo_url.strip() == "https://github.com/<org>/<repo>.git"
+
+
+def _find_repo_root_from_cwd():
+    for candidate in (Path.cwd(), *Path.cwd().parents):
+        if _looks_like_repo_root(candidate):
+            return candidate
+    return None
+
+
+def _ensure_course_runtime_importable(runtime_mode: str, repo_url: str) -> None:
+    if importlib.util.find_spec("course_runtime") is not None:
+        return
+
+    local_repo_root = _find_repo_root_from_cwd()
+    if local_repo_root is not None:
+        if str(local_repo_root) not in sys.path:
+            sys.path.insert(0, str(local_repo_root))
+        return
+
+    platform = _detect_notebook_platform()
+    if platform == "local":
+        raise ModuleNotFoundError(
+            "Не удалось импортировать course_runtime.py. Для локального запуска "
+            "открывайте репозиторий через `.venv/bin/jupyter notebook` из корня проекта."
+        )
+
+    repo_root = _canonical_cloud_repo_root(platform)
+    if not _looks_like_repo_root(repo_root):
+        if _is_placeholder_repo_url(repo_url):
+            raise RuntimeError(
+                "Для cloud auto-bootstrap нужен публичный HTTPS URL курса. "
+                "Замените COURSE_REPO_HTTPS_URL на реальный адрес репозитория."
+            )
+        repo_root.parent.mkdir(parents=True, exist_ok=True)
+        if repo_root.exists() and any(repo_root.iterdir()):
+            raise RuntimeError(
+                f"Каталог {repo_root} уже существует, но не выглядит как корень курса. "
+                "Очистите runtime или используйте новый notebook session."
+            )
+        print(f"Bootstrapping course repository into {repo_root} ...")
+        subprocess.run(["git", "clone", repo_url, str(repo_root)], check=True)
+
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+
+
+_ensure_course_runtime_importable(RUNTIME_MODE, COURSE_REPO_HTTPS_URL)
+
+from course_runtime import setup_notebook_runtime
+
+runtime_info = setup_notebook_runtime(
+    runtime_mode=RUNTIME_MODE,
+    course_repo_https_url=COURSE_REPO_HTTPS_URL,
+    notebook_requirements=NOTEBOOK_REQUIREMENTS,
+)
+runtime_info.as_dict()
+
+[cell 005 | code]
+download_path = tf.keras.utils.get_file(
+    origin='https://storage.googleapis.com/tensorflow/tf-keras-datasets/jena_climate_2009_2016.csv.zip',
+    fname='jena_climate_2009_2016.csv.zip',
+    extract=True,
+)
+
+if download_path.endswith('.zip'):
+    extracted_dir = os.path.splitext(download_path)[0].replace('.csv', '') + '_extracted'
+else:
+    extracted_dir = download_path
+
+csv_path = os.path.join(extracted_dir, 'jena_climate_2009_2016.csv')
+
+df = pd.read_csv(csv_path)
+df = df[5::6].reset_index(drop=True)
+
+feature_cols = ['T (degC)', 'p (mbar)', 'rho (g/m**3)']
+data = df[feature_cols].iloc[:4200].copy()
+
+features = data.to_numpy(dtype=np.float32)
+target = data['T (degC)'].to_numpy(dtype=np.float32)
+
+train_end = 3000
+val_end = 3600
+
+train_mean = features[:train_end].mean(axis=0)
+train_std = features[:train_end].std(axis=0)
+features = (features - train_mean) / train_std
+
+sequence_length = 24
+batch_size = 64
+
+def make_dataset(feature_block, target_block, shuffle=False):
+    return tf.keras.utils.timeseries_dataset_from_array(
+        data=feature_block[:-sequence_length],
+        targets=target_block[sequence_length:],
+        sequence_length=sequence_length,
+        batch_size=batch_size,
+        shuffle=shuffle,
+    )
+
+train_ds = make_dataset(features[:train_end], target[:train_end], shuffle=True)
+val_ds = make_dataset(features[train_end:val_end], target[train_end:val_end], shuffle=False)
+test_ds = make_dataset(features[val_end:], target[val_end:], shuffle=False)
+
+example_batch, example_target = next(iter(train_ds))
+print('example batch shape :', example_batch.shape)
+print('example target shape:', example_target.shape)
+
+[cell 006 | code]
+def build_model(cell_name: str) -> tf.keras.Model:
+    inputs = tf.keras.layers.Input(shape=(sequence_length, len(feature_cols)))
+    if cell_name == 'LSTM':
+        x = tf.keras.layers.LSTM(32)(inputs)
+    elif cell_name == 'GRU':
+        x = tf.keras.layers.GRU(32)(inputs)
+    else:
+        raise ValueError(cell_name)
+    outputs = tf.keras.layers.Dense(1)(x)
+    model = tf.keras.Model(inputs, outputs)
+    model.compile(optimizer='adam', loss='mse', metrics=[tf.keras.metrics.MeanAbsoluteError(name='mae')])
+    return model
+
+
+histories = {}
+results = []
+models = {}
+
+for name in ['LSTM', 'GRU']:
+    model = build_model(name)
+    history = model.fit(train_ds, validation_data=val_ds, epochs=2, verbose=0)
+    loss, mae = model.evaluate(test_ds, verbose=0)
+    histories[name] = history.history
+    results.append({'model': name, 'test_mse': float(loss), 'test_mae': float(mae)})
+    models[name] = model
+
+pd.DataFrame(results).sort_values('test_mae')
+
+[cell 007 | code]
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+for name, history in histories.items():
+    axes[0].plot(history['val_loss'], marker='o', label=name)
+    axes[1].plot(history['val_mae'], marker='o', label=name)
+
+axes[0].set_title('Jena fast-mode: validation MSE')
+axes[0].set_xlabel('Epoch')
+axes[0].set_ylabel('MSE')
+axes[0].legend()
+
+axes[1].set_title('Jena fast-mode: validation MAE')
+axes[1].set_xlabel('Epoch')
+axes[1].set_ylabel('MAE')
+axes[1].legend()
+
+plt.tight_layout()
+plt.show()
+
+[cell 008 | code]
+sample_batch, sample_target = next(iter(test_ds))
+sample_target = sample_target.numpy()
+
+plt.figure(figsize=(10, 4))
+plt.plot(sample_target[:48], label='true temperature', linewidth=2)
+for name, model in models.items():
+    preds = model.predict(sample_batch[:48], verbose=0).ravel()
+    plt.plot(preds, label=name)
+
+plt.title('Next-step temperature forecast on one test slice')
+plt.xlabel('Window index inside sample slice')
+plt.ylabel('Temperature (degC)')
+plt.legend()
+plt.show()
+
+[cell 009 | markdown]
+## Что заметить
+
+- Здесь recurrent-модель читает уже не токены, а числовые multivariate окна `(batch, time, features)`.
+- По сравнению с `IMDB` меняется тип данных, но не главный shape-шаблон.
+- Этот notebook нужен как мостик от toy `many-to-many`-мышления к реальным сенсорным и погодным рядам.

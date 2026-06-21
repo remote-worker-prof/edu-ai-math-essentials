@@ -1,0 +1,52 @@
+{
+  "format": "md",
+  "line_count": 90,
+  "char_count": 2874,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "ЛР04 (Autoregression) — Local GPU Checklist (TensorFlow 2.21)"
+    },
+    {
+      "line": 5,
+      "level": 2,
+      "title": "0) Что считаем «актуальным стеком»"
+    },
+    {
+      "line": 12,
+      "level": 2,
+      "title": "1) Preflight железа"
+    },
+    {
+      "line": 22,
+      "level": 2,
+      "title": "2) Подготовить `.venv` проекта"
+    },
+    {
+      "line": 36,
+      "level": 2,
+      "title": "3) Переключить TensorFlow на локальный GPU-стек"
+    },
+    {
+      "line": 55,
+      "level": 2,
+      "title": "4) Зарегистрировать kernel для Jupyter"
+    },
+    {
+      "line": 61,
+      "level": 2,
+      "title": "5) Запустить показательный `solution`-ноутбук из ЛР04"
+    },
+    {
+      "line": 70,
+      "level": 2,
+      "title": "6) Критерий PASS"
+    },
+    {
+      "line": 81,
+      "level": 2,
+      "title": "7) Если снова `INVALID_PTX` / `INVALID_HANDLE`"
+    }
+  ]
+}

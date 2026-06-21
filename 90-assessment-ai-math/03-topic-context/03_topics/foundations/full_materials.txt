@@ -1,0 +1,2063 @@
+===== mat_0002 | themes/00-Foundations/examples/01_numpy_sequence_basics.ipynb =====
+[cell 001 | markdown]
+# Разминка 1: основы последовательностей в NumPy
+
+Этот notebook связан с guide [Sequence Shapes and Metrics](../guides/01_sequence_shapes_and_metrics.md).
+
+Цель:
+- спокойно проговорить оси `(batch, time, features)`;
+- руками увидеть разницу между `many-to-one` и `many-to-many`;
+- потренироваться в `sum`, `cumsum`, padding и mask без нейросети.
+
+[cell 002 | code]
+import numpy as np
+
+np.set_printoptions(linewidth=120)
+
+X = np.array(
+    [
+        [-1,  1,  1, -1,  1],
+        [ 1,  1, -1, -1, -1],
+        [ 1, -1,  1,  1,  1],
+    ],
+    dtype=np.int32,
+)
+
+print('X shape:', X.shape)
+print(X)
+
+[cell 003 | markdown]
+## Как читать эту форму
+
+`X.shape == (3, 5)` означает:
+- `3` последовательности в batch;
+- `5` шагов времени;
+- пока нет отдельной оси признаков, потому что на каждом шаге лежит одно число.
+
+[cell 004 | code]
+many_to_one_scores = X.sum(axis=1)
+y_many_to_one = (many_to_one_scores > 0).astype(np.float32)
+
+cumsum = np.cumsum(X, axis=1)
+y_many_to_many = (cumsum > 0).astype(np.float32)
+
+X_features = X[..., None].astype(np.float32)
+y_many_to_many_features = y_many_to_many[..., None]
+
+print('many_to_one_scores shape:', many_to_one_scores.shape)
+print(many_to_one_scores)
+print('y_many_to_one shape:', y_many_to_one.shape)
+print(y_many_to_one)
+print()
+print('cumsum shape:', cumsum.shape)
+print(cumsum)
+print('y_many_to_many shape:', y_many_to_many.shape)
+print(y_many_to_many)
+print()
+print('X_features shape:', X_features.shape)
+print('y_many_to_many_features shape:', y_many_to_many_features.shape)
+
+[cell 005 | markdown]
+## Ручная проверка одного примера
+
+Для первой последовательности:
+- итоговая сумма даёт `many-to-one` метку;
+- накопленная сумма на каждом шаге даёт `many-to-many` метки.
+
+[cell 006 | code]
+example = X[0]
+running_sum = 0
+step_labels = []
+
+print('sequence:', example.tolist())
+for step, value in enumerate(example, start=1):
+    running_sum += int(value)
+    label = float(running_sum > 0)
+    step_labels.append(label)
+    print(f'step={step:>2} value={value:+d} running_sum={running_sum:+d} label={label:.0f}')
+
+print() 
+print('Expected many-to-one label:', float(example.sum() > 0))
+print('Expected many-to-many labels:', step_labels)
+
+[cell 007 | markdown]
+## Padding и mask без TensorFlow
+
+Здесь мы специально берём последовательности разной длины и выравниваем их вручную.
+
+[cell 008 | code]
+variable_sequences = [
+    [4, 7, 2],
+    [3, 1],
+    [9, 8, 5, 6],
+]
+pad_id = 0
+max_len = max(len(seq) for seq in variable_sequences)
+
+padded = np.full((len(variable_sequences), max_len), pad_id, dtype=np.int32)
+for row, seq in enumerate(variable_sequences):
+    padded[row, : len(seq)] = seq
+
+mask = (padded != pad_id).astype(np.float32)
+
+print('padded shape:', padded.shape)
+print(padded)
+print()
+print('mask shape:', mask.shape)
+print(mask)
+
+[cell 009 | markdown]
+## Что взять с собой дальше
+
+- `sum(axis=1)` часто отвечает за агрегацию по времени.
+- `cumsum(axis=1)` удобно показывает смысл пошаговой разметки.
+- `[..., None]` добавляет ось признаков и превращает `(N, T)` в `(N, T, 1)`.
+- `mask` почти всегда начинается с простого вопроса: где здесь настоящие данные, а где только padding.
+
+
+===== mat_0003 | themes/00-Foundations/examples/02_minimal_keras_sequence_classifier.ipynb =====
+[cell 001 | markdown]
+# Разминка 2: минимальный Keras-классификатор последовательностей
+
+Этот notebook связан с guide [Sequence Shapes and Metrics](../guides/01_sequence_shapes_and_metrics.md).
+
+Цель:
+- увидеть минимальный pipeline `tokens -> Embedding -> recurrent layer -> one label`;
+- сравнить `SimpleRNN` и `GRU` без `TODO` и без большого датасета;
+- посмотреть на одну и ту же synthetic classification задачу через два recurrent блока.
+
+[cell 002 | code]
+import random
+
+import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+
+tf.keras.utils.set_random_seed(7)
+np.random.seed(7)
+random.seed(7)
+
+[cell 003 | markdown]
+## Выбор runtime
+
+Здесь вы выбираете, где и на чём запускать notebook.
+
+Что обычно выбирать:
+- `auto` — лучший вариант по умолчанию. Если TensorFlow видит GPU, будет выбран GPU. Если GPU нет, notebook спокойно останется на CPU.
+- `local-cpu` — локальный запуск только на CPU, даже если видеокарта есть.
+- `local-gpu` — локальный запуск с обязательным GPU. Если GPU не настроен, notebook специально остановится с понятной ошибкой.
+- `colab-cpu` / `colab-gpu` — запуск в Google Colab.
+- `kaggle-cpu` / `kaggle-gpu` — запуск в Kaggle Notebooks.
+
+Что важно:
+- после изменения `RUNTIME_MODE` используйте `Restart & Run All`;
+- `COURSE_REPO_HTTPS_URL` нужен только для Colab/Kaggle, если репозиторий ещё не клонирован в runtime;
+- пока в ячейке стоит placeholder-URL, cloud auto-bootstrap не сможет сам скачать курс;
+- guide `05` отвечает на вопрос, где и как запускать notebook;
+- guide `06` нужен, если вы хотите именно локальный GPU и не уверены в версиях `TensorFlow` / `CUDA`;
+- локальный GPU-path курса: `Linux + NVIDIA` или `Windows -> WSL2 + Ubuntu`;
+- если `local-gpu` упирается в локальные CUDA/PTX ошибки, это обычно уже проблема GPU-стека, а не notebook. В таком случае спокойно переключайтесь на `local-cpu`, `colab-gpu` или `kaggle-gpu`.
+
+Подробные guides:
+- `themes/00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md`
+- `themes/00-Foundations/guides/06_tensorflow_cuda_version_selection.md`
+
+[cell 004 | code]
+import importlib.util
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+RUNTIME_MODE = os.environ.get("COURSE_RUNTIME_MODE", "auto")
+COURSE_REPO_HTTPS_URL = os.environ.get(
+    "COURSE_REPO_HTTPS_URL",
+    "https://github.com/<org>/<repo>.git",
+)
+NOTEBOOK_REQUIREMENTS = "themes/00-Foundations/requirements.txt"
+
+
+def _detect_notebook_platform():
+    if os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or Path("/kaggle").exists():
+        return "kaggle"
+    if os.environ.get("COLAB_RELEASE_TAG") or "google.colab" in sys.modules:
+        return "colab"
+    return "local"
+
+
+def _looks_like_repo_root(path: Path) -> bool:
+    return (
+        path.is_dir()
+        and (path / "themes").is_dir()
+        and (path / "course_runtime.py").is_file()
+    )
+
+
+def _canonical_cloud_repo_root(platform: str) -> Path:
+    if platform == "colab":
+        return Path("/content/students-AI_math_essentials")
+    if platform == "kaggle":
+        return Path("/kaggle/working/students-AI_math_essentials")
+    raise ValueError(f"Unexpected cloud platform: {platform}")
+
+
+def _is_placeholder_repo_url(repo_url: str) -> bool:
+    return repo_url.strip() == "https://github.com/<org>/<repo>.git"
+
+
+def _find_repo_root_from_cwd():
+    for candidate in (Path.cwd(), *Path.cwd().parents):
+        if _looks_like_repo_root(candidate):
+            return candidate
+    return None
+
+
+def _ensure_course_runtime_importable(runtime_mode: str, repo_url: str) -> None:
+    if importlib.util.find_spec("course_runtime") is not None:
+        return
+
+    local_repo_root = _find_repo_root_from_cwd()
+    if local_repo_root is not None:
+        if str(local_repo_root) not in sys.path:
+            sys.path.insert(0, str(local_repo_root))
+        return
+
+    platform = _detect_notebook_platform()
+    if platform == "local":
+        raise ModuleNotFoundError(
+            "Не удалось импортировать course_runtime.py. Для локального запуска "
+            "открывайте репозиторий через `.venv/bin/jupyter notebook` из корня проекта."
+        )
+
+    repo_root = _canonical_cloud_repo_root(platform)
+    if not _looks_like_repo_root(repo_root):
+        if _is_placeholder_repo_url(repo_url):
+            raise RuntimeError(
+                "Для cloud auto-bootstrap нужен публичный HTTPS URL курса. "
+                "Замените COURSE_REPO_HTTPS_URL на реальный адрес репозитория."
+            )
+        repo_root.parent.mkdir(parents=True, exist_ok=True)
+        if repo_root.exists() and any(repo_root.iterdir()):
+            raise RuntimeError(
+                f"Каталог {repo_root} уже существует, но не выглядит как корень курса. "
+                "Очистите runtime или используйте новый notebook session."
+            )
+        print(f"Bootstrapping course repository into {repo_root} ...")
+        subprocess.run(["git", "clone", repo_url, str(repo_root)], check=True)
+
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+
+
+_ensure_course_runtime_importable(RUNTIME_MODE, COURSE_REPO_HTTPS_URL)
+
+from course_runtime import setup_notebook_runtime
+
+runtime_info = setup_notebook_runtime(
+    runtime_mode=RUNTIME_MODE,
+    course_repo_https_url=COURSE_REPO_HTTPS_URL,
+    notebook_requirements=NOTEBOOK_REQUIREMENTS,
+)
+runtime_info.as_dict()
+
+[cell 005 | markdown]
+## Synthetic dataset
+
+Мы генерируем последовательности из целых токенов и считаем скрытый score по таблице token-weights.
+Модель должна восстановить бинарную метку по всей последовательности.
+
+[cell 006 | code]
+vocab_size = 20
+seq_len = 12
+n_samples = 2600
+
+token_scores = np.array(
+    [0, -2, -1, -1, 0, 0, 1, 1, 2, 2, -2, -1, 1, 2, -2, 0, 1, 2, -1, 1],
+    dtype=np.int32,
+)
+
+rng = np.random.default_rng(7)
+X = rng.integers(1, vocab_size, size=(n_samples, seq_len), dtype=np.int32)
+raw_scores = token_scores[X].sum(axis=1)
+y = (raw_scores > 0).astype(np.float32)
+
+x_train, x_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=7, stratify=y
+)
+
+print('x_train shape:', x_train.shape)
+print('x_test shape :', x_test.shape)
+print('y_train shape:', y_train.shape)
+print('Positive rate :', y_train.mean())
+print()
+print('Example sequence:', x_train[0])
+print('Example label   :', int(y_train[0]))
+
+[cell 007 | code]
+def build_model(cell_name: str) -> tf.keras.Model:
+    if cell_name == 'SimpleRNN':
+        recurrent = tf.keras.layers.SimpleRNN(24)
+    elif cell_name == 'GRU':
+        recurrent = tf.keras.layers.GRU(24)
+    else:
+        raise ValueError(cell_name)
+
+    model = tf.keras.Sequential(
+        [
+            tf.keras.layers.Input(shape=(seq_len,)),
+            tf.keras.layers.Embedding(input_dim=vocab_size, output_dim=16, mask_zero=True),
+            recurrent,
+            tf.keras.layers.Dense(1, activation='sigmoid'),
+        ]
+    )
+    model.compile(
+        optimizer='adam',
+        loss='binary_crossentropy',
+        metrics=['accuracy'],
+    )
+    return model
+
+
+histories = {}
+test_metrics = {}
+models = {}
+
+for name in ['SimpleRNN', 'GRU']:
+    model = build_model(name)
+    history = model.fit(
+        x_train,
+        y_train,
+        validation_split=0.2,
+        epochs=3,
+        batch_size=64,
+        verbose=0,
+    )
+    loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
+    histories[name] = history.history
+    test_metrics[name] = {'loss': float(loss), 'accuracy': float(accuracy)}
+    models[name] = model
+
+test_metrics
+
+[cell 008 | code]
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+
+for name, history in histories.items():
+    axes[0].plot(history['val_accuracy'], marker='o', label=name)
+    axes[1].plot(history['val_loss'], marker='o', label=name)
+
+axes[0].set_title('Validation accuracy')
+axes[0].set_xlabel('Epoch')
+axes[0].set_ylabel('Accuracy')
+axes[0].legend()
+
+axes[1].set_title('Validation loss')
+axes[1].set_xlabel('Epoch')
+axes[1].set_ylabel('Loss')
+axes[1].legend()
+
+plt.tight_layout()
+plt.show()
+
+[cell 009 | code]
+sample_batch = x_test[:5]
+print('Sample batch shape:', sample_batch.shape)
+print(sample_batch)
+print()
+
+for name, model in models.items():
+    probs = model.predict(sample_batch, verbose=0).ravel()
+    preds = (probs >= 0.5).astype(np.int32)
+    print(name)
+    for index, (prob, pred, target) in enumerate(zip(probs, preds, y_test[:5]), start=1):
+        print(f'  sample={index} prob={prob:.3f} pred={pred} target={int(target)}')
+    print()
+
+[cell 010 | markdown]
+## Что взять с собой дальше
+
+- Для `many-to-one` recurrent-слой может вернуть один итоговый вектор на всю последовательность.
+- `Embedding(mask_zero=True)` естественно готовит integer tokens к recurrent-слою.
+- Даже маленькая synthetic задача уже показывает, как читать `train/validation/test` без перегруза архитектурой.
+
+
+===== mat_0004 | themes/00-Foundations/examples/03_tokenization_padding_masking.ipynb =====
+[cell 001 | markdown]
+# Разминка 3: токенизация, padding и masking
+
+Этот notebook связан с guide [Tokens, Padding, Masking, and Decoder Shift](../guides/02_tokens_padding_and_decoder_shift.md).
+
+Цель:
+- руками собрать маленький словарь;
+- построить `encoder_input`, `decoder_input`, `decoder_target`;
+- увидеть mask и строгую метрику без тяжёлого обучения.
+
+[cell 002 | code]
+import numpy as np
+import tensorflow as tf
+
+source_sequences = [
+    ['red', 'blue', 'green'],
+    ['blue', 'yellow'],
+    ['green', 'green', 'red'],
+]
+target_sequences = [list(reversed(seq)) for seq in source_sequences]
+
+special_tokens = ['[PAD]', '[SOS]', '[EOS]']
+vocab_tokens = sorted({token for seq in source_sequences for token in seq})
+vocab = special_tokens + vocab_tokens
+token_to_id = {token: idx for idx, token in enumerate(vocab)}
+id_to_token = {idx: token for token, idx in token_to_id.items()}
+
+PAD_ID = token_to_id['[PAD]']
+SOS_ID = token_to_id['[SOS]']
+EOS_ID = token_to_id['[EOS]']
+
+print('vocab:', vocab)
+print('token_to_id:', token_to_id)
+
+[cell 003 | markdown]
+## Выбор runtime
+
+Здесь вы выбираете, где и на чём запускать notebook.
+
+Что обычно выбирать:
+- `auto` — лучший вариант по умолчанию. Если TensorFlow видит GPU, будет выбран GPU. Если GPU нет, notebook спокойно останется на CPU.
+- `local-cpu` — локальный запуск только на CPU, даже если видеокарта есть.
+- `local-gpu` — локальный запуск с обязательным GPU. Если GPU не настроен, notebook специально остановится с понятной ошибкой.
+- `colab-cpu` / `colab-gpu` — запуск в Google Colab.
+- `kaggle-cpu` / `kaggle-gpu` — запуск в Kaggle Notebooks.
+
+Что важно:
+- после изменения `RUNTIME_MODE` используйте `Restart & Run All`;
+- `COURSE_REPO_HTTPS_URL` нужен только для Colab/Kaggle, если репозиторий ещё не клонирован в runtime;
+- пока в ячейке стоит placeholder-URL, cloud auto-bootstrap не сможет сам скачать курс;
+- guide `05` отвечает на вопрос, где и как запускать notebook;
+- guide `06` нужен, если вы хотите именно локальный GPU и не уверены в версиях `TensorFlow` / `CUDA`;
+- локальный GPU-path курса: `Linux + NVIDIA` или `Windows -> WSL2 + Ubuntu`;
+- если `local-gpu` упирается в локальные CUDA/PTX ошибки, это обычно уже проблема GPU-стека, а не notebook. В таком случае спокойно переключайтесь на `local-cpu`, `colab-gpu` или `kaggle-gpu`.
+
+Подробные guides:
+- `themes/00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md`
+- `themes/00-Foundations/guides/06_tensorflow_cuda_version_selection.md`
+
+[cell 004 | code]
+import importlib.util
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+RUNTIME_MODE = os.environ.get("COURSE_RUNTIME_MODE", "auto")
+COURSE_REPO_HTTPS_URL = os.environ.get(
+    "COURSE_REPO_HTTPS_URL",
+    "https://github.com/<org>/<repo>.git",
+)
+NOTEBOOK_REQUIREMENTS = "themes/00-Foundations/requirements.txt"
+
+
+def _detect_notebook_platform():
+    if os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or Path("/kaggle").exists():
+        return "kaggle"
+    if os.environ.get("COLAB_RELEASE_TAG") or "google.colab" in sys.modules:
+        return "colab"
+    return "local"
+
+
+def _looks_like_repo_root(path: Path) -> bool:
+    return (
+        path.is_dir()
+        and (path / "themes").is_dir()
+        and (path / "course_runtime.py").is_file()
+    )
+
+
+def _canonical_cloud_repo_root(platform: str) -> Path:
+    if platform == "colab":
+        return Path("/content/students-AI_math_essentials")
+    if platform == "kaggle":
+        return Path("/kaggle/working/students-AI_math_essentials")
+    raise ValueError(f"Unexpected cloud platform: {platform}")
+
+
+def _is_placeholder_repo_url(repo_url: str) -> bool:
+    return repo_url.strip() == "https://github.com/<org>/<repo>.git"
+
+
+def _find_repo_root_from_cwd():
+    for candidate in (Path.cwd(), *Path.cwd().parents):
+        if _looks_like_repo_root(candidate):
+            return candidate
+    return None
+
+
+def _ensure_course_runtime_importable(runtime_mode: str, repo_url: str) -> None:
+    if importlib.util.find_spec("course_runtime") is not None:
+        return
+
+    local_repo_root = _find_repo_root_from_cwd()
+    if local_repo_root is not None:
+        if str(local_repo_root) not in sys.path:
+            sys.path.insert(0, str(local_repo_root))
+        return
+
+    platform = _detect_notebook_platform()
+    if platform == "local":
+        raise ModuleNotFoundError(
+            "Не удалось импортировать course_runtime.py. Для локального запуска "
+            "открывайте репозиторий через `.venv/bin/jupyter notebook` из корня проекта."
+        )
+
+    repo_root = _canonical_cloud_repo_root(platform)
+    if not _looks_like_repo_root(repo_root):
+        if _is_placeholder_repo_url(repo_url):
+            raise RuntimeError(
+                "Для cloud auto-bootstrap нужен публичный HTTPS URL курса. "
+                "Замените COURSE_REPO_HTTPS_URL на реальный адрес репозитория."
+            )
+        repo_root.parent.mkdir(parents=True, exist_ok=True)
+        if repo_root.exists() and any(repo_root.iterdir()):
+            raise RuntimeError(
+                f"Каталог {repo_root} уже существует, но не выглядит как корень курса. "
+                "Очистите runtime или используйте новый notebook session."
+            )
+        print(f"Bootstrapping course repository into {repo_root} ...")
+        subprocess.run(["git", "clone", repo_url, str(repo_root)], check=True)
+
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+
+
+_ensure_course_runtime_importable(RUNTIME_MODE, COURSE_REPO_HTTPS_URL)
+
+from course_runtime import setup_notebook_runtime
+
+runtime_info = setup_notebook_runtime(
+    runtime_mode=RUNTIME_MODE,
+    course_repo_https_url=COURSE_REPO_HTTPS_URL,
+    notebook_requirements=NOTEBOOK_REQUIREMENTS,
+)
+runtime_info.as_dict()
+
+[cell 005 | code]
+encoder_ids = [[token_to_id[token] for token in seq] for seq in source_sequences]
+target_ids = [[token_to_id[token] for token in seq] for seq in target_sequences]
+
+decoder_input_ids = [[SOS_ID] + seq for seq in target_ids]
+decoder_target_ids = [seq + [EOS_ID] for seq in target_ids]
+
+encoder_input = tf.keras.utils.pad_sequences(encoder_ids, padding='post', value=PAD_ID)
+decoder_input = tf.keras.utils.pad_sequences(decoder_input_ids, padding='post', value=PAD_ID)
+decoder_target = tf.keras.utils.pad_sequences(decoder_target_ids, padding='post', value=PAD_ID)
+
+print('encoder_input shape :', encoder_input.shape)
+print(encoder_input)
+print()
+print('decoder_input shape :', decoder_input.shape)
+print(decoder_input)
+print()
+print('decoder_target shape:', decoder_target.shape)
+print(decoder_target)
+
+[cell 006 | code]
+row = 0
+print('source tokens :', source_sequences[row])
+print('target tokens :', target_sequences[row])
+print('decoder_input :', [id_to_token[idx] for idx in decoder_input[row] if idx != PAD_ID])
+print('decoder_target:', [id_to_token[idx] for idx in decoder_target[row] if idx != PAD_ID])
+
+[cell 007 | code]
+mask = (decoder_target != PAD_ID).astype(np.float32)
+
+fake_preds = decoder_target.copy()
+fake_preds[1, 1] = token_to_id['red']
+
+token_accuracy = ((fake_preds == decoder_target) * mask).sum() / mask.sum()
+exact_match = np.all((fake_preds == decoder_target) | (mask == 0), axis=1).mean()
+
+print('mask shape:', mask.shape)
+print(mask)
+print()
+print(f'token_accuracy = {token_accuracy:.3f}')
+print(f'exact_match    = {exact_match:.3f}')
+print('One wrong token is enough to break exact_match for that sequence.')
+
+[cell 008 | code]
+embedding = tf.keras.layers.Embedding(input_dim=len(vocab), output_dim=8, mask_zero=True)
+embedded = embedding(encoder_input)
+embedded_mask = embedding.compute_mask(encoder_input)
+
+print('embedded shape:', embedded.shape)
+print('embedding mask:')
+print(embedded_mask.numpy().astype(np.int32))
+
+[cell 009 | markdown]
+## Что взять с собой дальше
+
+- `decoder_input` и `decoder_target` обязаны быть сдвинуты.
+- `PAD` нужен для выравнивания batch, а mask — чтобы padded позиции не портили обучение и метрики.
+- `Embedding(mask_zero=True)` удобно сигнализирует downstream-слоям, где лежит padding.
+
+
+===== mat_0005 | themes/00-Foundations/examples/04_attention_heatmap_toy.ipynb =====
+[cell 001 | markdown]
+# Разминка 4: toy heatmap внимания
+
+Этот notebook связан с guide [Attention Heatmaps Without Mystery](../guides/03_attention_heatmaps.md).
+
+Цель:
+- вручную посчитать score-matrix и `context`;
+- увидеть антидиагональный паттерн для reverse-like задачи;
+- сравнить ручной расчёт с `tf.keras.layers.Attention`.
+
+[cell 002 | code]
+import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
+
+np.set_printoptions(precision=3, suppress=True)
+
+[cell 003 | markdown]
+## Выбор runtime
+
+Здесь вы выбираете, где и на чём запускать notebook.
+
+Что обычно выбирать:
+- `auto` — лучший вариант по умолчанию. Если TensorFlow видит GPU, будет выбран GPU. Если GPU нет, notebook спокойно останется на CPU.
+- `local-cpu` — локальный запуск только на CPU, даже если видеокарта есть.
+- `local-gpu` — локальный запуск с обязательным GPU. Если GPU не настроен, notebook специально остановится с понятной ошибкой.
+- `colab-cpu` / `colab-gpu` — запуск в Google Colab.
+- `kaggle-cpu` / `kaggle-gpu` — запуск в Kaggle Notebooks.
+
+Что важно:
+- после изменения `RUNTIME_MODE` используйте `Restart & Run All`;
+- `COURSE_REPO_HTTPS_URL` нужен только для Colab/Kaggle, если репозиторий ещё не клонирован в runtime;
+- пока в ячейке стоит placeholder-URL, cloud auto-bootstrap не сможет сам скачать курс;
+- guide `05` отвечает на вопрос, где и как запускать notebook;
+- guide `06` нужен, если вы хотите именно локальный GPU и не уверены в версиях `TensorFlow` / `CUDA`;
+- локальный GPU-path курса: `Linux + NVIDIA` или `Windows -> WSL2 + Ubuntu`;
+- если `local-gpu` упирается в локальные CUDA/PTX ошибки, это обычно уже проблема GPU-стека, а не notebook. В таком случае спокойно переключайтесь на `local-cpu`, `colab-gpu` или `kaggle-gpu`.
+
+Подробные guides:
+- `themes/00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md`
+- `themes/00-Foundations/guides/06_tensorflow_cuda_version_selection.md`
+
+[cell 004 | code]
+import importlib.util
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+RUNTIME_MODE = os.environ.get("COURSE_RUNTIME_MODE", "auto")
+COURSE_REPO_HTTPS_URL = os.environ.get(
+    "COURSE_REPO_HTTPS_URL",
+    "https://github.com/<org>/<repo>.git",
+)
+NOTEBOOK_REQUIREMENTS = "themes/00-Foundations/requirements.txt"
+
+
+def _detect_notebook_platform():
+    if os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or Path("/kaggle").exists():
+        return "kaggle"
+    if os.environ.get("COLAB_RELEASE_TAG") or "google.colab" in sys.modules:
+        return "colab"
+    return "local"
+
+
+def _looks_like_repo_root(path: Path) -> bool:
+    return (
+        path.is_dir()
+        and (path / "themes").is_dir()
+        and (path / "course_runtime.py").is_file()
+    )
+
+
+def _canonical_cloud_repo_root(platform: str) -> Path:
+    if platform == "colab":
+        return Path("/content/students-AI_math_essentials")
+    if platform == "kaggle":
+        return Path("/kaggle/working/students-AI_math_essentials")
+    raise ValueError(f"Unexpected cloud platform: {platform}")
+
+
+def _is_placeholder_repo_url(repo_url: str) -> bool:
+    return repo_url.strip() == "https://github.com/<org>/<repo>.git"
+
+
+def _find_repo_root_from_cwd():
+    for candidate in (Path.cwd(), *Path.cwd().parents):
+        if _looks_like_repo_root(candidate):
+            return candidate
+    return None
+
+
+def _ensure_course_runtime_importable(runtime_mode: str, repo_url: str) -> None:
+    if importlib.util.find_spec("course_runtime") is not None:
+        return
+
+    local_repo_root = _find_repo_root_from_cwd()
+    if local_repo_root is not None:
+        if str(local_repo_root) not in sys.path:
+            sys.path.insert(0, str(local_repo_root))
+        return
+
+    platform = _detect_notebook_platform()
+    if platform == "local":
+        raise ModuleNotFoundError(
+            "Не удалось импортировать course_runtime.py. Для локального запуска "
+            "открывайте репозиторий через `.venv/bin/jupyter notebook` из корня проекта."
+        )
+
+    repo_root = _canonical_cloud_repo_root(platform)
+    if not _looks_like_repo_root(repo_root):
+        if _is_placeholder_repo_url(repo_url):
+            raise RuntimeError(
+                "Для cloud auto-bootstrap нужен публичный HTTPS URL курса. "
+                "Замените COURSE_REPO_HTTPS_URL на реальный адрес репозитория."
+            )
+        repo_root.parent.mkdir(parents=True, exist_ok=True)
+        if repo_root.exists() and any(repo_root.iterdir()):
+            raise RuntimeError(
+                f"Каталог {repo_root} уже существует, но не выглядит как корень курса. "
+                "Очистите runtime или используйте новый notebook session."
+            )
+        print(f"Bootstrapping course repository into {repo_root} ...")
+        subprocess.run(["git", "clone", repo_url, str(repo_root)], check=True)
+
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+
+
+_ensure_course_runtime_importable(RUNTIME_MODE, COURSE_REPO_HTTPS_URL)
+
+from course_runtime import setup_notebook_runtime
+
+runtime_info = setup_notebook_runtime(
+    runtime_mode=RUNTIME_MODE,
+    course_repo_https_url=COURSE_REPO_HTTPS_URL,
+    notebook_requirements=NOTEBOOK_REQUIREMENTS,
+)
+runtime_info.as_dict()
+
+[cell 005 | code]
+encoder_labels = ['enc_1', 'enc_2', 'enc_3', 'enc_4']
+decoder_labels = ['dec_1', 'dec_2', 'dec_3', 'dec_4']
+
+keys = np.eye(4, dtype=np.float32)[None, :, :]
+queries = np.eye(4, dtype=np.float32)[::-1][None, :, :]
+values = np.array(
+    [
+        [1.0, 0.0],
+        [0.0, 1.0],
+        [1.0, 1.0],
+        [2.0, 0.5],
+    ],
+    dtype=np.float32,
+)[None, :, :]
+
+scores = queries @ np.transpose(keys, (0, 2, 1))
+shifted_scores = scores - scores.max(axis=-1, keepdims=True)
+weights = np.exp(shifted_scores) / np.exp(shifted_scores).sum(axis=-1, keepdims=True)
+context = weights @ values
+
+print('scores shape :', scores.shape)
+print(scores[0])
+print() 
+print('weights shape:', weights.shape)
+print(weights[0])
+print() 
+print('context shape:', context.shape)
+print(context[0])
+
+[cell 006 | code]
+plt.figure(figsize=(6, 4))
+plt.imshow(weights[0], cmap='viridis', aspect='auto')
+plt.xticks(range(len(encoder_labels)), encoder_labels)
+plt.yticks(range(len(decoder_labels)), decoder_labels)
+plt.xlabel('Encoder positions')
+plt.ylabel('Decoder steps')
+plt.title('Manual attention weights')
+plt.colorbar(label='weight')
+plt.show()
+
+[cell 007 | code]
+attention = tf.keras.layers.Attention(use_scale=False, score_mode='dot')
+keras_context, keras_scores = attention(
+    [tf.constant(queries), tf.constant(values), tf.constant(keys)],
+    return_attention_scores=True,
+)
+
+print('keras_context shape:', keras_context.shape)
+print('keras_scores shape :', keras_scores.shape)
+print('max |manual - keras| for scores:', np.abs(weights - keras_scores.numpy()).max())
+print('max |manual - keras| for context:', np.abs(context - keras_context.numpy()).max())
+
+[cell 008 | markdown]
+## Что взять с собой дальше
+
+- `attention_scores` — это просто нормированные веса по encoder-позициям.
+- `context` — взвешенная сумма `value`.
+- Для reverse-like задачи хороший паттерн действительно похож на антидиагональ.
+
+
+===== mat_0006 | themes/00-Foundations/showcases/01_imdb_many_to_one_showcase.ipynb =====
+[cell 001 | markdown]
+# Демонстрация 1: IMDB many-to-one классификация тональности
+
+Перед запуском полезно открыть dataset card [IMDB](./cards/01_imdb.md).
+
+Fast-mode идея:
+- взять небольшую подвыборку;
+- паддить отзывы до общей длины;
+- сравнить `SimpleRNN`, `LSTM`, `GRU` на одной и той же задаче.
+
+[cell 002 | code]
+import random
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+
+tf.keras.utils.set_random_seed(11)
+np.random.seed(11)
+random.seed(11)
+
+[cell 003 | markdown]
+## Выбор runtime
+
+Здесь вы выбираете, где и на чём запускать notebook.
+
+Что обычно выбирать:
+- `auto` — лучший вариант по умолчанию. Если TensorFlow видит GPU, будет выбран GPU. Если GPU нет, notebook спокойно останется на CPU.
+- `local-cpu` — локальный запуск только на CPU, даже если видеокарта есть.
+- `local-gpu` — локальный запуск с обязательным GPU. Если GPU не настроен, notebook специально остановится с понятной ошибкой.
+- `colab-cpu` / `colab-gpu` — запуск в Google Colab.
+- `kaggle-cpu` / `kaggle-gpu` — запуск в Kaggle Notebooks.
+
+Что важно:
+- после изменения `RUNTIME_MODE` используйте `Restart & Run All`;
+- `COURSE_REPO_HTTPS_URL` нужен только для Colab/Kaggle, если репозиторий ещё не клонирован в runtime;
+- пока в ячейке стоит placeholder-URL, cloud auto-bootstrap не сможет сам скачать курс;
+- guide `05` отвечает на вопрос, где и как запускать notebook;
+- guide `06` нужен, если вы хотите именно локальный GPU и не уверены в версиях `TensorFlow` / `CUDA`;
+- локальный GPU-path курса: `Linux + NVIDIA` или `Windows -> WSL2 + Ubuntu`;
+- если `local-gpu` упирается в локальные CUDA/PTX ошибки, это обычно уже проблема GPU-стека, а не notebook. В таком случае спокойно переключайтесь на `local-cpu`, `colab-gpu` или `kaggle-gpu`.
+
+Подробные guides:
+- `themes/00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md`
+- `themes/00-Foundations/guides/06_tensorflow_cuda_version_selection.md`
+
+[cell 004 | code]
+import importlib.util
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+RUNTIME_MODE = os.environ.get("COURSE_RUNTIME_MODE", "auto")
+COURSE_REPO_HTTPS_URL = os.environ.get(
+    "COURSE_REPO_HTTPS_URL",
+    "https://github.com/<org>/<repo>.git",
+)
+NOTEBOOK_REQUIREMENTS = "themes/00-Foundations/requirements.txt"
+
+
+def _detect_notebook_platform():
+    if os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or Path("/kaggle").exists():
+        return "kaggle"
+    if os.environ.get("COLAB_RELEASE_TAG") or "google.colab" in sys.modules:
+        return "colab"
+    return "local"
+
+
+def _looks_like_repo_root(path: Path) -> bool:
+    return (
+        path.is_dir()
+        and (path / "themes").is_dir()
+        and (path / "course_runtime.py").is_file()
+    )
+
+
+def _canonical_cloud_repo_root(platform: str) -> Path:
+    if platform == "colab":
+        return Path("/content/students-AI_math_essentials")
+    if platform == "kaggle":
+        return Path("/kaggle/working/students-AI_math_essentials")
+    raise ValueError(f"Unexpected cloud platform: {platform}")
+
+
+def _is_placeholder_repo_url(repo_url: str) -> bool:
+    return repo_url.strip() == "https://github.com/<org>/<repo>.git"
+
+
+def _find_repo_root_from_cwd():
+    for candidate in (Path.cwd(), *Path.cwd().parents):
+        if _looks_like_repo_root(candidate):
+            return candidate
+    return None
+
+
+def _ensure_course_runtime_importable(runtime_mode: str, repo_url: str) -> None:
+    if importlib.util.find_spec("course_runtime") is not None:
+        return
+
+    local_repo_root = _find_repo_root_from_cwd()
+    if local_repo_root is not None:
+        if str(local_repo_root) not in sys.path:
+            sys.path.insert(0, str(local_repo_root))
+        return
+
+    platform = _detect_notebook_platform()
+    if platform == "local":
+        raise ModuleNotFoundError(
+            "Не удалось импортировать course_runtime.py. Для локального запуска "
+            "открывайте репозиторий через `.venv/bin/jupyter notebook` из корня проекта."
+        )
+
+    repo_root = _canonical_cloud_repo_root(platform)
+    if not _looks_like_repo_root(repo_root):
+        if _is_placeholder_repo_url(repo_url):
+            raise RuntimeError(
+                "Для cloud auto-bootstrap нужен публичный HTTPS URL курса. "
+                "Замените COURSE_REPO_HTTPS_URL на реальный адрес репозитория."
+            )
+        repo_root.parent.mkdir(parents=True, exist_ok=True)
+        if repo_root.exists() and any(repo_root.iterdir()):
+            raise RuntimeError(
+                f"Каталог {repo_root} уже существует, но не выглядит как корень курса. "
+                "Очистите runtime или используйте новый notebook session."
+            )
+        print(f"Bootstrapping course repository into {repo_root} ...")
+        subprocess.run(["git", "clone", repo_url, str(repo_root)], check=True)
+
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+
+
+_ensure_course_runtime_importable(RUNTIME_MODE, COURSE_REPO_HTTPS_URL)
+
+from course_runtime import setup_notebook_runtime
+
+runtime_info = setup_notebook_runtime(
+    runtime_mode=RUNTIME_MODE,
+    course_repo_https_url=COURSE_REPO_HTTPS_URL,
+    notebook_requirements=NOTEBOOK_REQUIREMENTS,
+)
+runtime_info.as_dict()
+
+[cell 005 | code]
+vocab_size = 8000
+maxlen = 140
+train_subset = 3000
+test_subset = 1500
+
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.imdb.load_data(num_words=vocab_size)
+
+x_train = tf.keras.utils.pad_sequences(x_train[:train_subset], maxlen=maxlen, padding='post')
+y_train = y_train[:train_subset]
+x_test = tf.keras.utils.pad_sequences(x_test[:test_subset], maxlen=maxlen, padding='post')
+y_test = y_test[:test_subset]
+
+x_train, x_val, y_train, y_val = train_test_split(
+    x_train, y_train, test_size=0.2, random_state=11, stratify=y_train
+)
+
+print('x_train shape:', x_train.shape)
+print('x_val shape  :', x_val.shape)
+print('x_test shape :', x_test.shape)
+print('Positive rate:', y_train.mean())
+
+[cell 006 | code]
+def build_model(cell_name: str) -> tf.keras.Model:
+    if cell_name == 'SimpleRNN':
+        recurrent = tf.keras.layers.SimpleRNN(32)
+    elif cell_name == 'LSTM':
+        recurrent = tf.keras.layers.LSTM(32)
+    elif cell_name == 'GRU':
+        recurrent = tf.keras.layers.GRU(32)
+    else:
+        raise ValueError(cell_name)
+
+    model = tf.keras.Sequential(
+        [
+            tf.keras.layers.Input(shape=(maxlen,)),
+            tf.keras.layers.Embedding(vocab_size, 32, mask_zero=True),
+            recurrent,
+            tf.keras.layers.Dense(1, activation='sigmoid'),
+        ]
+    )
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+
+histories = {}
+summaries = []
+models = {}
+
+for name in ['SimpleRNN', 'LSTM', 'GRU']:
+    model = build_model(name)
+    history = model.fit(
+        x_train,
+        y_train,
+        validation_data=(x_val, y_val),
+        epochs=2,
+        batch_size=64,
+        verbose=0,
+    )
+    loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
+    histories[name] = history.history
+    summaries.append({'model': name, 'test_loss': float(loss), 'test_accuracy': float(accuracy)})
+    models[name] = model
+
+pd.DataFrame(summaries).sort_values('test_accuracy', ascending=False)
+
+[cell 007 | code]
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+for name, history in histories.items():
+    axes[0].plot(history['val_accuracy'], marker='o', label=name)
+    axes[1].plot(history['val_loss'], marker='o', label=name)
+
+axes[0].set_title('IMDB fast-mode: validation accuracy')
+axes[0].set_xlabel('Epoch')
+axes[0].set_ylabel('Accuracy')
+axes[0].legend()
+
+axes[1].set_title('IMDB fast-mode: validation loss')
+axes[1].set_xlabel('Epoch')
+axes[1].set_ylabel('Loss')
+axes[1].legend()
+
+plt.tight_layout()
+plt.show()
+
+[cell 008 | code]
+sample_batch = x_test[:4]
+for name, model in models.items():
+    probs = model.predict(sample_batch, verbose=0).ravel()
+    preds = (probs >= 0.5).astype(np.int32)
+    print(name)
+    for idx, (prob, pred, target) in enumerate(zip(probs, preds, y_test[:4]), start=1):
+        print(f'  sample={idx} prob={prob:.3f} pred={pred} target={int(target)}')
+    print()
+
+[cell 009 | markdown]
+## Что заметить
+
+- Логика задачи осталась той же, что и в `many-to-one` toy notebook: одна последовательность -> одна метка.
+- Из synthetic labs сюда почти без изменений переезжает shape `(batch, time)` для token ids и итоговая метка `(batch,)`.
+- Разница между `SimpleRNN`, `LSTM` и `GRU` видна даже в fast-mode, но этот notebook нужен прежде всего для переноса интуиции, а не для честного leaderboard.
+
+
+===== mat_0007 | themes/00-Foundations/showcases/02_jena_climate_lstm_gru_showcase.ipynb =====
+[cell 001 | markdown]
+# Демонстрация 2: Jena Climate с LSTM и GRU
+
+Перед запуском полезно открыть dataset card [Jena Climate](./cards/02_jena_climate.md).
+
+Fast-mode идея:
+- взять ограниченный по времени фрагмент;
+- предсказывать следующую температуру по окну из нескольких часов;
+- сравнить `LSTM` и `GRU` на одном и том же multivariate input.
+
+[cell 002 | code]
+import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+
+tf.keras.utils.set_random_seed(13)
+np.random.seed(13)
+
+[cell 003 | markdown]
+## Выбор runtime
+
+Здесь вы выбираете, где и на чём запускать notebook.
+
+Что обычно выбирать:
+- `auto` — лучший вариант по умолчанию. Если TensorFlow видит GPU, будет выбран GPU. Если GPU нет, notebook спокойно останется на CPU.
+- `local-cpu` — локальный запуск только на CPU, даже если видеокарта есть.
+- `local-gpu` — локальный запуск с обязательным GPU. Если GPU не настроен, notebook специально остановится с понятной ошибкой.
+- `colab-cpu` / `colab-gpu` — запуск в Google Colab.
+- `kaggle-cpu` / `kaggle-gpu` — запуск в Kaggle Notebooks.
+
+Что важно:
+- после изменения `RUNTIME_MODE` используйте `Restart & Run All`;
+- `COURSE_REPO_HTTPS_URL` нужен только для Colab/Kaggle, если репозиторий ещё не клонирован в runtime;
+- пока в ячейке стоит placeholder-URL, cloud auto-bootstrap не сможет сам скачать курс;
+- guide `05` отвечает на вопрос, где и как запускать notebook;
+- guide `06` нужен, если вы хотите именно локальный GPU и не уверены в версиях `TensorFlow` / `CUDA`;
+- локальный GPU-path курса: `Linux + NVIDIA` или `Windows -> WSL2 + Ubuntu`;
+- если `local-gpu` упирается в локальные CUDA/PTX ошибки, это обычно уже проблема GPU-стека, а не notebook. В таком случае спокойно переключайтесь на `local-cpu`, `colab-gpu` или `kaggle-gpu`.
+
+Подробные guides:
+- `themes/00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md`
+- `themes/00-Foundations/guides/06_tensorflow_cuda_version_selection.md`
+
+[cell 004 | code]
+import importlib.util
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+RUNTIME_MODE = os.environ.get("COURSE_RUNTIME_MODE", "auto")
+COURSE_REPO_HTTPS_URL = os.environ.get(
+    "COURSE_REPO_HTTPS_URL",
+    "https://github.com/<org>/<repo>.git",
+)
+NOTEBOOK_REQUIREMENTS = "themes/00-Foundations/requirements.txt"
+
+
+def _detect_notebook_platform():
+    if os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or Path("/kaggle").exists():
+        return "kaggle"
+    if os.environ.get("COLAB_RELEASE_TAG") or "google.colab" in sys.modules:
+        return "colab"
+    return "local"
+
+
+def _looks_like_repo_root(path: Path) -> bool:
+    return (
+        path.is_dir()
+        and (path / "themes").is_dir()
+        and (path / "course_runtime.py").is_file()
+    )
+
+
+def _canonical_cloud_repo_root(platform: str) -> Path:
+    if platform == "colab":
+        return Path("/content/students-AI_math_essentials")
+    if platform == "kaggle":
+        return Path("/kaggle/working/students-AI_math_essentials")
+    raise ValueError(f"Unexpected cloud platform: {platform}")
+
+
+def _is_placeholder_repo_url(repo_url: str) -> bool:
+    return repo_url.strip() == "https://github.com/<org>/<repo>.git"
+
+
+def _find_repo_root_from_cwd():
+    for candidate in (Path.cwd(), *Path.cwd().parents):
+        if _looks_like_repo_root(candidate):
+            return candidate
+    return None
+
+
+def _ensure_course_runtime_importable(runtime_mode: str, repo_url: str) -> None:
+    if importlib.util.find_spec("course_runtime") is not None:
+        return
+
+    local_repo_root = _find_repo_root_from_cwd()
+    if local_repo_root is not None:
+        if str(local_repo_root) not in sys.path:
+            sys.path.insert(0, str(local_repo_root))
+        return
+
+    platform = _detect_notebook_platform()
+    if platform == "local":
+        raise ModuleNotFoundError(
+            "Не удалось импортировать course_runtime.py. Для локального запуска "
+            "открывайте репозиторий через `.venv/bin/jupyter notebook` из корня проекта."
+        )
+
+    repo_root = _canonical_cloud_repo_root(platform)
+    if not _looks_like_repo_root(repo_root):
+        if _is_placeholder_repo_url(repo_url):
+            raise RuntimeError(
+                "Для cloud auto-bootstrap нужен публичный HTTPS URL курса. "
+                "Замените COURSE_REPO_HTTPS_URL на реальный адрес репозитория."
+            )
+        repo_root.parent.mkdir(parents=True, exist_ok=True)
+        if repo_root.exists() and any(repo_root.iterdir()):
+            raise RuntimeError(
+                f"Каталог {repo_root} уже существует, но не выглядит как корень курса. "
+                "Очистите runtime или используйте новый notebook session."
+            )
+        print(f"Bootstrapping course repository into {repo_root} ...")
+        subprocess.run(["git", "clone", repo_url, str(repo_root)], check=True)
+
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+
+
+_ensure_course_runtime_importable(RUNTIME_MODE, COURSE_REPO_HTTPS_URL)
+
+from course_runtime import setup_notebook_runtime
+
+runtime_info = setup_notebook_runtime(
+    runtime_mode=RUNTIME_MODE,
+    course_repo_https_url=COURSE_REPO_HTTPS_URL,
+    notebook_requirements=NOTEBOOK_REQUIREMENTS,
+)
+runtime_info.as_dict()
+
+[cell 005 | code]
+download_path = tf.keras.utils.get_file(
+    origin='https://storage.googleapis.com/tensorflow/tf-keras-datasets/jena_climate_2009_2016.csv.zip',
+    fname='jena_climate_2009_2016.csv.zip',
+    extract=True,
+)
+
+if download_path.endswith('.zip'):
+    extracted_dir = os.path.splitext(download_path)[0].replace('.csv', '') + '_extracted'
+else:
+    extracted_dir = download_path
+
+csv_path = os.path.join(extracted_dir, 'jena_climate_2009_2016.csv')
+
+df = pd.read_csv(csv_path)
+df = df[5::6].reset_index(drop=True)
+
+feature_cols = ['T (degC)', 'p (mbar)', 'rho (g/m**3)']
+data = df[feature_cols].iloc[:4200].copy()
+
+features = data.to_numpy(dtype=np.float32)
+target = data['T (degC)'].to_numpy(dtype=np.float32)
+
+train_end = 3000
+val_end = 3600
+
+train_mean = features[:train_end].mean(axis=0)
+train_std = features[:train_end].std(axis=0)
+features = (features - train_mean) / train_std
+
+sequence_length = 24
+batch_size = 64
+
+def make_dataset(feature_block, target_block, shuffle=False):
+    return tf.keras.utils.timeseries_dataset_from_array(
+        data=feature_block[:-sequence_length],
+        targets=target_block[sequence_length:],
+        sequence_length=sequence_length,
+        batch_size=batch_size,
+        shuffle=shuffle,
+    )
+
+train_ds = make_dataset(features[:train_end], target[:train_end], shuffle=True)
+val_ds = make_dataset(features[train_end:val_end], target[train_end:val_end], shuffle=False)
+test_ds = make_dataset(features[val_end:], target[val_end:], shuffle=False)
+
+example_batch, example_target = next(iter(train_ds))
+print('example batch shape :', example_batch.shape)
+print('example target shape:', example_target.shape)
+
+[cell 006 | code]
+def build_model(cell_name: str) -> tf.keras.Model:
+    inputs = tf.keras.layers.Input(shape=(sequence_length, len(feature_cols)))
+    if cell_name == 'LSTM':
+        x = tf.keras.layers.LSTM(32)(inputs)
+    elif cell_name == 'GRU':
+        x = tf.keras.layers.GRU(32)(inputs)
+    else:
+        raise ValueError(cell_name)
+    outputs = tf.keras.layers.Dense(1)(x)
+    model = tf.keras.Model(inputs, outputs)
+    model.compile(optimizer='adam', loss='mse', metrics=[tf.keras.metrics.MeanAbsoluteError(name='mae')])
+    return model
+
+
+histories = {}
+results = []
+models = {}
+
+for name in ['LSTM', 'GRU']:
+    model = build_model(name)
+    history = model.fit(train_ds, validation_data=val_ds, epochs=2, verbose=0)
+    loss, mae = model.evaluate(test_ds, verbose=0)
+    histories[name] = history.history
+    results.append({'model': name, 'test_mse': float(loss), 'test_mae': float(mae)})
+    models[name] = model
+
+pd.DataFrame(results).sort_values('test_mae')
+
+[cell 007 | code]
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+for name, history in histories.items():
+    axes[0].plot(history['val_loss'], marker='o', label=name)
+    axes[1].plot(history['val_mae'], marker='o', label=name)
+
+axes[0].set_title('Jena fast-mode: validation MSE')
+axes[0].set_xlabel('Epoch')
+axes[0].set_ylabel('MSE')
+axes[0].legend()
+
+axes[1].set_title('Jena fast-mode: validation MAE')
+axes[1].set_xlabel('Epoch')
+axes[1].set_ylabel('MAE')
+axes[1].legend()
+
+plt.tight_layout()
+plt.show()
+
+[cell 008 | code]
+sample_batch, sample_target = next(iter(test_ds))
+sample_target = sample_target.numpy()
+
+plt.figure(figsize=(10, 4))
+plt.plot(sample_target[:48], label='true temperature', linewidth=2)
+for name, model in models.items():
+    preds = model.predict(sample_batch[:48], verbose=0).ravel()
+    plt.plot(preds, label=name)
+
+plt.title('Next-step temperature forecast on one test slice')
+plt.xlabel('Window index inside sample slice')
+plt.ylabel('Temperature (degC)')
+plt.legend()
+plt.show()
+
+[cell 009 | markdown]
+## Что заметить
+
+- Здесь recurrent-модель читает уже не токены, а числовые multivariate окна `(batch, time, features)`.
+- По сравнению с `IMDB` меняется тип данных, но не главный shape-шаблон.
+- Этот notebook нужен как мостик от toy `many-to-many`-мышления к реальным сенсорным и погодным рядам.
+
+
+===== mat_0008 | themes/00-Foundations/showcases/03_spa_eng_seq2seq_attention_showcase.ipynb =====
+[cell 001 | markdown]
+# Демонстрация 3: маленький `spa-eng` seq2seq с attention
+
+Перед запуском полезно открыть dataset card [English-Spanish pairs](./cards/03_spa_eng.md).
+
+Fast-mode идея:
+- взять короткие англо-испанские пары;
+- построить компактный `GRU seq2seq + attention`;
+- посмотреть не только на token-level метрику, но и на одну heatmap.
+
+[cell 002 | code]
+import pathlib
+import random
+import re
+
+import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+
+tf.keras.utils.set_random_seed(17)
+np.random.seed(17)
+random.seed(17)
+
+[cell 003 | markdown]
+## Выбор runtime
+
+Здесь вы выбираете, где и на чём запускать notebook.
+
+Что обычно выбирать:
+- `auto` — лучший вариант по умолчанию. Если TensorFlow видит GPU, будет выбран GPU. Если GPU нет, notebook спокойно останется на CPU.
+- `local-cpu` — локальный запуск только на CPU, даже если видеокарта есть.
+- `local-gpu` — локальный запуск с обязательным GPU. Если GPU не настроен, notebook специально остановится с понятной ошибкой.
+- `colab-cpu` / `colab-gpu` — запуск в Google Colab.
+- `kaggle-cpu` / `kaggle-gpu` — запуск в Kaggle Notebooks.
+
+Что важно:
+- после изменения `RUNTIME_MODE` используйте `Restart & Run All`;
+- `COURSE_REPO_HTTPS_URL` нужен только для Colab/Kaggle, если репозиторий ещё не клонирован в runtime;
+- пока в ячейке стоит placeholder-URL, cloud auto-bootstrap не сможет сам скачать курс;
+- guide `05` отвечает на вопрос, где и как запускать notebook;
+- guide `06` нужен, если вы хотите именно локальный GPU и не уверены в версиях `TensorFlow` / `CUDA`;
+- локальный GPU-path курса: `Linux + NVIDIA` или `Windows -> WSL2 + Ubuntu`;
+- если `local-gpu` упирается в локальные CUDA/PTX ошибки, это обычно уже проблема GPU-стека, а не notebook. В таком случае спокойно переключайтесь на `local-cpu`, `colab-gpu` или `kaggle-gpu`.
+
+Подробные guides:
+- `themes/00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md`
+- `themes/00-Foundations/guides/06_tensorflow_cuda_version_selection.md`
+
+[cell 004 | code]
+import importlib.util
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+RUNTIME_MODE = os.environ.get("COURSE_RUNTIME_MODE", "auto")
+COURSE_REPO_HTTPS_URL = os.environ.get(
+    "COURSE_REPO_HTTPS_URL",
+    "https://github.com/<org>/<repo>.git",
+)
+NOTEBOOK_REQUIREMENTS = "themes/00-Foundations/requirements.txt"
+
+
+def _detect_notebook_platform():
+    if os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or Path("/kaggle").exists():
+        return "kaggle"
+    if os.environ.get("COLAB_RELEASE_TAG") or "google.colab" in sys.modules:
+        return "colab"
+    return "local"
+
+
+def _looks_like_repo_root(path: Path) -> bool:
+    return (
+        path.is_dir()
+        and (path / "themes").is_dir()
+        and (path / "course_runtime.py").is_file()
+    )
+
+
+def _canonical_cloud_repo_root(platform: str) -> Path:
+    if platform == "colab":
+        return Path("/content/students-AI_math_essentials")
+    if platform == "kaggle":
+        return Path("/kaggle/working/students-AI_math_essentials")
+    raise ValueError(f"Unexpected cloud platform: {platform}")
+
+
+def _is_placeholder_repo_url(repo_url: str) -> bool:
+    return repo_url.strip() == "https://github.com/<org>/<repo>.git"
+
+
+def _find_repo_root_from_cwd():
+    for candidate in (Path.cwd(), *Path.cwd().parents):
+        if _looks_like_repo_root(candidate):
+            return candidate
+    return None
+
+
+def _ensure_course_runtime_importable(runtime_mode: str, repo_url: str) -> None:
+    if importlib.util.find_spec("course_runtime") is not None:
+        return
+
+    local_repo_root = _find_repo_root_from_cwd()
+    if local_repo_root is not None:
+        if str(local_repo_root) not in sys.path:
+            sys.path.insert(0, str(local_repo_root))
+        return
+
+    platform = _detect_notebook_platform()
+    if platform == "local":
+        raise ModuleNotFoundError(
+            "Не удалось импортировать course_runtime.py. Для локального запуска "
+            "открывайте репозиторий через `.venv/bin/jupyter notebook` из корня проекта."
+        )
+
+    repo_root = _canonical_cloud_repo_root(platform)
+    if not _looks_like_repo_root(repo_root):
+        if _is_placeholder_repo_url(repo_url):
+            raise RuntimeError(
+                "Для cloud auto-bootstrap нужен публичный HTTPS URL курса. "
+                "Замените COURSE_REPO_HTTPS_URL на реальный адрес репозитория."
+            )
+        repo_root.parent.mkdir(parents=True, exist_ok=True)
+        if repo_root.exists() and any(repo_root.iterdir()):
+            raise RuntimeError(
+                f"Каталог {repo_root} уже существует, но не выглядит как корень курса. "
+                "Очистите runtime или используйте новый notebook session."
+            )
+        print(f"Bootstrapping course repository into {repo_root} ...")
+        subprocess.run(["git", "clone", repo_url, str(repo_root)], check=True)
+
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+
+
+_ensure_course_runtime_importable(RUNTIME_MODE, COURSE_REPO_HTTPS_URL)
+
+from course_runtime import setup_notebook_runtime
+
+runtime_info = setup_notebook_runtime(
+    runtime_mode=RUNTIME_MODE,
+    course_repo_https_url=COURSE_REPO_HTTPS_URL,
+    notebook_requirements=NOTEBOOK_REQUIREMENTS,
+)
+runtime_info.as_dict()
+
+[cell 005 | code]
+zip_path = tf.keras.utils.get_file(
+    fname='spa-eng.zip',
+    origin='https://storage.googleapis.com/download.tensorflow.org/data/spa-eng.zip',
+    extract=True,
+)
+data_path = pathlib.Path(zip_path).with_suffix('') / 'spa-eng' / 'spa.txt'
+
+def normalize_text(text: str) -> str:
+    text = text.lower().strip()
+    text = re.sub(r'([?.!,¿])', r' \1 ', text)
+    text = re.sub(r'[^a-záéíóúüñ¿?.!,]+', ' ', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+pairs = []
+for line in data_path.read_text(encoding='utf-8').splitlines():
+    if '	' not in line:
+        continue
+    english, spanish = line.split('	')[:2]
+    source = normalize_text(spanish)
+    target = normalize_text(english)
+    if len(source.split()) <= 6 and len(target.split()) <= 6:
+        pairs.append((source, '[start] ' + target + ' [end]'))
+
+random.shuffle(pairs)
+pairs = pairs[:1800]
+
+source_texts = [src for src, tgt in pairs]
+target_texts = [tgt for src, tgt in pairs]
+
+src_train, src_val, tgt_train, tgt_val = train_test_split(
+    source_texts,
+    target_texts,
+    test_size=0.2,
+    random_state=17,
+)
+
+print('pairs in fast-mode subset:', len(pairs))
+print('example source:', src_train[0])
+print('example target:', tgt_train[0])
+
+[cell 006 | code]
+source_seq_len = 12
+target_seq_len = 14
+vocab_limit = 2000
+
+source_vectorizer = tf.keras.layers.TextVectorization(
+    max_tokens=vocab_limit,
+    output_mode='int',
+    output_sequence_length=source_seq_len,
+)
+target_vectorizer = tf.keras.layers.TextVectorization(
+    max_tokens=vocab_limit,
+    output_mode='int',
+    output_sequence_length=target_seq_len,
+)
+
+source_vectorizer.adapt(np.array(src_train))
+target_vectorizer.adapt(np.array(tgt_train))
+
+encoder_train = source_vectorizer(np.array(src_train)).numpy()
+encoder_val = source_vectorizer(np.array(src_val)).numpy()
+
+target_train_full = target_vectorizer(np.array(tgt_train)).numpy()
+target_val_full = target_vectorizer(np.array(tgt_val)).numpy()
+
+decoder_input_train = target_train_full[:, :-1]
+decoder_target_train = target_train_full[:, 1:]
+decoder_input_val = target_val_full[:, :-1]
+decoder_target_val = target_val_full[:, 1:]
+
+sample_weight_train = (decoder_target_train != 0).astype('float32')
+sample_weight_val = (decoder_target_val != 0).astype('float32')
+
+print('encoder_train shape      :', encoder_train.shape)
+print('decoder_input_train shape:', decoder_input_train.shape)
+print('decoder_target_train shape:', decoder_target_train.shape)
+
+[cell 007 | code]
+source_vocab_size = len(source_vectorizer.get_vocabulary())
+target_vocab_size = len(target_vectorizer.get_vocabulary())
+embed_dim = 64
+hidden_dim = 64
+
+encoder_tokens = tf.keras.Input(shape=(source_seq_len,), name='encoder_tokens')
+decoder_tokens = tf.keras.Input(shape=(target_seq_len - 1,), name='decoder_tokens')
+
+encoder_embed = tf.keras.layers.Embedding(source_vocab_size, embed_dim, mask_zero=True, name='enc_embedding')(encoder_tokens)
+encoder_outputs, encoder_state = tf.keras.layers.GRU(
+    hidden_dim, return_sequences=True, return_state=True, name='enc_gru'
+)(encoder_embed)
+
+decoder_embed = tf.keras.layers.Embedding(target_vocab_size, embed_dim, mask_zero=True, name='dec_embedding')(decoder_tokens)
+decoder_outputs = tf.keras.layers.GRU(
+    hidden_dim, return_sequences=True, name='dec_gru'
+)(decoder_embed, initial_state=encoder_state)
+
+attention_layer = tf.keras.layers.Attention(name='cross_attention')
+context, attention_scores = attention_layer(
+    [decoder_outputs, encoder_outputs],
+    return_attention_scores=True,
+)
+
+combined = tf.keras.layers.Concatenate(name='decoder_context_concat')([decoder_outputs, context])
+logits = tf.keras.layers.Dense(target_vocab_size, activation='softmax', name='token_probs')(combined)
+
+training_model = tf.keras.Model([encoder_tokens, decoder_tokens], logits)
+analysis_model = tf.keras.Model([encoder_tokens, decoder_tokens], [logits, attention_scores])
+
+training_model.compile(
+    optimizer='adam',
+    loss='sparse_categorical_crossentropy',
+    metrics=[tf.keras.metrics.SparseCategoricalAccuracy(name='token_accuracy')],
+)
+
+history = training_model.fit(
+    [encoder_train, decoder_input_train],
+    decoder_target_train,
+    sample_weight=sample_weight_train,
+    validation_data=([
+        encoder_val,
+        decoder_input_val,
+    ], decoder_target_val, sample_weight_val),
+    epochs=4,
+    batch_size=64,
+    verbose=0,
+)
+
+[cell 008 | code]
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+axes[0].plot(history.history['token_accuracy'], marker='o', label='train')
+axes[0].plot(history.history['val_token_accuracy'], marker='o', label='val')
+axes[0].set_title('spa-eng fast-mode: token accuracy')
+axes[0].set_xlabel('Epoch')
+axes[0].set_ylabel('Accuracy')
+axes[0].legend()
+
+axes[1].plot(history.history['loss'], marker='o', label='train')
+axes[1].plot(history.history['val_loss'], marker='o', label='val')
+axes[1].set_title('spa-eng fast-mode: loss')
+axes[1].set_xlabel('Epoch')
+axes[1].set_ylabel('Loss')
+axes[1].legend()
+
+plt.tight_layout()
+plt.show()
+
+[cell 009 | code]
+source_vocab = np.array(source_vectorizer.get_vocabulary())
+target_vocab = np.array(target_vectorizer.get_vocabulary())
+
+row = 0
+sample_encoder = encoder_val[row : row + 1]
+sample_decoder = decoder_input_val[row : row + 1]
+probs, attention_scores = analysis_model.predict([sample_encoder, sample_decoder], verbose=0)
+
+pred_ids = probs.argmax(axis=-1)[0]
+gold_ids = decoder_target_val[row]
+
+def decode(ids, vocab, stop_token='[end]'):
+    tokens = []
+    for idx in ids:
+        token = vocab[idx]
+        if token == '' or token == '[start]':
+            continue
+        if token == stop_token:
+            break
+        tokens.append(token)
+    return tokens
+
+source_tokens = [token for token in src_val[row].split()]
+gold_tokens = decode(gold_ids, target_vocab)
+pred_tokens = decode(pred_ids, target_vocab)
+
+print('source text:', src_val[row])
+print('gold text  :', ' '.join(gold_tokens))
+print('pred text  :', ' '.join(pred_tokens))
+
+[cell 010 | code]
+heatmap = attention_scores[0]
+row_labels = gold_tokens if gold_tokens else [f'step_{i}' for i in range(heatmap.shape[0])]
+col_labels = source_tokens if source_tokens else [f'src_{i}' for i in range(heatmap.shape[1])]
+
+heatmap = heatmap[: len(row_labels), : len(col_labels)]
+
+plt.figure(figsize=(8, 5))
+plt.imshow(heatmap, cmap='magma', aspect='auto')
+plt.xticks(range(len(col_labels)), col_labels, rotation=45, ha='right')
+plt.yticks(range(len(row_labels)), row_labels)
+plt.xlabel('Spanish source tokens')
+plt.ylabel('English target steps')
+plt.title('Attention heatmap on one validation example')
+plt.colorbar(label='attention weight')
+plt.tight_layout()
+plt.show()
+
+[cell 011 | markdown]
+## Что заметить
+
+- Здесь уже появляется полный `seq2seq` интерфейс: `encoder_input`, `decoder_input`, `decoder_target`.
+- `token_accuracy` полезна, но сама по себе не гарантирует хорошую последовательность.
+- Даже маленький fast-mode run уже даёт heatmap, по которой можно обсуждать alignment между source и target.
+
+
+===== mat_0009 | themes/00-Foundations/showcases/cards/01_imdb.md =====
+# Dataset Card: IMDB
+
+## Тип задачи
+`many-to-one` binary text classification.
+
+## Подходящие архитектуры
+- `Embedding + SimpleRNN`
+- `Embedding + LSTM`
+- `Embedding + GRU`
+- bidirectional RNN как следующий шаг
+
+## Загрузка
+```python
+from tensorflow import keras
+(x_train, y_train), (x_test, y_test) = keras.datasets.imdb.load_data(num_words=8000)
+```
+
+## Ожидаемые формы
+- после загрузки: список последовательностей разной длины;
+- после padding: `X -> (N, T)`;
+- метки: `y -> (N,)`.
+
+## CPU-friendly subset
+- `num_words=8000`
+- `maxlen=120..160`
+- `train_subset=2000..4000`
+- `test_subset=1000..2000`
+- `1..2` эпохи на маленьких моделях
+
+## Главный учебный вывод
+Один и тот же `many-to-one` формат переносится с synthetic token sequences на реальные тексты почти без изменения общей логики: токены, embedding, одна итоговая метка на всю последовательность.
+
+## Следующий шаг
+Перейти к `Reuters`, если нужна multiclass-классификация, или к `spa-eng`, если нужен уже `seq2seq`.
+
+
+===== mat_0010 | themes/00-Foundations/showcases/cards/02_jena_climate.md =====
+# Dataset Card: Jena Climate
+
+## Тип задачи
+Multivariate time-series forecasting.
+
+## Подходящие архитектуры
+- `LSTM`
+- `GRU`
+- stacked recurrent models
+
+## Загрузка
+```python
+zip_path = tf.keras.utils.get_file(
+    origin="https://storage.googleapis.com/tensorflow/tf-keras-datasets/jena_climate_2009_2016.csv.zip",
+    fname="jena_climate_2009_2016.csv.zip",
+    extract=True,
+)
+```
+
+## Ожидаемые формы
+- сырые признаки после hourly sub-sampling: таблица `(time, features)`;
+- после нарезки окон: `X -> (N, T, F)`;
+- для single-step forecast: `y -> (N,)`.
+
+## CPU-friendly subset
+- первые `2500..5000` часов после subsampling;
+- окно `24` или `48` шагов;
+- `1..2` эпохи;
+- `LSTM(32)` и `GRU(32)` без лишней глубины.
+
+## Главный учебный вывод
+RNN-подходы одинаково естественно работают не только на текстах, но и на числовых мультифичевых временных рядах, где особенно важно читать форму `(batch, time, features)`.
+
+## Следующий шаг
+Сравнить этот сценарий с `UCI HAR`, если хочется перейти от forecasting к time-series classification.
+
+
+===== mat_0011 | themes/00-Foundations/showcases/cards/03_spa_eng.md =====
+# Dataset Card: English-Spanish Pairs (`spa-eng`)
+
+## Тип задачи
+`seq2seq` translation with `cross-attention`.
+
+## Подходящие архитектуры
+- encoder-decoder `GRU`
+- encoder-decoder `LSTM`
+- `seq2seq + attention`
+
+## Загрузка
+Через архив англо-испанских пар из корпуса `manythings/Anki`, как в официальном TensorFlow tutorial.
+
+## Ожидаемые формы
+- `encoder_input -> (N, T_in)`
+- `decoder_input -> (N, T_out)`
+- `decoder_target -> (N, T_out)`
+- `attention_scores -> (N, T_out, T_in)`
+
+## CPU-friendly subset
+- `1000..3000` пар предложений;
+- короткие фразы;
+- словарный лимит для fast-mode;
+- `2..4` эпохи на компактной модели.
+
+## Главный учебный вывод
+Attention нужен не только в synthetic reverse-задаче: на реальных парных последовательностях он даёт интерпретируемую карту того, как decoder соотносит выход с входом.
+
+## Следующий шаг
+После понимания этой карты внимания логичный следующий мостик — облегчённый `Transformer`.
+
+
+===== mat_0012 | themes/00-Foundations/showcases/cards/04_reuters.md =====
+# Dataset Card: Reuters
+
+## Тип задачи
+`many-to-one` multiclass topic classification.
+
+## Подходящие архитектуры
+- `Embedding + LSTM`
+- `Embedding + GRU`
+- простые bag-of-words baselines для сравнения
+
+## Загрузка
+```python
+from tensorflow import keras
+(x_train, y_train), (x_test, y_test) = keras.datasets.reuters.load_data(num_words=10000)
+```
+
+## Ожидаемые формы
+- после padding: `X -> (N, T)`
+- классы: `y -> (N,)`
+- число классов: `46`
+
+## CPU-friendly subset
+- `train_subset=3000..5000`
+- `test_subset=1000..2000`
+- `maxlen=120..160`
+- `1..2` эпохи на маленькой модели
+
+## Главный учебный вывод
+По сравнению с `IMDB` меняется не логика последовательного кодирования, а тип цели: вместо бинарной метки появляется multiclass head с `softmax`.
+
+## Следующий шаг
+Использовать после `IMDB`, если нужна более содержательная классификация новостных тем.
+
+
+===== mat_0013 | themes/00-Foundations/showcases/cards/05_uci_har.md =====
+# Dataset Card: UCI HAR
+
+## Тип задачи
+Multivariate time-series classification.
+
+## Подходящие архитектуры
+- `GRU`
+- `LSTM`
+- 1D CNN / hybrid CNN-RNN
+
+## Загрузка
+Через `ucimlrepo` или прямую загрузку архива `UCI HAR Dataset.zip`.
+
+## Ожидаемые формы
+Для raw-signal варианта, который лучше подходит под sequence-course:
+- `X -> (N, 128, C)`
+- `y -> (N,)`
+
+Для классического feature-vector варианта:
+- `X -> (N, 561)`
+- `y -> (N,)`
+
+## CPU-friendly subset
+- `2000..4000` окон;
+- `128` отсчётов в окне;
+- компактная модель на `32..64` recurrent units.
+
+## Главный учебный вывод
+Последовательные модели применимы не только к тексту, но и к сенсорным сигналам, где порядок отсчётов критичен.
+
+## Следующий шаг
+Использовать после `Jena Climate`, если хочется перейти от forecasting к классификации временных рядов.
+
+
+===== mat_0014 | themes/00-Foundations/showcases/cards/06_shakespeare.md =====
+# Dataset Card: Shakespeare
+
+## Тип задачи
+Character-level next-token prediction and text generation.
+
+## Подходящие архитектуры
+- `GRU`
+- `LSTM`
+- stacked recurrent models
+
+## Загрузка
+```python
+path_to_file = tf.keras.utils.get_file(
+    "shakespeare.txt",
+    "https://storage.googleapis.com/download.tensorflow.org/data/shakespeare.txt",
+)
+```
+
+## Ожидаемые формы
+- после векторизации и нарезки:
+  - `input -> (N, T)`
+  - `target -> (N, T)`
+- logits:
+  - `(N, T, V)`
+
+## CPU-friendly subset
+- укороченный текстовый корпус;
+- `sequence_length=80..100`;
+- `embedding_dim=64`;
+- `GRU(128)` и `1..2` эпохи для демонстрации формы и sampling loop.
+
+## Главный учебный вывод
+Здесь `seq2seq` упрощается до задачи предсказания следующего символа, а recurrent state становится особенно наглядным в режиме генерации.
+
+## Следующий шаг
+Подходит как мостик от классификации к генеративным sequence-задачам.
+
+
+===== mat_0015 | themes/00-Foundations/showcases/cards/07_forda.md =====
+# Dataset Card: FordA
+
+## Тип задачи
+Univariate time-series classification.
+
+## Подходящие архитектуры
+- `GRU`
+- `LSTM`
+- 1D CNN
+- lightweight Transformer encoder как future bridge
+
+## Загрузка
+Через TSV-файлы из UCR archive, как в Keras example.
+
+## Ожидаемые формы
+- сырые series: `(N, 500)`
+- после добавления channel axis: `X -> (N, 500, 1)`
+- метки: `y -> (N,)`
+
+## CPU-friendly subset
+- полный train/test уже сравнительно компактный;
+- для fast-mode можно брать `1500..2500` train examples;
+- `1..3` эпохи на небольшой модели.
+
+## Главный учебный вывод
+Даже простой одномерный sensor-like ряд естественно ложится в shape `(batch, time, features)` и позволяет сравнивать recurrent и non-recurrent sequence-модели на одном и том же интерфейсе.
+
+## Следующий шаг
+Использовать как мостик к более широкому разговору о sequence-моделях за пределами чистых RNN.
+
+
+===== mat_0016 | themes/00-Foundations/theory/theory.md =====
+# Foundations: теоретический хаб от нуля до профессионального чтения курса
+
+Этот файл не заменяет guides и лабораторные notebook-и. Он даёт карту курса: какие идеи повторяются в `01-05`, какие математические обозначения нужно читать уверенно и как не потеряться, если студент начинает почти с нуля.
+
+## 1. Кому читать
+
+- Если слова `shape`, `axis`, `mask`, `target`, `logits`, `loss` пока смешиваются в один шум.
+- Если хочется понимать формулы до запуска кода, а не после ошибки в `model.fit`.
+- Если нужен единый мост между `RNN`, `Attention`, `Transformer`, `Autoregression` и `Full-Transformer`.
+
+## 2. Главная нить курса `00 -> 05`
+
+Курс устроен как наращивание одного и того же вопроса: как модель читает последовательность и выдаёт честное предсказание.
+
+1. `00-Foundations`: учимся читать оси, формы, токены, маски и метрики.
+2. `01-RNN`: добавляем память во времени: $h_t$ зависит от $x_t$ и $h_{t-1}$.
+3. `02-Attention`: decoder получает доступ не к одному сжатому вектору, а ко всей памяти encoder.
+4. `03-Transformer`: attention становится основным механизмом, а порядок добавляется явно через positional признаки.
+5. `04-Autoregression`: модель предсказывает следующий токен и обязана не смотреть в будущее.
+6. `05-Full-Transformer`: соединяем encoder, decoder, causal mask и cross-attention в одну архитектуру.
+
+## 3. Минимум обозначений: что означает каждая буква
+
+| Обозначение | На пальцах | Где встречается |
+|---|---|---|
+| $N$ или `batch` | сколько примеров обрабатываем вместе | все лабораторные |
+| $T$ или `time` | сколько шагов в последовательности | `01`, `03`, `04`, `05` |
+| $F$ или `features` | сколько признаков на одном шаге | `01-RNN` |
+| $V$ или `vocab_size` | сколько разных токенов в словаре | `01/02 seq2seq`, `04`, `05` |
+| $H$ или `hidden_size` | размер внутреннего представления | `RNN`, `Attention`, `Transformer` |
+| $d_k$ | размерность ключа/запроса в attention | `03`, `05` |
+| $m$ | маска валидных позиций | `03`, `04`, `05` |
+
+Мини-правило: если видите формулу и не понимаете букву, сначала ищите её shape. Shape почти всегда объясняет смысл.
+
+## 4. Shape-contract: один шаблон для всего курса
+
+```text
+features sequence:
+  X.shape = (batch, time, features)
+
+token sequence:
+  tokens.shape = (batch, time)
+
+token logits:
+  logits.shape = (batch, time, vocab_size)
+
+attention scores:
+  attention_scores.shape = (batch, query_time, key_time)
+```
+
+Если форма не сходится, это не “ошибка TensorFlow”. Это почти всегда нарушенный контракт данных.
+
+## 5. Маски: padding, causal, cross
+
+`padding_mask` отвечает на вопрос: какие позиции настоящие, а какие являются `PAD`.
+
+```text
+tokens =
+[
+  [12, 7, 5, 0],
+  [ 3, 4, 8, 9],
+]
+
+padding_mask =
+[
+  [1, 1, 1, 0],
+  [1, 1, 1, 1],
+]
+```
+
+`causal_mask` отвечает на другой вопрос: какие прошлые позиции разрешено видеть при предсказании текущей.
+
+$$
+M =
+\begin{bmatrix}
+1 & 0 & 0 & 0 \\
+1 & 1 & 0 & 0 \\
+1 & 1 & 1 & 0 \\
+1 & 1 & 1 & 1
+\end{bmatrix}
+$$
+
+`cross-attention mask` соединяет decoder с encoder: decoder может смотреть только на валидные source-позиции.
+
+## 6. Математический минимум sequence/attention/transformer
+
+RNN-память:
+
+$$
+h_t = f(x_t, h_{t-1})
+$$
+
+Attention:
+
+$$
+\mathrm{Attention}(Q,K,V)=\mathrm{softmax}\left(\frac{QK^\top}{\sqrt{d_k}} + M\right)V
+$$
+
+Авторегрессия:
+
+$$
+P(x_1,\dots,x_T)=\prod_{t=1}^{T}P(x_t \mid x_{<t})
+$$
+
+Перплексия:
+
+$$
+\mathrm{PPL}=e^{\mathcal{L}}
+$$
+
+Расшифровка:
+- $Q$ спрашивает “что ищем?”;
+- $K$ хранит “по каким признакам ищем?”;
+- $V$ хранит “какую информацию забираем?”;
+- $M$ запрещает смотреть на недопустимые позиции;
+- $\mathcal{L}$ — средняя ошибка предсказания токена.
+
+## 7. Внешний обзор архитектур
+
+Этот обзор нужен для кругозора, но не создаёт новых лабораторных веток.
+
+| Архитектура | Что решает | Почему не в основной нити |
+|---|---|---|
+| `MLP` | табличные и векторные признаки | используется как базовый слой внутри других моделей |
+| `CNN` | изображения и локальные паттерны | другой тип индуктивного смещения |
+| `GNN` | графы, узлы и рёбра | другая структура данных |
+| `Autoencoder` | сжатие и восстановление | другой учебный фокус |
+| `GAN` | состязательная генерация | сложная динамика двух моделей |
+| `Diffusion` | генерация через шум и восстановление | отдельная вероятностная линия |
+
+## 8. Мини-чеклист перед любой лабораторной
+
+- Я могу подписать каждую ось входного тензора.
+- Я знаю, какие `inputs` и `targets` есть в текущей задаче.
+- Я понимаю, какие маски участвуют в loss, attention или diagnostics.
+- Я знаю, какая метрика является проходной, а какая диагностической.
+- Я могу найти в README или notebook блок “где это в TODO”.
+

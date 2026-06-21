@@ -1,0 +1,47 @@
+{
+  "format": "md",
+  "line_count": 35,
+  "char_count": 1036,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Dataset Card: Jena Climate"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Тип задачи"
+    },
+    {
+      "line": 6,
+      "level": 2,
+      "title": "Подходящие архитектуры"
+    },
+    {
+      "line": 11,
+      "level": 2,
+      "title": "Загрузка"
+    },
+    {
+      "line": 20,
+      "level": 2,
+      "title": "Ожидаемые формы"
+    },
+    {
+      "line": 25,
+      "level": 2,
+      "title": "CPU-friendly subset"
+    },
+    {
+      "line": 31,
+      "level": 2,
+      "title": "Главный учебный вывод"
+    },
+    {
+      "line": 34,
+      "level": 2,
+      "title": "Следующий шаг"
+    }
+  ]
+}

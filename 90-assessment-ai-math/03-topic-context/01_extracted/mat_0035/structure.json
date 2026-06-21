@@ -1,0 +1,77 @@
+{
+  "format": "md",
+  "line_count": 116,
+  "char_count": 3930,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Beginner Guide: `02-Attention / ЛР01` `GRU seq2seq` with Luong attention"
+    },
+    {
+      "line": 5,
+      "level": 2,
+      "title": "Что именно делает модель"
+    },
+    {
+      "line": 13,
+      "level": 2,
+      "title": "Интуиция по шагам"
+    },
+    {
+      "line": 32,
+      "level": 2,
+      "title": "Как читать главные тензоры"
+    },
+    {
+      "line": 40,
+      "level": 2,
+      "title": "Почему `context` полезнее одного `encoder_state`"
+    },
+    {
+      "line": 52,
+      "level": 2,
+      "title": "Как выглядит хороший паттерн внимания"
+    },
+    {
+      "line": 61,
+      "level": 2,
+      "title": "Как не потеряться между токенами и attention"
+    },
+    {
+      "line": 81,
+      "level": 2,
+      "title": "Как читать метрики"
+    },
+    {
+      "line": 95,
+      "level": 2,
+      "title": "Порядок диагностики"
+    },
+    {
+      "line": 102,
+      "level": 2,
+      "title": "Что должно остаться в голове после ЛР"
+    },
+    {
+      "line": 108,
+      "level": 2,
+      "title": "Навигация по курсу"
+    },
+    {
+      "line": 109,
+      "level": 3,
+      "title": "Где вы сейчас"
+    },
+    {
+      "line": 112,
+      "level": 3,
+      "title": "Что было до этого"
+    },
+    {
+      "line": 115,
+      "level": 3,
+      "title": "Что дальше"
+    }
+  ]
+}

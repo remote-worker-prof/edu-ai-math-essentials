@@ -1,0 +1,92 @@
+{
+  "format": "md",
+  "line_count": 142,
+  "char_count": 4212,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Beginner Guide: Lab 3 `GRU seq2seq`, tokens, padding, teacher forcing"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Зачем нужен этот guide"
+    },
+    {
+      "line": 14,
+      "level": 2,
+      "title": "Что такое дискретные токены"
+    },
+    {
+      "line": 23,
+      "level": 2,
+      "title": "Vocabulary: словарь индексов"
+    },
+    {
+      "line": 40,
+      "level": 2,
+      "title": "Зачем нужны `PAD`, `SOS`, `EOS`"
+    },
+    {
+      "line": 53,
+      "level": 2,
+      "title": "Почему нужен `Embedding`"
+    },
+    {
+      "line": 62,
+      "level": 2,
+      "title": "Ручной пример сдвига decoder"
+    },
+    {
+      "line": 84,
+      "level": 2,
+      "title": "Что такое `teacher forcing`"
+    },
+    {
+      "line": 93,
+      "level": 2,
+      "title": "Как читать формы в ЛР3"
+    },
+    {
+      "line": 101,
+      "level": 2,
+      "title": "`token_accuracy` и `exact_match`"
+    },
+    {
+      "line": 114,
+      "level": 2,
+      "title": "Зачем нужна `mask`"
+    },
+    {
+      "line": 125,
+      "level": 2,
+      "title": "Порядок диагностики"
+    },
+    {
+      "line": 131,
+      "level": 2,
+      "title": "Мостик к attention"
+    },
+    {
+      "line": 134,
+      "level": 2,
+      "title": "Навигация по курсу"
+    },
+    {
+      "line": 135,
+      "level": 3,
+      "title": "Где вы сейчас"
+    },
+    {
+      "line": 138,
+      "level": 3,
+      "title": "Что было до этого"
+    },
+    {
+      "line": 141,
+      "level": 3,
+      "title": "Что дальше"
+    }
+  ]
+}

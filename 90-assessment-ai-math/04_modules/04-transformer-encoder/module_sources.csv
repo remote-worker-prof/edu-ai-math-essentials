@@ -1,0 +1,11 @@
+material_id,source_path,material_role,score,assignment_reason
+mat_0040,themes/03-Transformer/lab/01_transformer_encoder_order_toy.ipynb,lab,1.4,path_hint+keywords
+mat_0041,themes/03-Transformer/lab/02_transformer_encoder_imdb.ipynb,lab,1.4,path_hint+keywords
+mat_0042,themes/03-Transformer/lab/guides/00_transformer_prerequisites.md,lab_guide,1.08,path_hint+keywords
+mat_0043,themes/03-Transformer/lab/guides/01_self_attention_and_positional_encoding_beginner.md,lab_guide,1.2,path_hint+keywords
+mat_0044,themes/03-Transformer/lab/guides/02_transformer_encoder_toy_walkthrough.md,lab_guide,1.2,path_hint+keywords
+mat_0045,themes/03-Transformer/lab/guides/03_transformer_encoder_imdb_walkthrough.md,lab_guide,1.16,path_hint+keywords
+mat_0046,themes/03-Transformer/lab/guides/04_transformer_debugging_playbook.md,lab_guide,1.04,path_hint+keywords
+mat_0047,themes/03-Transformer/lab/solutions/01_transformer_encoder_order_toy_solution.ipynb,lab_solution,1.4,path_hint+keywords
+mat_0048,themes/03-Transformer/lab/solutions/02_transformer_encoder_imdb_solution.ipynb,lab_solution,1.4,path_hint+keywords
+mat_0049,themes/03-Transformer/theory/theory.md,theory,1.4,path_hint+keywords

@@ -1,0 +1,162 @@
+{
+  "format": "md",
+  "line_count": 146,
+  "char_count": 5039,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Walkthrough: Lab 2 `LSTM` many-to-many"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Как пользоваться этим walkthrough"
+    },
+    {
+      "line": 10,
+      "level": 2,
+      "title": "Что меняется после ЛР1"
+    },
+    {
+      "line": 20,
+      "level": 2,
+      "title": "TODO 1-2: кумулятивная сумма и метки"
+    },
+    {
+      "line": 21,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 27,
+      "level": 3,
+      "title": "Логика решения"
+    },
+    {
+      "line": 32,
+      "level": 3,
+      "title": "Ожидаемые результаты"
+    },
+    {
+      "line": 37,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 42,
+      "level": 3,
+      "title": "Self-check"
+    },
+    {
+      "line": 48,
+      "level": 2,
+      "title": "TODO 3-4: сборка модели"
+    },
+    {
+      "line": 49,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 54,
+      "level": 3,
+      "title": "Логика решения"
+    },
+    {
+      "line": 60,
+      "level": 3,
+      "title": "Ожидаемые результаты"
+    },
+    {
+      "line": 64,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 69,
+      "level": 3,
+      "title": "Self-check"
+    },
+    {
+      "line": 73,
+      "level": 2,
+      "title": "TODO 5: обучение"
+    },
+    {
+      "line": 74,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 79,
+      "level": 3,
+      "title": "Ожидаемые результаты"
+    },
+    {
+      "line": 84,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 89,
+      "level": 2,
+      "title": "TODO 6-7: `preds` и `sequence_accuracy`"
+    },
+    {
+      "line": 90,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 95,
+      "level": 3,
+      "title": "Логика решения"
+    },
+    {
+      "line": 101,
+      "level": 3,
+      "title": "Worked example"
+    },
+    {
+      "line": 113,
+      "level": 3,
+      "title": "Ручная таблица"
+    },
+    {
+      "line": 121,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 126,
+      "level": 3,
+      "title": "Self-check"
+    },
+    {
+      "line": 130,
+      "level": 2,
+      "title": "Что должно получиться в конце"
+    },
+    {
+      "line": 138,
+      "level": 2,
+      "title": "Навигация по курсу"
+    },
+    {
+      "line": 139,
+      "level": 3,
+      "title": "Где вы сейчас"
+    },
+    {
+      "line": 142,
+      "level": 3,
+      "title": "Что было до этого"
+    },
+    {
+      "line": 145,
+      "level": 3,
+      "title": "Что дальше"
+    }
+  ]
+}

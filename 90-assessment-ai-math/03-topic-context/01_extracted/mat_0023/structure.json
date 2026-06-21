@@ -1,0 +1,157 @@
+{
+  "format": "md",
+  "line_count": 126,
+  "char_count": 4528,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Walkthrough: Lab 1 `SimpleRNN` many-to-one"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Как пользоваться этим walkthrough"
+    },
+    {
+      "line": 12,
+      "level": 2,
+      "title": "TODO 1-2: построение датасета"
+    },
+    {
+      "line": 13,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 18,
+      "level": 3,
+      "title": "Логика решения"
+    },
+    {
+      "line": 23,
+      "level": 3,
+      "title": "Ожидаемые промежуточные результаты"
+    },
+    {
+      "line": 28,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 33,
+      "level": 3,
+      "title": "Self-check"
+    },
+    {
+      "line": 39,
+      "level": 2,
+      "title": "TODO 3-4: сборка модели"
+    },
+    {
+      "line": 40,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 45,
+      "level": 3,
+      "title": "Логика решения"
+    },
+    {
+      "line": 50,
+      "level": 3,
+      "title": "Ожидаемые результаты"
+    },
+    {
+      "line": 54,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 59,
+      "level": 3,
+      "title": "Self-check"
+    },
+    {
+      "line": 65,
+      "level": 2,
+      "title": "TODO 5: обучение"
+    },
+    {
+      "line": 66,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 71,
+      "level": 3,
+      "title": "Ожидаемые результаты"
+    },
+    {
+      "line": 76,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 81,
+      "level": 3,
+      "title": "Self-check"
+    },
+    {
+      "line": 85,
+      "level": 2,
+      "title": "TODO 6: оценка и ручная точность"
+    },
+    {
+      "line": 86,
+      "level": 3,
+      "title": "Что нужно понять"
+    },
+    {
+      "line": 91,
+      "level": 3,
+      "title": "Логика решения"
+    },
+    {
+      "line": 96,
+      "level": 3,
+      "title": "Ожидаемые результаты"
+    },
+    {
+      "line": 101,
+      "level": 3,
+      "title": "Типичные ошибки"
+    },
+    {
+      "line": 106,
+      "level": 3,
+      "title": "Self-check"
+    },
+    {
+      "line": 110,
+      "level": 2,
+      "title": "Что должно получиться в конце"
+    },
+    {
+      "line": 118,
+      "level": 2,
+      "title": "Навигация по курсу"
+    },
+    {
+      "line": 119,
+      "level": 3,
+      "title": "Где вы сейчас"
+    },
+    {
+      "line": 122,
+      "level": 3,
+      "title": "Что было до этого"
+    },
+    {
+      "line": 125,
+      "level": 3,
+      "title": "Что дальше"
+    }
+  ]
+}

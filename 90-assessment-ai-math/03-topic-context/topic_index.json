@@ -1,0 +1,242 @@
+{
+  "topics": [
+    {
+      "topic_id": "foundations",
+      "title": "Foundations",
+      "module_slug": "01-foundations",
+      "material_count": 15,
+      "material_ids": [
+        "mat_0002",
+        "mat_0003",
+        "mat_0004",
+        "mat_0005",
+        "mat_0006",
+        "mat_0007",
+        "mat_0008",
+        "mat_0009",
+        "mat_0010",
+        "mat_0011",
+        "mat_0012",
+        "mat_0013",
+        "mat_0014",
+        "mat_0015",
+        "mat_0016"
+      ],
+      "paths": {
+        "topic_summary": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/foundations/topic_summary.md",
+        "full_materials": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/foundations/full_materials.txt",
+        "sources": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/foundations/sources.csv",
+        "test_focus": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/foundations/test_focus.md"
+      }
+    },
+    {
+      "topic_id": "rnn",
+      "title": "RNN",
+      "module_slug": "02-rnn",
+      "material_count": 16,
+      "material_ids": [
+        "mat_0017",
+        "mat_0018",
+        "mat_0019",
+        "mat_0020",
+        "mat_0021",
+        "mat_0022",
+        "mat_0023",
+        "mat_0024",
+        "mat_0025",
+        "mat_0026",
+        "mat_0027",
+        "mat_0028",
+        "mat_0029",
+        "mat_0030",
+        "mat_0031",
+        "mat_0032"
+      ],
+      "paths": {
+        "topic_summary": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/rnn/topic_summary.md",
+        "full_materials": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/rnn/full_materials.txt",
+        "sources": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/rnn/sources.csv",
+        "test_focus": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/rnn/test_focus.md"
+      }
+    },
+    {
+      "topic_id": "attention",
+      "title": "Attention",
+      "module_slug": "03-attention",
+      "material_count": 7,
+      "material_ids": [
+        "mat_0033",
+        "mat_0034",
+        "mat_0035",
+        "mat_0036",
+        "mat_0037",
+        "mat_0038",
+        "mat_0039"
+      ],
+      "paths": {
+        "topic_summary": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/attention/topic_summary.md",
+        "full_materials": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/attention/full_materials.txt",
+        "sources": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/attention/sources.csv",
+        "test_focus": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/attention/test_focus.md"
+      }
+    },
+    {
+      "topic_id": "transformer_encoder",
+      "title": "Transformer Encoder",
+      "module_slug": "04-transformer-encoder",
+      "material_count": 10,
+      "material_ids": [
+        "mat_0040",
+        "mat_0041",
+        "mat_0042",
+        "mat_0043",
+        "mat_0044",
+        "mat_0045",
+        "mat_0046",
+        "mat_0047",
+        "mat_0048",
+        "mat_0049"
+      ],
+      "paths": {
+        "topic_summary": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/transformer_encoder/topic_summary.md",
+        "full_materials": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/transformer_encoder/full_materials.txt",
+        "sources": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/transformer_encoder/sources.csv",
+        "test_focus": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/transformer_encoder/test_focus.md"
+      }
+    },
+    {
+      "topic_id": "autoregression",
+      "title": "Autoregression",
+      "module_slug": "05-autoregression",
+      "material_count": 15,
+      "material_ids": [
+        "mat_0050",
+        "mat_0051",
+        "mat_0052",
+        "mat_0053",
+        "mat_0054",
+        "mat_0055",
+        "mat_0056",
+        "mat_0057",
+        "mat_0058",
+        "mat_0059",
+        "mat_0060",
+        "mat_0061",
+        "mat_0062",
+        "mat_0063",
+        "mat_0064"
+      ],
+      "paths": {
+        "topic_summary": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/autoregression/topic_summary.md",
+        "full_materials": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/autoregression/full_materials.txt",
+        "sources": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/autoregression/sources.csv",
+        "test_focus": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/autoregression/test_focus.md"
+      }
+    },
+    {
+      "topic_id": "full_transformer",
+      "title": "Full Transformer",
+      "module_slug": "06-full-transformer",
+      "material_count": 6,
+      "material_ids": [
+        "mat_0065",
+        "mat_0066",
+        "mat_0067",
+        "mat_0068",
+        "mat_0069",
+        "mat_0070"
+      ],
+      "paths": {
+        "topic_summary": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/full_transformer/topic_summary.md",
+        "full_materials": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/full_transformer/full_materials.txt",
+        "sources": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/full_transformer/sources.csv",
+        "test_focus": "/data/projects/edu-ai-math-essentials/90-assessment-ai-math/03-topic-context/03_topics/full_transformer/test_focus.md"
+      }
+    }
+  ],
+  "traceability": {
+    "topic_to_material": {
+      "foundations": [
+        "mat_0002",
+        "mat_0003",
+        "mat_0004",
+        "mat_0005",
+        "mat_0006",
+        "mat_0007",
+        "mat_0008",
+        "mat_0009",
+        "mat_0010",
+        "mat_0011",
+        "mat_0012",
+        "mat_0013",
+        "mat_0014",
+        "mat_0015",
+        "mat_0016"
+      ],
+      "rnn": [
+        "mat_0017",
+        "mat_0018",
+        "mat_0019",
+        "mat_0020",
+        "mat_0021",
+        "mat_0022",
+        "mat_0023",
+        "mat_0024",
+        "mat_0025",
+        "mat_0026",
+        "mat_0027",
+        "mat_0028",
+        "mat_0029",
+        "mat_0030",
+        "mat_0031",
+        "mat_0032"
+      ],
+      "attention": [
+        "mat_0033",
+        "mat_0034",
+        "mat_0035",
+        "mat_0036",
+        "mat_0037",
+        "mat_0038",
+        "mat_0039"
+      ],
+      "transformer_encoder": [
+        "mat_0040",
+        "mat_0041",
+        "mat_0042",
+        "mat_0043",
+        "mat_0044",
+        "mat_0045",
+        "mat_0046",
+        "mat_0047",
+        "mat_0048",
+        "mat_0049"
+      ],
+      "autoregression": [
+        "mat_0050",
+        "mat_0051",
+        "mat_0052",
+        "mat_0053",
+        "mat_0054",
+        "mat_0055",
+        "mat_0056",
+        "mat_0057",
+        "mat_0058",
+        "mat_0059",
+        "mat_0060",
+        "mat_0061",
+        "mat_0062",
+        "mat_0063",
+        "mat_0064"
+      ],
+      "full_transformer": [
+        "mat_0065",
+        "mat_0066",
+        "mat_0067",
+        "mat_0068",
+        "mat_0069",
+        "mat_0070"
+      ]
+    }
+  }
+}

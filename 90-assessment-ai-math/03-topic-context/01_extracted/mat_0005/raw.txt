@@ -1,0 +1,199 @@
+[cell 001 | markdown]
+# Разминка 4: toy heatmap внимания
+
+Этот notebook связан с guide [Attention Heatmaps Without Mystery](../guides/03_attention_heatmaps.md).
+
+Цель:
+- вручную посчитать score-matrix и `context`;
+- увидеть антидиагональный паттерн для reverse-like задачи;
+- сравнить ручной расчёт с `tf.keras.layers.Attention`.
+
+[cell 002 | code]
+import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
+
+np.set_printoptions(precision=3, suppress=True)
+
+[cell 003 | markdown]
+## Выбор runtime
+
+Здесь вы выбираете, где и на чём запускать notebook.
+
+Что обычно выбирать:
+- `auto` — лучший вариант по умолчанию. Если TensorFlow видит GPU, будет выбран GPU. Если GPU нет, notebook спокойно останется на CPU.
+- `local-cpu` — локальный запуск только на CPU, даже если видеокарта есть.
+- `local-gpu` — локальный запуск с обязательным GPU. Если GPU не настроен, notebook специально остановится с понятной ошибкой.
+- `colab-cpu` / `colab-gpu` — запуск в Google Colab.
+- `kaggle-cpu` / `kaggle-gpu` — запуск в Kaggle Notebooks.
+
+Что важно:
+- после изменения `RUNTIME_MODE` используйте `Restart & Run All`;
+- `COURSE_REPO_HTTPS_URL` нужен только для Colab/Kaggle, если репозиторий ещё не клонирован в runtime;
+- пока в ячейке стоит placeholder-URL, cloud auto-bootstrap не сможет сам скачать курс;
+- guide `05` отвечает на вопрос, где и как запускать notebook;
+- guide `06` нужен, если вы хотите именно локальный GPU и не уверены в версиях `TensorFlow` / `CUDA`;
+- локальный GPU-path курса: `Linux + NVIDIA` или `Windows -> WSL2 + Ubuntu`;
+- если `local-gpu` упирается в локальные CUDA/PTX ошибки, это обычно уже проблема GPU-стека, а не notebook. В таком случае спокойно переключайтесь на `local-cpu`, `colab-gpu` или `kaggle-gpu`.
+
+Подробные guides:
+- `themes/00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md`
+- `themes/00-Foundations/guides/06_tensorflow_cuda_version_selection.md`
+
+[cell 004 | code]
+import importlib.util
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+RUNTIME_MODE = os.environ.get("COURSE_RUNTIME_MODE", "auto")
+COURSE_REPO_HTTPS_URL = os.environ.get(
+    "COURSE_REPO_HTTPS_URL",
+    "https://github.com/<org>/<repo>.git",
+)
+NOTEBOOK_REQUIREMENTS = "themes/00-Foundations/requirements.txt"
+
+
+def _detect_notebook_platform():
+    if os.environ.get("KAGGLE_KERNEL_RUN_TYPE") or Path("/kaggle").exists():
+        return "kaggle"
+    if os.environ.get("COLAB_RELEASE_TAG") or "google.colab" in sys.modules:
+        return "colab"
+    return "local"
+
+
+def _looks_like_repo_root(path: Path) -> bool:
+    return (
+        path.is_dir()
+        and (path / "themes").is_dir()
+        and (path / "course_runtime.py").is_file()
+    )
+
+
+def _canonical_cloud_repo_root(platform: str) -> Path:
+    if platform == "colab":
+        return Path("/content/students-AI_math_essentials")
+    if platform == "kaggle":
+        return Path("/kaggle/working/students-AI_math_essentials")
+    raise ValueError(f"Unexpected cloud platform: {platform}")
+
+
+def _is_placeholder_repo_url(repo_url: str) -> bool:
+    return repo_url.strip() == "https://github.com/<org>/<repo>.git"
+
+
+def _find_repo_root_from_cwd():
+    for candidate in (Path.cwd(), *Path.cwd().parents):
+        if _looks_like_repo_root(candidate):
+            return candidate
+    return None
+
+
+def _ensure_course_runtime_importable(runtime_mode: str, repo_url: str) -> None:
+    if importlib.util.find_spec("course_runtime") is not None:
+        return
+
+    local_repo_root = _find_repo_root_from_cwd()
+    if local_repo_root is not None:
+        if str(local_repo_root) not in sys.path:
+            sys.path.insert(0, str(local_repo_root))
+        return
+
+    platform = _detect_notebook_platform()
+    if platform == "local":
+        raise ModuleNotFoundError(
+            "Не удалось импортировать course_runtime.py. Для локального запуска "
+            "открывайте репозиторий через `.venv/bin/jupyter notebook` из корня проекта."
+        )
+
+    repo_root = _canonical_cloud_repo_root(platform)
+    if not _looks_like_repo_root(repo_root):
+        if _is_placeholder_repo_url(repo_url):
+            raise RuntimeError(
+                "Для cloud auto-bootstrap нужен публичный HTTPS URL курса. "
+                "Замените COURSE_REPO_HTTPS_URL на реальный адрес репозитория."
+            )
+        repo_root.parent.mkdir(parents=True, exist_ok=True)
+        if repo_root.exists() and any(repo_root.iterdir()):
+            raise RuntimeError(
+                f"Каталог {repo_root} уже существует, но не выглядит как корень курса. "
+                "Очистите runtime или используйте новый notebook session."
+            )
+        print(f"Bootstrapping course repository into {repo_root} ...")
+        subprocess.run(["git", "clone", repo_url, str(repo_root)], check=True)
+
+    if str(repo_root) not in sys.path:
+        sys.path.insert(0, str(repo_root))
+
+
+_ensure_course_runtime_importable(RUNTIME_MODE, COURSE_REPO_HTTPS_URL)
+
+from course_runtime import setup_notebook_runtime
+
+runtime_info = setup_notebook_runtime(
+    runtime_mode=RUNTIME_MODE,
+    course_repo_https_url=COURSE_REPO_HTTPS_URL,
+    notebook_requirements=NOTEBOOK_REQUIREMENTS,
+)
+runtime_info.as_dict()
+
+[cell 005 | code]
+encoder_labels = ['enc_1', 'enc_2', 'enc_3', 'enc_4']
+decoder_labels = ['dec_1', 'dec_2', 'dec_3', 'dec_4']
+
+keys = np.eye(4, dtype=np.float32)[None, :, :]
+queries = np.eye(4, dtype=np.float32)[::-1][None, :, :]
+values = np.array(
+    [
+        [1.0, 0.0],
+        [0.0, 1.0],
+        [1.0, 1.0],
+        [2.0, 0.5],
+    ],
+    dtype=np.float32,
+)[None, :, :]
+
+scores = queries @ np.transpose(keys, (0, 2, 1))
+shifted_scores = scores - scores.max(axis=-1, keepdims=True)
+weights = np.exp(shifted_scores) / np.exp(shifted_scores).sum(axis=-1, keepdims=True)
+context = weights @ values
+
+print('scores shape :', scores.shape)
+print(scores[0])
+print() 
+print('weights shape:', weights.shape)
+print(weights[0])
+print() 
+print('context shape:', context.shape)
+print(context[0])
+
+[cell 006 | code]
+plt.figure(figsize=(6, 4))
+plt.imshow(weights[0], cmap='viridis', aspect='auto')
+plt.xticks(range(len(encoder_labels)), encoder_labels)
+plt.yticks(range(len(decoder_labels)), decoder_labels)
+plt.xlabel('Encoder positions')
+plt.ylabel('Decoder steps')
+plt.title('Manual attention weights')
+plt.colorbar(label='weight')
+plt.show()
+
+[cell 007 | code]
+attention = tf.keras.layers.Attention(use_scale=False, score_mode='dot')
+keras_context, keras_scores = attention(
+    [tf.constant(queries), tf.constant(values), tf.constant(keys)],
+    return_attention_scores=True,
+)
+
+print('keras_context shape:', keras_context.shape)
+print('keras_scores shape :', keras_scores.shape)
+print('max |manual - keras| for scores:', np.abs(weights - keras_scores.numpy()).max())
+print('max |manual - keras| for context:', np.abs(context - keras_context.numpy()).max())
+
+[cell 008 | markdown]
+## Что взять с собой дальше
+
+- `attention_scores` — это просто нормированные веса по encoder-позициям.
+- `context` — взвешенная сумма `value`.
+- Для reverse-like задачи хороший паттерн действительно похож на антидиагональ.

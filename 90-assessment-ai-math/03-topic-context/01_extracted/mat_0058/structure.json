@@ -1,0 +1,72 @@
+{
+  "format": "md",
+  "line_count": 103,
+  "char_count": 4867,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Пошаговый разбор: `04-Autoregression / ЛР02 GPU` на `Tiny Shakespeare`"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Канонический порядок"
+    },
+    {
+      "line": 10,
+      "level": 2,
+      "title": "Методическая цель"
+    },
+    {
+      "line": 17,
+      "level": 2,
+      "title": "Что делает каждый `TODO`"
+    },
+    {
+      "line": 18,
+      "level": 3,
+      "title": "TODO 1: корпус и словарь"
+    },
+    {
+      "line": 23,
+      "level": 3,
+      "title": "TODO 2: окна и разбиение"
+    },
+    {
+      "line": 28,
+      "level": 3,
+      "title": "TODO 3: декодерный блок"
+    },
+    {
+      "line": 33,
+      "level": 3,
+      "title": "TODO 4: обучение и метрики"
+    },
+    {
+      "line": 45,
+      "level": 3,
+      "title": "TODO 5: генерация"
+    },
+    {
+      "line": 51,
+      "level": 3,
+      "title": "TODO 6: диагностика внимания"
+    },
+    {
+      "line": 56,
+      "level": 2,
+      "title": "Требование к среде выполнения"
+    },
+    {
+      "line": 73,
+      "level": 3,
+      "title": "Recovery для текущей `.venv` (только при провале `gpu_preflight()`)"
+    },
+    {
+      "line": 94,
+      "level": 2,
+      "title": "Критерии прохождения"
+    }
+  ]
+}

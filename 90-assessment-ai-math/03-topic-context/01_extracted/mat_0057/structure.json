@@ -1,0 +1,52 @@
+{
+  "format": "md",
+  "line_count": 76,
+  "char_count": 2010,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Диагностический порядок: `04-Autoregression / ЛР02 CPU`"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Принцип"
+    },
+    {
+      "line": 12,
+      "level": 2,
+      "title": "1. Корпус и словарь"
+    },
+    {
+      "line": 22,
+      "level": 2,
+      "title": "2. Окна и разбиение"
+    },
+    {
+      "line": 33,
+      "level": 2,
+      "title": "3. Маска и декодер"
+    },
+    {
+      "line": 43,
+      "level": 2,
+      "title": "4. Метрики"
+    },
+    {
+      "line": 53,
+      "level": 2,
+      "title": "5. Генерация"
+    },
+    {
+      "line": 63,
+      "level": 2,
+      "title": "6. Диагностика внимания"
+    },
+    {
+      "line": 72,
+      "level": 2,
+      "title": "Чек-лист перед `ЛР02 GPU`"
+    }
+  ]
+}

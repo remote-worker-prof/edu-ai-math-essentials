@@ -1,0 +1,136 @@
+{
+  "module_id": "module_01",
+  "module_slug": "01-foundations",
+  "topic_id": "foundations",
+  "topic_title": "Foundations",
+  "section_title": "Раздел 1. Foundations",
+  "materials": [
+    {
+      "material_id": "mat_0002",
+      "source_path": "themes/00-Foundations/examples/01_numpy_sequence_basics.ipynb",
+      "material_role": "example",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0003",
+      "source_path": "themes/00-Foundations/examples/02_minimal_keras_sequence_classifier.ipynb",
+      "material_role": "example",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0004",
+      "source_path": "themes/00-Foundations/examples/03_tokenization_padding_masking.ipynb",
+      "material_role": "example",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0005",
+      "source_path": "themes/00-Foundations/examples/04_attention_heatmap_toy.ipynb",
+      "material_role": "example",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0006",
+      "source_path": "themes/00-Foundations/showcases/01_imdb_many_to_one_showcase.ipynb",
+      "material_role": "showcase",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0007",
+      "source_path": "themes/00-Foundations/showcases/02_jena_climate_lstm_gru_showcase.ipynb",
+      "material_role": "showcase",
+      "score": "1.28",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0008",
+      "source_path": "themes/00-Foundations/showcases/03_spa_eng_seq2seq_attention_showcase.ipynb",
+      "material_role": "showcase",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0009",
+      "source_path": "themes/00-Foundations/showcases/cards/01_imdb.md",
+      "material_role": "showcase_card",
+      "score": "0.92",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0010",
+      "source_path": "themes/00-Foundations/showcases/cards/02_jena_climate.md",
+      "material_role": "showcase_card",
+      "score": "0.84",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0011",
+      "source_path": "themes/00-Foundations/showcases/cards/03_spa_eng.md",
+      "material_role": "showcase_card",
+      "score": "0.84",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0012",
+      "source_path": "themes/00-Foundations/showcases/cards/04_reuters.md",
+      "material_role": "showcase_card",
+      "score": "0.88",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0013",
+      "source_path": "themes/00-Foundations/showcases/cards/05_uci_har.md",
+      "material_role": "showcase_card",
+      "score": "0.8",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0014",
+      "source_path": "themes/00-Foundations/showcases/cards/06_shakespeare.md",
+      "material_role": "showcase_card",
+      "score": "0.88",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0015",
+      "source_path": "themes/00-Foundations/showcases/cards/07_forda.md",
+      "material_role": "showcase_card",
+      "score": "0.84",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0016",
+      "source_path": "themes/00-Foundations/theory/theory.md",
+      "material_role": "theory",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    }
+  ],
+  "question_blueprint": [
+    {
+      "position_in_section": 1,
+      "question_type": "single"
+    },
+    {
+      "position_in_section": 2,
+      "question_type": "single"
+    },
+    {
+      "position_in_section": 3,
+      "question_type": "multiple"
+    },
+    {
+      "position_in_section": 4,
+      "question_type": "multiple"
+    },
+    {
+      "position_in_section": 5,
+      "question_type": "open"
+    }
+  ]
+}

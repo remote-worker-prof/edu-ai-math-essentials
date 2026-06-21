@@ -1,0 +1,52 @@
+{
+  "format": "md",
+  "line_count": 81,
+  "char_count": 2330,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Поясняющий разбор: самовнимание и позиционные векторы"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Главная идея"
+    },
+    {
+      "line": 10,
+      "level": 2,
+      "title": "Интуиция на коротком примере"
+    },
+    {
+      "line": 24,
+      "level": 2,
+      "title": "Почему порядок нельзя терять"
+    },
+    {
+      "line": 40,
+      "level": 2,
+      "title": "Что делает слой `TokenAndPositionEmbedding`"
+    },
+    {
+      "line": 47,
+      "level": 2,
+      "title": "Что делает `TransformerEncoderBlock`"
+    },
+    {
+      "line": 55,
+      "level": 2,
+      "title": "Зачем нужна маска дополнения"
+    },
+    {
+      "line": 64,
+      "level": 2,
+      "title": "Как читать `attention_scores`"
+    },
+    {
+      "line": 77,
+      "level": 2,
+      "title": "Что должно остаться после чтения"
+    }
+  ]
+}

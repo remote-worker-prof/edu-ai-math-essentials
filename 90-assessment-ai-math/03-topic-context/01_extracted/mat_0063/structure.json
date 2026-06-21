@@ -1,0 +1,138 @@
+{
+  "format": "ipynb",
+  "cell_count": 22,
+  "cells": [
+    {
+      "index": 1,
+      "cell_type": "markdown",
+      "char_count": 1038,
+      "line_count": 20
+    },
+    {
+      "index": 2,
+      "cell_type": "markdown",
+      "char_count": 318,
+      "line_count": 8
+    },
+    {
+      "index": 3,
+      "cell_type": "code",
+      "char_count": 5132,
+      "line_count": 165
+    },
+    {
+      "index": 4,
+      "cell_type": "markdown",
+      "char_count": 26,
+      "line_count": 1
+    },
+    {
+      "index": 5,
+      "cell_type": "code",
+      "char_count": 566,
+      "line_count": 29
+    },
+    {
+      "index": 6,
+      "cell_type": "markdown",
+      "char_count": 156,
+      "line_count": 4
+    },
+    {
+      "index": 7,
+      "cell_type": "markdown",
+      "char_count": 48,
+      "line_count": 1
+    },
+    {
+      "index": 8,
+      "cell_type": "code",
+      "char_count": 1346,
+      "line_count": 37
+    },
+    {
+      "index": 9,
+      "cell_type": "code",
+      "char_count": 254,
+      "line_count": 7
+    },
+    {
+      "index": 10,
+      "cell_type": "markdown",
+      "char_count": 37,
+      "line_count": 1
+    },
+    {
+      "index": 11,
+      "cell_type": "code",
+      "char_count": 1626,
+      "line_count": 38
+    },
+    {
+      "index": 12,
+      "cell_type": "code",
+      "char_count": 234,
+      "line_count": 5
+    },
+    {
+      "index": 13,
+      "cell_type": "markdown",
+      "char_count": 45,
+      "line_count": 1
+    },
+    {
+      "index": 14,
+      "cell_type": "code",
+      "char_count": 8961,
+      "line_count": 277
+    },
+    {
+      "index": 15,
+      "cell_type": "markdown",
+      "char_count": 35,
+      "line_count": 1
+    },
+    {
+      "index": 16,
+      "cell_type": "code",
+      "char_count": 1518,
+      "line_count": 47
+    },
+    {
+      "index": 17,
+      "cell_type": "code",
+      "char_count": 528,
+      "line_count": 17
+    },
+    {
+      "index": 18,
+      "cell_type": "markdown",
+      "char_count": 38,
+      "line_count": 1
+    },
+    {
+      "index": 19,
+      "cell_type": "code",
+      "char_count": 4007,
+      "line_count": 113
+    },
+    {
+      "index": 20,
+      "cell_type": "markdown",
+      "char_count": 31,
+      "line_count": 1
+    },
+    {
+      "index": 21,
+      "cell_type": "code",
+      "char_count": 1167,
+      "line_count": 30
+    },
+    {
+      "index": 22,
+      "cell_type": "markdown",
+      "char_count": 286,
+      "line_count": 7
+    }
+  ]
+}

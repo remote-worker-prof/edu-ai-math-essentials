@@ -1,0 +1,107 @@
+{
+  "format": "md",
+  "line_count": 211,
+  "char_count": 5792,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Beginner Guide: Lab 2 `LSTM` many-to-many"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Главная идея этой лабораторной"
+    },
+    {
+      "line": 11,
+      "level": 2,
+      "title": "Интуиция задачи"
+    },
+    {
+      "line": 20,
+      "level": 2,
+      "title": "Ручной пример"
+    },
+    {
+      "line": 44,
+      "level": 2,
+      "title": "Что изменилось относительно ЛР1"
+    },
+    {
+      "line": 55,
+      "level": 2,
+      "title": "Почему нужен `return_sequences=True`"
+    },
+    {
+      "line": 72,
+      "level": 2,
+      "title": "Визуальная интуиция для `return_sequences=True`"
+    },
+    {
+      "line": 84,
+      "level": 2,
+      "title": "Почему здесь используется `LSTM`, а не `SimpleRNN`"
+    },
+    {
+      "line": 92,
+      "level": 2,
+      "title": "Важная анти-путаница: `token_accuracy` не равна tokenization"
+    },
+    {
+      "line": 114,
+      "level": 2,
+      "title": "Почему `sequence_accuracy` строже"
+    },
+    {
+      "line": 128,
+      "level": 2,
+      "title": "Три ручных примера: высокая `token_accuracy`, низкая `sequence_accuracy`"
+    },
+    {
+      "line": 163,
+      "level": 2,
+      "title": "Как читать формы в ЛР2"
+    },
+    {
+      "line": 170,
+      "level": 2,
+      "title": "Как читать графики"
+    },
+    {
+      "line": 175,
+      "level": 2,
+      "title": "Отдельно про `token_accuracy` и tokenization"
+    },
+    {
+      "line": 191,
+      "level": 2,
+      "title": "Порядок диагностики"
+    },
+    {
+      "line": 197,
+      "level": 2,
+      "title": "Что должно остаться после ЛР2"
+    },
+    {
+      "line": 203,
+      "level": 2,
+      "title": "Навигация по курсу"
+    },
+    {
+      "line": 204,
+      "level": 3,
+      "title": "Где вы сейчас"
+    },
+    {
+      "line": 207,
+      "level": 3,
+      "title": "Что было до этого"
+    },
+    {
+      "line": 210,
+      "level": 3,
+      "title": "Что дальше"
+    }
+  ]
+}

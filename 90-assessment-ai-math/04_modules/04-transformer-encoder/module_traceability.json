@@ -1,0 +1,101 @@
+{
+  "module_id": "module_04",
+  "module_slug": "04-transformer-encoder",
+  "topic_id": "transformer_encoder",
+  "topic_title": "Transformer Encoder",
+  "section_title": "Раздел 4. Transformer Encoder",
+  "materials": [
+    {
+      "material_id": "mat_0040",
+      "source_path": "themes/03-Transformer/lab/01_transformer_encoder_order_toy.ipynb",
+      "material_role": "lab",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0041",
+      "source_path": "themes/03-Transformer/lab/02_transformer_encoder_imdb.ipynb",
+      "material_role": "lab",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0042",
+      "source_path": "themes/03-Transformer/lab/guides/00_transformer_prerequisites.md",
+      "material_role": "lab_guide",
+      "score": "1.08",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0043",
+      "source_path": "themes/03-Transformer/lab/guides/01_self_attention_and_positional_encoding_beginner.md",
+      "material_role": "lab_guide",
+      "score": "1.2",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0044",
+      "source_path": "themes/03-Transformer/lab/guides/02_transformer_encoder_toy_walkthrough.md",
+      "material_role": "lab_guide",
+      "score": "1.2",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0045",
+      "source_path": "themes/03-Transformer/lab/guides/03_transformer_encoder_imdb_walkthrough.md",
+      "material_role": "lab_guide",
+      "score": "1.16",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0046",
+      "source_path": "themes/03-Transformer/lab/guides/04_transformer_debugging_playbook.md",
+      "material_role": "lab_guide",
+      "score": "1.04",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0047",
+      "source_path": "themes/03-Transformer/lab/solutions/01_transformer_encoder_order_toy_solution.ipynb",
+      "material_role": "lab_solution",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0048",
+      "source_path": "themes/03-Transformer/lab/solutions/02_transformer_encoder_imdb_solution.ipynb",
+      "material_role": "lab_solution",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    },
+    {
+      "material_id": "mat_0049",
+      "source_path": "themes/03-Transformer/theory/theory.md",
+      "material_role": "theory",
+      "score": "1.4",
+      "assignment_reason": "path_hint+keywords"
+    }
+  ],
+  "question_blueprint": [
+    {
+      "position_in_section": 1,
+      "question_type": "single"
+    },
+    {
+      "position_in_section": 2,
+      "question_type": "single"
+    },
+    {
+      "position_in_section": 3,
+      "question_type": "multiple"
+    },
+    {
+      "position_in_section": 4,
+      "question_type": "multiple"
+    },
+    {
+      "position_in_section": 5,
+      "question_type": "open"
+    }
+  ]
+}

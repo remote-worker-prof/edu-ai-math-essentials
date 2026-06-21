@@ -1,0 +1,1276 @@
+{
+  "traceability": [
+    {
+      "variant": 1,
+      "question_id": "Q1",
+      "question_type": "single",
+      "topic_id": "foundations",
+      "module_slug": "01-foundations",
+      "material_id": "mat_0002",
+      "source_path": "themes/00-Foundations/examples/01_numpy_sequence_basics.ipynb",
+      "title": "Назначение padding в последовательностях",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Сделать длины последовательностей одинаковыми в батче",
+        "Увеличить словарь токенов",
+        "Удалить редкие токены",
+        "Снизить число признаков в эмбеддинге"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q2",
+      "question_type": "single",
+      "topic_id": "foundations",
+      "module_slug": "01-foundations",
+      "material_id": "mat_0003",
+      "source_path": "themes/00-Foundations/examples/02_minimal_keras_sequence_classifier.ipynb",
+      "title": "Форма тензора входа",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "(batch_size, seq_len)",
+        "(seq_len, vocab_size)",
+        "(batch_size, vocab_size)",
+        "(num_layers, batch_size)"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q3",
+      "question_type": "multiple",
+      "topic_id": "foundations",
+      "module_slug": "01-foundations",
+      "material_id": "mat_0004",
+      "source_path": "themes/00-Foundations/examples/03_tokenization_padding_masking.ipynb",
+      "title": "Базовые метрики качества",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Accuracy",
+        "Precision/Recall",
+        "BLEU",
+        "F1-score"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q4",
+      "question_type": "multiple",
+      "topic_id": "foundations",
+      "module_slug": "01-foundations",
+      "material_id": "mat_0005",
+      "source_path": "themes/00-Foundations/examples/04_attention_heatmap_toy.ipynb",
+      "title": "Токенизация и устойчивость данных",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Повышают воспроизводимость подготовки данных",
+        "Снижают неоднозначность разбора текста",
+        "Гарантируют нулевую ошибку модели",
+        "Делают сравнение экспериментов более корректным"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q5",
+      "question_type": "open",
+      "topic_id": "foundations",
+      "module_slug": "01-foundations",
+      "material_id": "mat_0006",
+      "source_path": "themes/00-Foundations/showcases/01_imdb_many_to_one_showcase.ipynb",
+      "title": "Нормализация входа",
+      "correct": [],
+      "reference": "Единый протокол исключает различия, вызванные предобработкой, и делает сравнение моделей по метрикам корректным.",
+      "criteria": [
+        "Упомянуты токенизация и padding как источник систематических различий",
+        "Пояснено влияние на воспроизводимость и сопоставимость метрик",
+        "Ответ структурирован и логически завершён"
+      ],
+      "options": []
+    },
+    {
+      "variant": 1,
+      "question_id": "Q6",
+      "question_type": "single",
+      "topic_id": "rnn",
+      "module_slug": "02-rnn",
+      "material_id": "mat_0017",
+      "source_path": "themes/01-RNN/lab/01_simple_rnn_many_to_one_toy.ipynb",
+      "title": "Преимущество LSTM",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Наличие механизма ворот для управления памятью",
+        "Отсутствие рекуррентных связей",
+        "Прямая замена токенов на one-hot",
+        "Полная независимость от длины последовательности"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q7",
+      "question_type": "single",
+      "topic_id": "rnn",
+      "module_slug": "02-rnn",
+      "material_id": "mat_0018",
+      "source_path": "themes/01-RNN/lab/02_lstm_many_to_many_toy.ipynb",
+      "title": "Смысл hidden state",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Сжатое представление предыдущего контекста",
+        "Список всех токенов корпуса",
+        "Матрицу эмбеддингов словаря",
+        "Только текущий токен без истории"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q8",
+      "question_type": "multiple",
+      "topic_id": "rnn",
+      "module_slug": "02-rnn",
+      "material_id": "mat_0019",
+      "source_path": "themes/01-RNN/lab/03_gru_seq2seq_reverse_toy.ipynb",
+      "title": "Компоненты базового seq2seq",
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Encoder",
+        "Decoder",
+        "Рекуррентная передача состояния",
+        "Обязательная свёрточная голова"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q9",
+      "question_type": "multiple",
+      "topic_id": "rnn",
+      "module_slug": "02-rnn",
+      "material_id": "mat_0020",
+      "source_path": "themes/01-RNN/lab/guides/00_prerequisites_and_notation.md",
+      "title": "Трудности обучения RNN",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Затухание/взрыв градиентов",
+        "Слишком длинные последовательности",
+        "Наличие любого optimizer без исключений",
+        "Неподходящий learning rate"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q10",
+      "question_type": "open",
+      "topic_id": "rnn",
+      "module_slug": "02-rnn",
+      "material_id": "mat_0021",
+      "source_path": "themes/01-RNN/lab/guides/00_self_study_debugging_playbook.md",
+      "title": "Выбор между GRU и LSTM",
+      "correct": [],
+      "reference": "GRU часто выбирают как более лёгкую модель для ограниченных ресурсов, LSTM — когда критично более гибко контролировать память на длинном контексте.",
+      "criteria": [
+        "Сопоставлены вычислительные и качественные аспекты",
+        "Есть привязка к типу данных/длине контекста",
+        "Дан аргументированный вывод"
+      ],
+      "options": []
+    },
+    {
+      "variant": 1,
+      "question_id": "Q11",
+      "question_type": "single",
+      "topic_id": "attention",
+      "module_slug": "03-attention",
+      "material_id": "mat_0033",
+      "source_path": "themes/02-Attention/lab/01_gru_seq2seq_attention_reverse_toy.ipynb",
+      "title": "Смысл attention-весов",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Относительную важность элементов контекста для текущего шага",
+        "Только длину входной последовательности",
+        "Число эпох обучения",
+        "Порядок слоёв в оптимизаторе"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q12",
+      "question_type": "single",
+      "topic_id": "attention",
+      "module_slug": "03-attention",
+      "material_id": "mat_0034",
+      "source_path": "themes/02-Attention/lab/guides/00_attention_prerequisites.md",
+      "title": "Alignment",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Связывает позиции входа и выхода при генерации",
+        "Удаляет необходимость в данных валидации",
+        "Заменяет функцию потерь",
+        "Отменяет токенизацию"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q13",
+      "question_type": "multiple",
+      "topic_id": "attention",
+      "module_slug": "03-attention",
+      "material_id": "mat_0035",
+      "source_path": "themes/02-Attention/lab/guides/01_gru_seq2seq_attention_beginner.md",
+      "title": "Преимущества внимания",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Более явная работа с релевантным контекстом",
+        "Улучшение интерпретируемости поведения",
+        "Гарантия идеальной генерации",
+        "Снижение риска потери важной информации"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q14",
+      "question_type": "multiple",
+      "topic_id": "attention",
+      "module_slug": "03-attention",
+      "material_id": "mat_0036",
+      "source_path": "themes/02-Attention/lab/guides/02_attention_walkthrough.md",
+      "title": "Ограничения attention-анализа",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Вес не равен строгой причинности",
+        "Качество интерпретации зависит от контекста задачи",
+        "Карты всегда однозначны и не требуют проверки",
+        "Нужна связь с метриками и ошибками"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q15",
+      "question_type": "open",
+      "topic_id": "attention",
+      "module_slug": "03-attention",
+      "material_id": "mat_0037",
+      "source_path": "themes/02-Attention/lab/guides/03_attention_debugging_playbook.md",
+      "title": "Чтение attention-карт",
+      "correct": [],
+      "reference": "Нужно сопоставить шаг выхода с входными позициями, выделить зоны максимального веса, сравнить с ожидаемыми связями и проверить согласованность с ошибками/метриками.",
+      "criteria": [
+        "Есть поэтапная процедура анализа",
+        "Упомянуто сопоставление с ожидаемыми зависимостями",
+        "Добавлена проверка по качественным/количественным сигналам"
+      ],
+      "options": []
+    },
+    {
+      "variant": 1,
+      "question_id": "Q16",
+      "question_type": "single",
+      "topic_id": "transformer_encoder",
+      "module_slug": "04-transformer-encoder",
+      "material_id": "mat_0040",
+      "source_path": "themes/03-Transformer/lab/01_transformer_encoder_order_toy.ipynb",
+      "title": "Роль positional encoding",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Чтобы модель учитывала порядок токенов",
+        "Чтобы исключить self-attention",
+        "Чтобы убрать нормализацию",
+        "Чтобы уменьшить размер словаря"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q17",
+      "question_type": "single",
+      "topic_id": "transformer_encoder",
+      "module_slug": "04-transformer-encoder",
+      "material_id": "mat_0041",
+      "source_path": "themes/03-Transformer/lab/02_transformer_encoder_imdb.ipynb",
+      "title": "Смысл self-attention",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Оценивать взаимосвязи между позициями входа",
+        "Только копировать вход без преобразования",
+        "Устранять необходимость в батчах",
+        "Гарантировать отсутствие ошибок на тесте"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q18",
+      "question_type": "multiple",
+      "topic_id": "transformer_encoder",
+      "module_slug": "04-transformer-encoder",
+      "material_id": "mat_0042",
+      "source_path": "themes/03-Transformer/lab/guides/00_transformer_prerequisites.md",
+      "title": "Состав encoder-блока",
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Multi-head self-attention",
+        "Feed-forward sublayer",
+        "Residual connections и нормализация",
+        "Только рекуррентный hidden state"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q19",
+      "question_type": "multiple",
+      "topic_id": "transformer_encoder",
+      "module_slug": "04-transformer-encoder",
+      "material_id": "mat_0043",
+      "source_path": "themes/03-Transformer/lab/guides/01_self_attention_and_positional_encoding_beginner.md",
+      "title": "Masking в encoder",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Когда в батче есть последовательности разной длины",
+        "Когда нужно исключить вклад padding-позиций",
+        "Когда модель обучается без токенизации",
+        "Когда важно не искажать attention-распределение"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q20",
+      "question_type": "open",
+      "topic_id": "transformer_encoder",
+      "module_slug": "04-transformer-encoder",
+      "material_id": "mat_0044",
+      "source_path": "themes/03-Transformer/lab/guides/02_transformer_encoder_toy_walkthrough.md",
+      "title": "Пайплайн encoder",
+      "correct": [],
+      "reference": "Токены переводятся в эмбеддинги, добавляется позиционная информация, затем проходят через стек encoder-блоков self-attention + FFN + residual/normalization.",
+      "criteria": [
+        "Перечислены ключевые этапы пайплайна",
+        "Корректно описана роль позиционной информации",
+        "Указана блочная структура encoder"
+      ],
+      "options": []
+    },
+    {
+      "variant": 1,
+      "question_id": "Q21",
+      "question_type": "single",
+      "topic_id": "autoregression",
+      "module_slug": "05-autoregression",
+      "material_id": "mat_0050",
+      "source_path": "themes/04-Autoregression/lab/01_decoder_only_causal_toy.ipynb",
+      "title": "Назначение causal mask",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Чтобы исключить просмотр будущих токенов",
+        "Чтобы убрать loss-функцию",
+        "Чтобы отключить обучение батчами",
+        "Чтобы модель не использовала контекст"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q22",
+      "question_type": "single",
+      "topic_id": "autoregression",
+      "module_slug": "05-autoregression",
+      "material_id": "mat_0051",
+      "source_path": "themes/04-Autoregression/lab/02_decoder_only_tiny_shakespeare.ipynb",
+      "title": "Цель next-token prediction",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Предсказать следующий токен по предыдущему контексту",
+        "Предсказать длину словаря",
+        "Свернуть весь текст в один класс",
+        "Определить номер эпохи"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q23",
+      "question_type": "multiple",
+      "topic_id": "autoregression",
+      "module_slug": "05-autoregression",
+      "material_id": "mat_0052",
+      "source_path": "themes/04-Autoregression/lab/02_decoder_only_tiny_shakespeare_gpu.ipynb",
+      "title": "Стабилизация autoregression",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Контроль learning rate",
+        "Мониторинг validation loss",
+        "Полный отказ от регуляризации",
+        "Ограничение длины контекста под ресурсы"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q24",
+      "question_type": "multiple",
+      "topic_id": "autoregression",
+      "module_slug": "05-autoregression",
+      "material_id": "mat_0053",
+      "source_path": "themes/04-Autoregression/lab/guides/00_autoregression_prerequisites.md",
+      "title": "Показатели качества генерации",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Повторяемость фрагментов",
+        "Потеря связности контекста",
+        "Стабильное разнообразие и согласованность",
+        "Рост ошибок на валидационном наборе"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q25",
+      "question_type": "open",
+      "topic_id": "autoregression",
+      "module_slug": "05-autoregression",
+      "material_id": "mat_0054",
+      "source_path": "themes/04-Autoregression/lab/guides/01_decoder_only_toy_walkthrough.md",
+      "title": "Диагностика повторов",
+      "correct": [],
+      "reference": "Проверить параметры декодирования, динамику loss, длину контекста, затем скорректировать стратегию сэмплирования и регуляризацию с повторной оценкой качества.",
+      "criteria": [
+        "Указаны источники проблемы на уровне обучения и инференса",
+        "Есть конкретные шаги корректировки",
+        "План включает повторную проверку метрик/примеров"
+      ],
+      "options": []
+    },
+    {
+      "variant": 1,
+      "question_id": "Q26",
+      "question_type": "single",
+      "topic_id": "full_transformer",
+      "module_slug": "06-full-transformer",
+      "material_id": "mat_0065",
+      "source_path": "themes/05-Full-Transformer/lab/01_full_transformer_tiny_shakespeare.ipynb",
+      "title": "Связь encoder и decoder",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Через механизм cross-attention к encoder-представлениям",
+        "Через полное игнорирование encoder",
+        "Через случайную замену входа",
+        "Через удаление позиционной информации"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q27",
+      "question_type": "single",
+      "topic_id": "full_transformer",
+      "module_slug": "06-full-transformer",
+      "material_id": "mat_0066",
+      "source_path": "themes/05-Full-Transformer/lab/guides/00_full_transformer_prerequisites.md",
+      "title": "Teacher forcing",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Для стабилизации обучения по целевой последовательности",
+        "Для отключения функции потерь",
+        "Для отказа от валидации",
+        "Для исключения decoder из модели"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q28",
+      "question_type": "multiple",
+      "topic_id": "full_transformer",
+      "module_slug": "06-full-transformer",
+      "material_id": "mat_0067",
+      "source_path": "themes/05-Full-Transformer/lab/guides/01_full_transformer_walkthrough.md",
+      "title": "Шаги инференса full Transformer",
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Кодирование входной последовательности",
+        "Пошаговое декодирование целевого выхода",
+        "Использование накопленного контекста decoder",
+        "Отказ от оценки качества результата"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q29",
+      "question_type": "multiple",
+      "topic_id": "full_transformer",
+      "module_slug": "06-full-transformer",
+      "material_id": "mat_0068",
+      "source_path": "themes/05-Full-Transformer/lab/guides/02_full_transformer_debugging_playbook.md",
+      "title": "Диагностика качества",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Разбор ошибок по типам примеров",
+        "Сравнение train/validation динамики",
+        "Игнорирование ошибок на редких классах",
+        "Анализ стабильности на длинных последовательностях"
+      ]
+    },
+    {
+      "variant": 1,
+      "question_id": "Q30",
+      "question_type": "open",
+      "topic_id": "full_transformer",
+      "module_slug": "06-full-transformer",
+      "material_id": "mat_0069",
+      "source_path": "themes/05-Full-Transformer/lab/solutions/01_full_transformer_wikitext2_solution.ipynb",
+      "title": "Оценивание полного контура",
+      "correct": [],
+      "reference": "Следует учитывать точность на валидации, устойчивость на сложных/длинных примерах, согласованность выхода с входным контекстом и повторяемость результатов.",
+      "criteria": [
+        "Есть количественные и качественные критерии",
+        "Покрыты устойчивость и согласованность",
+        "Критерии применимы к учебному контексту"
+      ],
+      "options": []
+    },
+    {
+      "variant": 2,
+      "question_id": "Q1",
+      "question_type": "single",
+      "topic_id": "foundations",
+      "module_slug": "01-foundations",
+      "material_id": "mat_0003",
+      "source_path": "themes/00-Foundations/examples/02_minimal_keras_sequence_classifier.ipynb",
+      "title": "Роль masking",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Игнорирование служебных позиций при вычислениях",
+        "Принудительное увеличение длины последовательности",
+        "Случайную перестановку токенов",
+        "Удаление всех повторяющихся слов"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q2",
+      "question_type": "single",
+      "topic_id": "foundations",
+      "module_slug": "01-foundations",
+      "material_id": "mat_0004",
+      "source_path": "themes/00-Foundations/examples/03_tokenization_padding_masking.ipynb",
+      "title": "Назначение padding в последовательностях",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Сделать длины последовательностей одинаковыми в батче",
+        "Увеличить словарь токенов",
+        "Удалить редкие токены",
+        "Снизить число признаков в эмбеддинге"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q3",
+      "question_type": "multiple",
+      "topic_id": "foundations",
+      "module_slug": "01-foundations",
+      "material_id": "mat_0005",
+      "source_path": "themes/00-Foundations/examples/04_attention_heatmap_toy.ipynb",
+      "title": "Подготовка входных последовательностей",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Стратегию усечения длинных примеров",
+        "Положение padding-токенов",
+        "Случайную замену всех токенов на одинаковые",
+        "Согласованность с mask-механизмом"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q4",
+      "question_type": "multiple",
+      "topic_id": "foundations",
+      "module_slug": "01-foundations",
+      "material_id": "mat_0006",
+      "source_path": "themes/00-Foundations/showcases/01_imdb_many_to_one_showcase.ipynb",
+      "title": "Базовые метрики качества",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Accuracy",
+        "Precision/Recall",
+        "BLEU",
+        "F1-score"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q5",
+      "question_type": "open",
+      "topic_id": "foundations",
+      "module_slug": "01-foundations",
+      "material_id": "mat_0007",
+      "source_path": "themes/00-Foundations/showcases/02_jena_climate_lstm_gru_showcase.ipynb",
+      "title": "Компромисс padding/truncation",
+      "correct": [],
+      "reference": "Padding повышает совместимость батчей, но добавляет пустые позиции; truncation снижает шум и стоимость, но может терять информацию.",
+      "criteria": [
+        "Описаны плюсы и минусы padding",
+        "Описаны плюсы и риски truncation",
+        "Сделан вывод о выборе стратегии под задачу"
+      ],
+      "options": []
+    },
+    {
+      "variant": 2,
+      "question_id": "Q6",
+      "question_type": "single",
+      "topic_id": "rnn",
+      "module_slug": "02-rnn",
+      "material_id": "mat_0018",
+      "source_path": "themes/01-RNN/lab/02_lstm_many_to_many_toy.ipynb",
+      "title": "Особенность GRU",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Более компактная архитектура с меньшим числом ворот",
+        "Полное отсутствие состояния",
+        "Невозможность работать с последовательностями",
+        "Обязательная двунаправленность"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q7",
+      "question_type": "single",
+      "topic_id": "rnn",
+      "module_slug": "02-rnn",
+      "material_id": "mat_0019",
+      "source_path": "themes/01-RNN/lab/03_gru_seq2seq_reverse_toy.ipynb",
+      "title": "Преимущество LSTM",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Наличие механизма ворот для управления памятью",
+        "Отсутствие рекуррентных связей",
+        "Прямая замена токенов на one-hot",
+        "Полная независимость от длины последовательности"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q8",
+      "question_type": "multiple",
+      "topic_id": "rnn",
+      "module_slug": "02-rnn",
+      "material_id": "mat_0020",
+      "source_path": "themes/01-RNN/lab/guides/00_prerequisites_and_notation.md",
+      "title": "Диагностика RNN",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Рост разрыва между train и validation",
+        "Резкие колебания loss",
+        "Стабильное снижение обоих loss",
+        "Частая деградация на длинных примерах"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q9",
+      "question_type": "multiple",
+      "topic_id": "rnn",
+      "module_slug": "02-rnn",
+      "material_id": "mat_0021",
+      "source_path": "themes/01-RNN/lab/guides/00_self_study_debugging_playbook.md",
+      "title": "Компоненты базового seq2seq",
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Encoder",
+        "Decoder",
+        "Рекуррентная передача состояния",
+        "Обязательная свёрточная голова"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q10",
+      "question_type": "open",
+      "topic_id": "rnn",
+      "module_slug": "02-rnn",
+      "material_id": "mat_0022",
+      "source_path": "themes/01-RNN/lab/guides/01_simple_rnn_many_to_one_beginner.md",
+      "title": "План диагностики RNN",
+      "correct": [],
+      "reference": "Проверить разрыв train/val, скорректировать регуляризацию, раннюю остановку, размер модели и learning rate, затем повторно оценить стабильность метрик.",
+      "criteria": [
+        "Есть шаги наблюдения и коррекции",
+        "Указаны минимум две управляемые гиперпараметрические меры",
+        "Показана связь действий и ожидаемого эффекта"
+      ],
+      "options": []
+    },
+    {
+      "variant": 2,
+      "question_id": "Q11",
+      "question_type": "single",
+      "topic_id": "attention",
+      "module_slug": "03-attention",
+      "material_id": "mat_0034",
+      "source_path": "themes/02-Attention/lab/guides/00_attention_prerequisites.md",
+      "title": "Интерпретация attention-карт",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Как индикатор распределения фокуса модели",
+        "Как доказательство причинности без ограничений",
+        "Как замену всем метрикам качества",
+        "Как признак, что модель не требует тестирования"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q12",
+      "question_type": "single",
+      "topic_id": "attention",
+      "module_slug": "03-attention",
+      "material_id": "mat_0035",
+      "source_path": "themes/02-Attention/lab/guides/01_gru_seq2seq_attention_beginner.md",
+      "title": "Смысл attention-весов",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Относительную важность элементов контекста для текущего шага",
+        "Только длину входной последовательности",
+        "Число эпох обучения",
+        "Порядок слоёв в оптимизаторе"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q13",
+      "question_type": "multiple",
+      "topic_id": "attention",
+      "module_slug": "03-attention",
+      "material_id": "mat_0036",
+      "source_path": "themes/02-Attention/lab/guides/02_attention_walkthrough.md",
+      "title": "Сигналы полезного внимания",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Фокус смещается в зависимости от текущего шага декодера",
+        "Есть связь между attention и снижением ошибок",
+        "Веса всегда равномерны по всем позициям",
+        "Сложные примеры показывают осмысленные зоны фокуса"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q14",
+      "question_type": "multiple",
+      "topic_id": "attention",
+      "module_slug": "03-attention",
+      "material_id": "mat_0037",
+      "source_path": "themes/02-Attention/lab/guides/03_attention_debugging_playbook.md",
+      "title": "Преимущества внимания",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Более явная работа с релевантным контекстом",
+        "Улучшение интерпретируемости поведения",
+        "Гарантия идеальной генерации",
+        "Снижение риска потери важной информации"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q15",
+      "question_type": "open",
+      "topic_id": "attention",
+      "module_slug": "03-attention",
+      "material_id": "mat_0038",
+      "source_path": "themes/02-Attention/lab/solutions/01_gru_seq2seq_attention_reverse_toy_solution.ipynb",
+      "title": "Attention vs фиксированный контекст",
+      "correct": [],
+      "reference": "Attention позволяет динамически перераспределять фокус по входу, фиксированный вектор ограничивает модель единым сжатием всей последовательности.",
+      "criteria": [
+        "Сравнены механизмы представления контекста",
+        "Показано влияние на длинные последовательности",
+        "Сделан вывод о практическом выборе"
+      ],
+      "options": []
+    },
+    {
+      "variant": 2,
+      "question_id": "Q16",
+      "question_type": "single",
+      "topic_id": "transformer_encoder",
+      "module_slug": "04-transformer-encoder",
+      "material_id": "mat_0041",
+      "source_path": "themes/03-Transformer/lab/02_transformer_encoder_imdb.ipynb",
+      "title": "Multi-head идея",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Разные головы могут учить разные типы зависимостей",
+        "Полностью отменяет потребность в данных",
+        "Заменяет функцию потерь",
+        "Убирает потребность в позиционной информации"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q17",
+      "question_type": "single",
+      "topic_id": "transformer_encoder",
+      "module_slug": "04-transformer-encoder",
+      "material_id": "mat_0042",
+      "source_path": "themes/03-Transformer/lab/guides/00_transformer_prerequisites.md",
+      "title": "Роль positional encoding",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Чтобы модель учитывала порядок токенов",
+        "Чтобы исключить self-attention",
+        "Чтобы убрать нормализацию",
+        "Чтобы уменьшить размер словаря"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q18",
+      "question_type": "multiple",
+      "topic_id": "transformer_encoder",
+      "module_slug": "04-transformer-encoder",
+      "material_id": "mat_0043",
+      "source_path": "themes/03-Transformer/lab/guides/01_self_attention_and_positional_encoding_beginner.md",
+      "title": "Диагностика encoder",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Динамика train/validation метрик",
+        "Стабильность attention-распределений",
+        "Полный отказ от валидации",
+        "Кривые обучения по эпохам"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q19",
+      "question_type": "multiple",
+      "topic_id": "transformer_encoder",
+      "module_slug": "04-transformer-encoder",
+      "material_id": "mat_0044",
+      "source_path": "themes/03-Transformer/lab/guides/02_transformer_encoder_toy_walkthrough.md",
+      "title": "Состав encoder-блока",
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Multi-head self-attention",
+        "Feed-forward sublayer",
+        "Residual connections и нормализация",
+        "Только рекуррентный hidden state"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q20",
+      "question_type": "open",
+      "topic_id": "transformer_encoder",
+      "module_slug": "04-transformer-encoder",
+      "material_id": "mat_0045",
+      "source_path": "themes/03-Transformer/lab/guides/03_transformer_encoder_imdb_walkthrough.md",
+      "title": "Недостаток позиции",
+      "correct": [],
+      "reference": "Модель хуже различает порядок токенов, что ведёт к ошибкам в задачах, где порядок критичен для смысла.",
+      "criteria": [
+        "Объяснено влияние на учет порядка",
+        "Связь с потенциальной деградацией качества",
+        "Дан пример или тип задач, где риск высок"
+      ],
+      "options": []
+    },
+    {
+      "variant": 2,
+      "question_id": "Q21",
+      "question_type": "single",
+      "topic_id": "autoregression",
+      "module_slug": "05-autoregression",
+      "material_id": "mat_0051",
+      "source_path": "themes/04-Autoregression/lab/02_decoder_only_tiny_shakespeare.ipynb",
+      "title": "Генерация в decoder-only",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Последовательным добавлением новых токенов",
+        "Параллельной выдачей всех токенов без контекста",
+        "Случайной перестановкой обучающего корпуса",
+        "Только одним шагом независимо от длины"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q22",
+      "question_type": "single",
+      "topic_id": "autoregression",
+      "module_slug": "05-autoregression",
+      "material_id": "mat_0052",
+      "source_path": "themes/04-Autoregression/lab/02_decoder_only_tiny_shakespeare_gpu.ipynb",
+      "title": "Назначение causal mask",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Чтобы исключить просмотр будущих токенов",
+        "Чтобы убрать loss-функцию",
+        "Чтобы отключить обучение батчами",
+        "Чтобы модель не использовала контекст"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q23",
+      "question_type": "multiple",
+      "topic_id": "autoregression",
+      "module_slug": "05-autoregression",
+      "material_id": "mat_0053",
+      "source_path": "themes/04-Autoregression/lab/guides/00_autoregression_prerequisites.md",
+      "title": "Декодирование и компромиссы",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Баланс между разнообразием и устойчивостью",
+        "Риск повторов в длинной генерации",
+        "Наличие padding mask в encoder-only модели",
+        "Требования к управляемости вывода"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q24",
+      "question_type": "multiple",
+      "topic_id": "autoregression",
+      "module_slug": "05-autoregression",
+      "material_id": "mat_0054",
+      "source_path": "themes/04-Autoregression/lab/guides/01_decoder_only_toy_walkthrough.md",
+      "title": "Стабилизация autoregression",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Контроль learning rate",
+        "Мониторинг validation loss",
+        "Полный отказ от регуляризации",
+        "Ограничение длины контекста под ресурсы"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q25",
+      "question_type": "open",
+      "topic_id": "autoregression",
+      "module_slug": "05-autoregression",
+      "material_id": "mat_0055",
+      "source_path": "themes/04-Autoregression/lab/guides/02_autoregression_debugging_playbook.md",
+      "title": "Train vs inference",
+      "correct": [],
+      "reference": "На обучении модель видит корректный префикс и учится прогнозировать следующий токен, на инференсе она опирается на собственные предсказания, что может накапливать ошибки.",
+      "criteria": [
+        "Отражены различия в доступном контексте",
+        "Пояснён риск накопления ошибок на инференсе",
+        "Ответ логично структурирован"
+      ],
+      "options": []
+    },
+    {
+      "variant": 2,
+      "question_id": "Q26",
+      "question_type": "single",
+      "topic_id": "full_transformer",
+      "module_slug": "06-full-transformer",
+      "material_id": "mat_0066",
+      "source_path": "themes/05-Full-Transformer/lab/guides/00_full_transformer_prerequisites.md",
+      "title": "Cross-attention сигнал",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Скрытые представления encoder",
+        "Только номер эпохи",
+        "Только длина словаря",
+        "Случайный шум без связи с входом"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q27",
+      "question_type": "single",
+      "topic_id": "full_transformer",
+      "module_slug": "06-full-transformer",
+      "material_id": "mat_0067",
+      "source_path": "themes/05-Full-Transformer/lab/guides/01_full_transformer_walkthrough.md",
+      "title": "Связь encoder и decoder",
+      "correct": [
+        0
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Через механизм cross-attention к encoder-представлениям",
+        "Через полное игнорирование encoder",
+        "Через случайную замену входа",
+        "Через удаление позиционной информации"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q28",
+      "question_type": "multiple",
+      "topic_id": "full_transformer",
+      "module_slug": "06-full-transformer",
+      "material_id": "mat_0068",
+      "source_path": "themes/05-Full-Transformer/lab/guides/02_full_transformer_debugging_playbook.md",
+      "title": "Риски полного контура",
+      "correct": [
+        0,
+        1,
+        3
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Ошибки согласования между encoder и decoder",
+        "Деградация на длинных зависимостях",
+        "Абсолютная нечувствительность к качеству данных",
+        "Рост вычислительной стоимости обучения"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q29",
+      "question_type": "multiple",
+      "topic_id": "full_transformer",
+      "module_slug": "06-full-transformer",
+      "material_id": "mat_0069",
+      "source_path": "themes/05-Full-Transformer/lab/solutions/01_full_transformer_wikitext2_solution.ipynb",
+      "title": "Шаги инференса full Transformer",
+      "correct": [
+        0,
+        1,
+        2
+      ],
+      "reference": "",
+      "criteria": [],
+      "options": [
+        "Кодирование входной последовательности",
+        "Пошаговое декодирование целевого выхода",
+        "Использование накопленного контекста decoder",
+        "Отказ от оценки качества результата"
+      ]
+    },
+    {
+      "variant": 2,
+      "question_id": "Q30",
+      "question_type": "open",
+      "topic_id": "full_transformer",
+      "module_slug": "06-full-transformer",
+      "material_id": "mat_0070",
+      "source_path": "themes/05-Full-Transformer/theory/theory.md",
+      "title": "Train/inference разрыв",
+      "correct": [],
+      "reference": "На обучении модель опирается на корректные целевые префиксы, на инференсе — на собственные предсказания, поэтому ошибки могут накапливаться и ухудшать дальние шаги.",
+      "criteria": [
+        "Корректно описан источник разрыва",
+        "Показано влияние на качество последовательности",
+        "Дана логичная аргументация"
+      ],
+      "options": []
+    }
+  ]
+}

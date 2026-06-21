@@ -1,0 +1,864 @@
+[cell 001 | markdown]
+# Лабораторная 5: полный трансформер `encoder-decoder` на `Tiny Shakespeare` (starter)
+
+Цель: реализовать полный контур `encoder-decoder` для предсказания следующего токена
+и пройти детерминированный workflow `TODO 1..6`.
+
+[cell 002 | markdown]
+## Маршрут выполнения
+
+1. `TODO 1`: контракт данных.
+2. `TODO 2`: ручной пример причинной маски.
+3. `TODO 3`: модель `encoder-decoder`.
+4. `TODO 4`: обучение, `loss`, `perplexity`.
+5. `TODO 5`: детерминированная генерация.
+6. `TODO 6`: диагностика внимания.
+
+[cell 003 | code]
+import ctypes
+import json
+import os
+import random
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+PROFILES = {
+    'CPU-friendly': {
+        'max_chars': 140_000,
+        'src_len': 72,
+        'tgt_len': 72,
+        'stride': 3,
+        'batch_size': 64,
+        'd_model': 128,
+        'num_heads': 4,
+        'd_ff': 256,
+        'num_layers': 2,
+        'dropout': 0.1,
+        'learning_rate': 3e-4,
+        'epochs': 14,
+        'early_stopping_patience': 3,
+        'probe_count': 20,
+        'gen_len': 48,
+        'gen_success_threshold': 18,
+        'gen_mean_threshold': 0.70,
+    },
+    'GPU-friendly': {
+        'max_chars': 220_000,
+        'src_len': 80,
+        'tgt_len': 80,
+        'stride': 2,
+        'batch_size': 128,
+        'd_model': 192,
+        'num_heads': 6,
+        'd_ff': 512,
+        'num_layers': 3,
+        'dropout': 0.1,
+        'learning_rate': 2.5e-4,
+        'epochs': 18,
+        'early_stopping_patience': 3,
+        'probe_count': 20,
+        'gen_len': 56,
+        'gen_success_threshold': 18,
+        'gen_mean_threshold': 0.70,
+    },
+}
+
+RUNTIME_PROFILE = os.getenv('COURSE_RUNTIME_PROFILE', 'CPU-friendly')
+if RUNTIME_PROFILE not in PROFILES:
+    raise ValueError(f'Неизвестный профиль: {RUNTIME_PROFILE}')
+
+SEED = 42
+RUN_STARTED_AT = time.time()
+
+
+def _prepend_path_env(var_name: str, new_paths: list[Path]) -> None:
+    """Добавляет пути в начало переменной окружения.
+
+    Аргументы:
+        var_name: Имя переменной окружения с путями.
+        new_paths: Пути-кандидаты для добавления.
+
+    Возвращает:
+        None.
+
+    Исключения:
+        RuntimeError: Не выбрасывается в штатном режиме.
+    """
+    existing = os.environ.get(var_name, '')
+    existing_parts = [part for part in existing.split(':') if part]
+    merged: list[str] = []
+    for path in new_paths:
+        if path.is_dir():
+            path_str = str(path)
+            if path_str not in merged:
+                merged.append(path_str)
+    for part in existing_parts:
+        if part not in merged:
+            merged.append(part)
+    if merged:
+        os.environ[var_name] = ':'.join(merged)
+
+
+def _detect_site_packages_dir() -> Path | None:
+    """Возвращает каталог `site-packages` активной виртуальной среды.
+
+    Аргументы:
+        Нет.
+
+    Возвращает:
+        Путь к `site-packages` или `None`.
+
+    Исключения:
+        RuntimeError: Не выбрасывается в штатном режиме.
+    """
+    major, minor = sys.version_info[:2]
+    candidate = Path(sys.prefix) / 'lib' / f'python{major}.{minor}' / 'site-packages'
+    if candidate.is_dir():
+        return candidate
+    return None
+
+
+def _preload_cuda_runtime_libraries(site_packages: Path) -> dict:
+    """Предзагружает CUDA-библиотеки до импорта TensorFlow.
+
+    Аргументы:
+        site_packages: Каталог `site-packages` текущей среды.
+
+    Возвращает:
+        Словарь с ключами `loaded`, `missing`, `failed`.
+
+    Исключения:
+        RuntimeError: Не выбрасывается в штатном режиме.
+    """
+    nvidia_root = site_packages / 'nvidia'
+    library_specs = [
+        ('cuda_runtime', 'libcudart.so.12'),
+        ('cublas', 'libcublas.so.12'),
+        ('cublas', 'libcublasLt.so.12'),
+        ('cudnn', 'libcudnn.so.9'),
+        ('cufft', 'libcufft.so.11'),
+        ('curand', 'libcurand.so.10'),
+        ('cusolver', 'libcusolver.so.11'),
+        ('cusparse', 'libcusparse.so.12'),
+        ('nccl', 'libnccl.so.2'),
+        ('nvjitlink', 'libnvJitLink.so.12'),
+    ]
+
+    loaded: list[str] = []
+    missing: list[str] = []
+    failed: list[str] = []
+
+    for subdir, library_name in library_specs:
+        library_path = nvidia_root / subdir / 'lib' / library_name
+        if not library_path.is_file():
+            missing.append(str(library_path))
+            continue
+        try:
+            ctypes.CDLL(str(library_path), mode=ctypes.RTLD_GLOBAL)
+            loaded.append(str(library_path))
+        except OSError as exc:
+            failed.append(f'{library_path}: {exc}')
+
+    return {'loaded': loaded, 'missing': missing, 'failed': failed}
+
+
+def _configure_local_gpu_runtime_env(runtime_profile: str) -> dict:
+    """Готовит переменные окружения для локального запуска на GPU.
+
+    Аргументы:
+        runtime_profile: Текущий профиль (`CPU-friendly` или `GPU-friendly`).
+
+    Возвращает:
+        Сводка применения настройки окружения.
+
+    Исключения:
+        RuntimeError: Не выбрасывается в штатном режиме.
+    """
+    if runtime_profile != 'GPU-friendly':
+        return {'applied': False, 'reason': 'runtime_profile != GPU-friendly'}
+
+    site_packages = _detect_site_packages_dir()
+    if site_packages is None:
+        return {'applied': False, 'reason': 'site-packages not found'}
+
+    tensorflow_dir = site_packages / 'tensorflow'
+    nvidia_root = site_packages / 'nvidia'
+    nvidia_lib_dirs = sorted(path for path in nvidia_root.glob('*/lib') if path.is_dir())
+
+    _prepend_path_env('LD_LIBRARY_PATH', [tensorflow_dir, *nvidia_lib_dirs])
+    _prepend_path_env('PATH', [site_packages / 'nvidia' / 'cuda_nvcc' / 'bin'])
+
+    preload_report = _preload_cuda_runtime_libraries(site_packages)
+
+    return {
+        'applied': True,
+        'site_packages': str(site_packages),
+        'tensorflow_dir': str(tensorflow_dir),
+        'nvidia_lib_dirs': [str(path) for path in nvidia_lib_dirs],
+        'preload_report': preload_report,
+    }
+
+
+gpu_env_info = _configure_local_gpu_runtime_env(RUNTIME_PROFILE)
+
+import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+
+
+def seed_everything(seed: int) -> None:
+    """Фиксирует источники случайности.
+
+    Аргументы:
+        seed: Целое зерно случайности.
+
+    Возвращает:
+        None.
+
+    Исключения:
+        ValueError: Если `seed` отрицательный.
+    """
+    if seed < 0:
+        raise ValueError('seed должен быть неотрицательным.')
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    tf.keras.utils.set_random_seed(seed)
+    try:
+        tf.config.experimental.enable_op_determinism()
+    except Exception:
+        pass
+
+
+def gpu_preflight(runtime_profile: str) -> dict:
+    """Проверяет реальную готовность GPU-пути перед обучением.
+
+    Аргументы:
+        runtime_profile: Выбранный профиль выполнения.
+
+    Возвращает:
+        Краткий отчёт о найденных GPU и версии TensorFlow.
+
+    Исключения:
+        RuntimeError: Если для `GPU-friendly` не выполнены условия запуска на GPU.
+    """
+    if runtime_profile != 'GPU-friendly':
+        return {
+            'passed': False,
+            'skipped': True,
+            'reason': 'runtime_profile != GPU-friendly',
+        }
+
+    try:
+        nvidia_report = subprocess.run(
+            ['nvidia-smi', '-L'],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        lines = [line for line in nvidia_report.stdout.strip().splitlines() if line.strip()]
+        print('nvidia-smi -L (первые строки):')
+        for line in lines[:3]:
+            print('  ', line)
+    except Exception as exc:
+        raise RuntimeError(
+            'GPU не виден (setup): команда nvidia-smi недоступна или вернула ошибку. '
+            'Используйте готовый маршрут из '
+            'themes/00-Foundations/guides/05_local_tensorflow_gpu_notebooks.md.'
+        ) from exc
+
+    print('TensorFlow version:', tf.__version__)
+    print('TensorFlow built with CUDA:', tf.test.is_built_with_cuda())
+    build_info = tf.sysconfig.get_build_info()
+    print('TensorFlow build cuda_version:', build_info.get('cuda_version', 'unknown'))
+    print('TensorFlow build cudnn_version:', build_info.get('cudnn_version', 'unknown'))
+
+    physical_gpus = tf.config.list_physical_devices('GPU')
+    logical_gpus = tf.config.list_logical_devices('GPU')
+    print('Physical GPUs:', [device.name for device in physical_gpus])
+    print('Logical GPUs :', [device.name for device in logical_gpus])
+
+    if len(physical_gpus) == 0 or len(logical_gpus) == 0:
+        raise RuntimeError(
+            'GPU не виден (setup): TensorFlow не зарегистрировал GPU-устройства. '
+            'Проверьте окружение по guides 05/06/07 в themes/00-Foundations.'
+        )
+
+    try:
+        with tf.device('/GPU:0'):
+            lhs = tf.random.normal((128, 128), dtype=tf.float32)
+            rhs = tf.random.normal((128, 128), dtype=tf.float32)
+            product = tf.matmul(lhs, rhs)
+            _ = float(tf.reduce_mean(product).numpy())
+
+        with tf.device('/GPU:0'):
+            smoke_model = keras.Sequential([
+                keras.layers.Input(shape=(16,), dtype=tf.float32),
+                keras.layers.Dense(32, activation='relu'),
+                keras.layers.Dense(1),
+            ])
+            smoke_model.compile(optimizer='adam', loss='mse')
+            features = tf.random.normal((32, 16), dtype=tf.float32)
+            targets = tf.random.normal((32, 1), dtype=tf.float32)
+            smoke_model.train_on_batch(features, targets)
+    except Exception as exc:
+        raise RuntimeError(
+            'GPU виден, но kernels падают (compatibility). Это не ошибка кода ЛР. '
+            'См. themes/00-Foundations/guides/07_tensorflow_blackwell_local_gpu_case_study.md. '
+            f'Исходная ошибка: {type(exc).__name__}: {exc}'
+        ) from exc
+
+    print('gpu_preflight(): PASSED')
+    return {
+        'passed': True,
+        'physical_gpus': [device.name for device in physical_gpus],
+        'logical_gpus': [device.name for device in logical_gpus],
+        'tf_version': tf.__version__,
+    }
+
+
+cfg = dict(PROFILES[RUNTIME_PROFILE])
+cfg['runtime_profile'] = RUNTIME_PROFILE
+seed_everything(SEED)
+preflight_info = gpu_preflight(RUNTIME_PROFILE)
+
+print(json.dumps(cfg, ensure_ascii=False, indent=2))
+print('gpu_env_info:', json.dumps(gpu_env_info, ensure_ascii=False, indent=2)[:800])
+print('preflight_info:', json.dumps(preflight_info, ensure_ascii=False, indent=2))
+
+[cell 004 | markdown]
+## TODO 1. Контракт данных
+
+Реализуйте загрузку `Tiny Shakespeare`, токенизацию и окна:
+- `encoder_input = ids[i : i + SRC_LEN]`
+- `target = ids[i + SRC_LEN : i + SRC_LEN + TGT_LEN]`
+- `decoder_input = [SOS] + target[:-1]`
+- `decoder_target = target`
+
+**Смысл блока:** превратить непрерывный текст в воспроизводимые учебные пары «контекст -> продолжение».
+
+**Что обязательно проверить:** формы тензоров, корректный сдвиг через `SOS`, совпадение первых `k` примеров при одном и том же `seed`.
+
+[cell 005 | code]
+PAD_TOKEN = '<pad>'
+SOS_TOKEN = '<sos>'
+
+
+def load_tiny_shakespeare_text(profile_cfg: dict) -> str:
+    """Загружает корпус Tiny Shakespeare.
+
+    Аргументы:
+        profile_cfg: Конфигурация активного профиля.
+
+    Возвращает:
+        Текст корпуса.
+
+    Исключения:
+        RuntimeError: Если загрузка корпуса завершилась ошибкой.
+    """
+    # Смысл: загрузка корпуса должна быть одинаковой у всех студентов при одном маршруте.
+    # TODO 1.1: Загрузите корпус через tf.keras.utils.get_file.
+    raise NotImplementedError('TODO 1.1')
+
+
+def build_char_vocabulary(text: str) -> tuple[list[str], dict[str, int], dict[int, str]]:
+    """Строит символьный словарь.
+
+    Аргументы:
+        text: Исходный текст корпуса.
+
+    Возвращает:
+        `(vocab, char_to_id, id_to_char)`.
+
+    Исключения:
+        ValueError: Если текст пустой.
+    """
+    # Смысл: словарь задаёт пространство предсказаний модели и индексы спецтокенов.
+    # TODO 1.2: Реализуйте построение словаря.
+    raise NotImplementedError('TODO 1.2')
+
+
+def encode_text(text: str, char_to_id: dict[str, int]) -> np.ndarray:
+    """Кодирует текст в индексы.
+
+    Аргументы:
+        text: Исходный текст.
+        char_to_id: Словарь символ -> индекс.
+
+    Возвращает:
+        Массив индексов.
+
+    Исключения:
+        KeyError: Если символ отсутствует в словаре.
+    """
+    # Проверка: кодирование должно быть обратимо через id_to_char для известных символов.
+    # TODO 1.3
+    raise NotImplementedError('TODO 1.3')
+
+
+def build_seq2seq_windows(
+    token_ids: np.ndarray,
+    src_len: int,
+    tgt_len: int,
+    stride: int,
+    sos_id: int,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Формирует окна для `encoder/decoder`.
+
+    Аргументы:
+        token_ids: Полная токенизированная последовательность.
+        src_len: Длина входа кодировщика.
+        tgt_len: Длина цели декодера.
+        stride: Шаг окна.
+        sos_id: Индекс `SOS`.
+
+    Возвращает:
+        `(encoder_inputs, decoder_inputs, decoder_targets)`.
+
+    Исключения:
+        ValueError: Если корпус слишком короткий.
+    """
+    # Смысл: teacher forcing реализуется сдвигом decoder_input относительно decoder_target.
+    # TODO 1.4
+    raise NotImplementedError('TODO 1.4')
+
+
+# Смысл: фиксированные индексы train/val/test исключают случайные расхождения между запусками.
+# TODO 1.5: Постройте train/val/test и tf.data.Dataset.
+# Проверка: probes должны быть воспроизводимыми и отделены от обучающего маршрута.
+# TODO 1.6: Зафиксируйте probe_pairs из 20 подсказок.
+
+[cell 006 | code]
+# Мини-проверка 1
+# Смысл: быстрый контроль, что контракт данных реализован до перехода к модели.
+# Частая ошибка: перепутаны оси `(batch, length)` и `(length, batch)`.
+assert 'train_encoder_inputs' in globals(), 'Ожидается train_encoder_inputs.'
+assert 'train_decoder_inputs' in globals(), 'Ожидается train_decoder_inputs.'
+assert 'train_decoder_targets' in globals(), 'Ожидается train_decoder_targets.'
+
+assert train_encoder_inputs.shape[1] == cfg['src_len']
+assert train_decoder_inputs.shape[1] == cfg['tgt_len']
+assert train_decoder_targets.shape[1] == cfg['tgt_len']
+
+assert len(probe_pairs) == cfg['probe_count']
+print('Mini-check 1 пройден.')
+
+[cell 007 | markdown]
+## TODO 2. Ручной пример причинной маски
+
+**Смысл блока:** увидеть, что декодер не имеет права смотреть вправо по времени (в будущее).
+
+**Что обязательно проверить:** маска нижнетреугольная, диагональ разрешена, выше диагонали только запрет.
+
+[cell 008 | code]
+def build_causal_mask(seq_len: int) -> np.ndarray:
+    """Строит нижнетреугольную причинную маску.
+
+    Аргументы:
+        seq_len: Длина последовательности.
+
+    Возвращает:
+        Булева матрица `(seq_len, seq_len)`.
+
+    Исключения:
+        ValueError: Если `seq_len` неположителен.
+    """
+    # Смысл: причинная маска обязана блокировать доступ к будущим позициям.
+    # TODO 2.1
+    raise NotImplementedError('TODO 2.1')
+
+
+# Проверка: assert должен одновременно валидировать форму и верхнетреугольный запрет.
+# TODO 2.2: Проверьте форму маски и запрет на будущее через assert.
+
+[cell 009 | markdown]
+## TODO 3. Реализация модели `encoder-decoder`
+
+**Смысл блока:** собрать полный тракт `кодировщик -> декодер` и связать маски с реальными тензорами внимания.
+
+**Что обязательно проверить:** формы выходов каждого блока, корректность `encoder/decoder/cross` масок, один успешный `forward pass`.
+
+[cell 010 | code]
+def sinusoidal_position_encoding(length: int, depth: int) -> tf.Tensor:
+    """Возвращает синусоидальное позиционное кодирование.
+
+    Аргументы:
+        length: Максимальная длина.
+        depth: Размерность представления.
+
+    Возвращает:
+        Тензор `(length, depth)`.
+
+    Исключения:
+        ValueError: Если параметры неположительны.
+    """
+    # Смысл: позиционное кодирование добавляет порядок в модель без рекуррентности.
+    # TODO 3.1
+    raise NotImplementedError('TODO 3.1')
+
+
+class TokenAndPositionEmbedding(keras.layers.Layer):
+    """Токенные эмбеддинги + позиционное кодирование.
+
+    Аргументы:
+        vocab_size: Размер словаря.
+        d_model: Размерность модели.
+        max_len: Максимальная длина.
+
+    Возвращает:
+        Тензор `(batch, length, d_model)`.
+
+    Исключения:
+        ValueError: Если параметры слоя некорректны.
+    """
+
+    def __init__(self, vocab_size: int, d_model: int, max_len: int) -> None:
+        """Инициализирует слой токенных и позиционных эмбеддингов.
+
+        Аргументы:
+            vocab_size: Размер словаря.
+            d_model: Размерность модели.
+            max_len: Максимальная длина последовательности.
+
+        Возвращает:
+            None.
+
+        Исключения:
+            ValueError: Если параметры слоя некорректны.
+        """
+        super().__init__()
+        # Смысл: объединяем токенный эмбеддинг и позиционный сигнал в одном пространстве признаков.
+        # TODO 3.2
+        raise NotImplementedError('TODO 3.2')
+
+    def call(self, token_ids: tf.Tensor) -> tf.Tensor:
+        """Складывает токенные и позиционные представления.
+
+        Аргументы:
+            token_ids: Тензор индексов токенов.
+
+        Возвращает:
+            Тензор признаков.
+
+        Исключения:
+            RuntimeError: Если вычисление слоя завершилось ошибкой.
+        """
+        # Проверка: выход должен иметь форму `(batch, length, d_model)`.
+        # TODO 3.3
+        raise NotImplementedError('TODO 3.3')
+
+
+class TransformerEncoderBlock(keras.layers.Layer):
+    """Один блок кодировщика трансформера.
+
+    Аргументы:
+        d_model: Размерность модели.
+        num_heads: Число голов внимания.
+        d_ff: Размерность FFN.
+        dropout_rate: Вероятность dropout.
+
+    Возвращает:
+        Тензор `(batch, src_len, d_model)`.
+
+    Исключения:
+        ValueError: Если параметры блока некорректны.
+    """
+
+    def __init__(self, d_model: int, num_heads: int, d_ff: int, dropout_rate: float) -> None:
+        """Инициализирует блок кодировщика.
+
+        Аргументы:
+            d_model: Размерность модели.
+            num_heads: Число голов внимания.
+            d_ff: Размерность FFN.
+            dropout_rate: Вероятность dropout.
+
+        Возвращает:
+            None.
+
+        Исключения:
+            ValueError: Если параметры блока некорректны.
+        """
+        super().__init__()
+        # Смысл: блок encoder = self-attention + FFN + residual + layer norm.
+        # TODO 3.4
+        raise NotImplementedError('TODO 3.4')
+
+    def call(self, x: tf.Tensor, attention_mask: tf.Tensor, training: bool) -> tf.Tensor:
+        """Выполняет прямой проход блока кодировщика.
+
+        Аргументы:
+            x: Входной тензор.
+            attention_mask: Маска self-attention.
+            training: Флаг режима обучения.
+
+        Возвращает:
+            Обновлённый тензор признаков.
+
+        Исключения:
+            RuntimeError: Если вычисление блока завершилось ошибкой.
+        """
+        # Проверка: маска должна проходить в self-attention и сохранять причинно-валидные связи.
+        # TODO 3.5
+        raise NotImplementedError('TODO 3.5')
+
+
+class TransformerDecoderBlock(keras.layers.Layer):
+    """Один блок декодера: masked self-attention + cross-attention.
+
+    Аргументы:
+        d_model: Размерность модели.
+        num_heads: Число голов внимания.
+        d_ff: Размерность FFN.
+        dropout_rate: Вероятность dropout.
+
+    Возвращает:
+        Кортеж `(decoder_output, self_attention_scores_or_none)`.
+
+    Исключения:
+        ValueError: Если параметры блока некорректны.
+    """
+
+    def __init__(self, d_model: int, num_heads: int, d_ff: int, dropout_rate: float) -> None:
+        """Инициализирует блок декодера.
+
+        Аргументы:
+            d_model: Размерность модели.
+            num_heads: Число голов внимания.
+            d_ff: Размерность FFN.
+            dropout_rate: Вероятность dropout.
+
+        Возвращает:
+            None.
+
+        Исключения:
+            ValueError: Если параметры блока некорректны.
+        """
+        super().__init__()
+        # Смысл: блок decoder сочетает masked self-attention и cross-attention к encoder.
+        # TODO 3.6
+        raise NotImplementedError('TODO 3.6')
+
+    def call(
+        self,
+        x: tf.Tensor,
+        encoder_output: tf.Tensor,
+        self_attention_mask: tf.Tensor,
+        cross_attention_mask: tf.Tensor,
+        training: bool,
+        return_attention_scores: bool = False,
+    ) -> tuple[tf.Tensor, tf.Tensor | None]:
+        """Выполняет проход блока декодера с двумя типами внимания.
+
+        Аргументы:
+            x: Вход декодера.
+            encoder_output: Выход кодировщика.
+            self_attention_mask: Маска self-attention декодера.
+            cross_attention_mask: Маска cross-attention.
+            training: Флаг режима обучения.
+            return_attention_scores: Нужно ли вернуть attention scores.
+
+        Возвращает:
+            Кортеж `(decoder_output, attention_scores_or_none)`.
+
+        Исключения:
+            RuntimeError: Если вычисление блока завершилось ошибкой.
+        """
+        # Проверка: при return_attention_scores=True верните веса первого self-attention блока.
+        # TODO 3.7
+        raise NotImplementedError('TODO 3.7')
+
+
+class FullTransformerModel(keras.Model):
+    """Полный `encoder-decoder` трансформер.
+
+    Аргументы:
+        vocab_size: Размер словаря.
+        src_len: Длина encoder input.
+        tgt_len: Длина decoder input.
+        d_model: Размерность модели.
+        num_heads: Число голов внимания.
+        d_ff: Размерность FFN.
+        num_layers: Число блоков.
+        dropout_rate: Вероятность dropout.
+        pad_id: Индекс `PAD`.
+
+    Возвращает:
+        Логиты `(batch, tgt_len, vocab_size)`.
+
+    Исключения:
+        ValueError: Если параметры модели некорректны.
+    """
+
+    def __init__(
+        self,
+        vocab_size: int,
+        src_len: int,
+        tgt_len: int,
+        d_model: int,
+        num_heads: int,
+        d_ff: int,
+        num_layers: int,
+        dropout_rate: float,
+        pad_id: int,
+    ) -> None:
+        """Инициализирует полную модель `encoder-decoder`.
+
+        Аргументы:
+            vocab_size: Размер словаря.
+            src_len: Длина входа кодировщика.
+            tgt_len: Длина входа декодера.
+            d_model: Размерность модели.
+            num_heads: Число голов внимания.
+            d_ff: Размерность FFN.
+            num_layers: Число блоков в encoder/decoder.
+            dropout_rate: Вероятность dropout.
+            pad_id: Индекс токена `PAD`.
+
+        Возвращает:
+            None.
+
+        Исключения:
+            ValueError: Если параметры модели некорректны.
+        """
+        super().__init__()
+        # Смысл: на уровне полной модели соберите стек encoder/decoder и слой проекции в словарь.
+        # TODO 3.8
+        raise NotImplementedError('TODO 3.8')
+
+    def call(
+        self,
+        inputs: tuple[tf.Tensor, tf.Tensor],
+        training: bool = False,
+        return_attention: bool = False,
+    ):
+        """Выполняет прямой проход полной модели.
+
+        Аргументы:
+            inputs: Кортеж `(encoder_tokens, decoder_tokens)`.
+            training: Флаг режима обучения.
+            return_attention: Нужно ли вернуть карту внимания.
+
+        Возвращает:
+            Логиты или кортеж `(логиты, attention_scores)`.
+
+        Исключения:
+            RuntimeError: Если построение масок или проход завершились ошибкой.
+        """
+        # Проверка: сформируйте три маски (encoder/decoder/cross) и прокиньте их по всем блокам.
+        # TODO 3.9
+        raise NotImplementedError('TODO 3.9')
+
+
+# Проверка: mini-check должен подтвердить форму логитов `(batch, tgt_len, vocab_size)`.
+# TODO 3.10: Создайте экземпляр модели и выполните один forward pass.
+
+[cell 011 | markdown]
+## TODO 4. Обучение и перплексия
+
+**Смысл блока:** связать математику `NLL -> cross-entropy -> perplexity` с фактическими вычислениями в коде.
+
+**Что обязательно проверить:** маскирование `PAD`, динамика `train/val loss`, неравенство `test_perplexity < baseline_perplexity`.
+
+[cell 012 | code]
+def calculate_unigram_baseline_perplexity(
+    train_targets: np.ndarray,
+    eval_targets: np.ndarray,
+    vocab_size: int,
+) -> float:
+    """Считает baseline-перплексию униграммной модели.
+
+    Аргументы:
+        train_targets: Токены целей обучающей выборки.
+        eval_targets: Токены целей тестовой выборки.
+        vocab_size: Размер словаря.
+
+    Возвращает:
+        Значение baseline-перплексии.
+
+    Исключения:
+        ValueError: Если входные массивы пусты.
+    """
+    # Смысл: baseline показывает, насколько модель лучше частотного угадывания токенов.
+    # TODO 4.1
+    raise NotImplementedError('TODO 4.1')
+
+
+# Смысл: в loss/accuracy учитываем только валидные токены, игнорируя PAD-позиции.
+# TODO 4.2: Реализуйте masked_loss и masked_accuracy.
+# TODO 4.3: Скомпилируйте модель.
+# Проверка: ранняя остановка защищает от переобучения и экономит учебный бюджет времени.
+# TODO 4.4: Запустите обучение с EarlyStopping.
+# Проверка: этот assert фиксирует минимальное требование качества для прохождения.
+# TODO 4.5: Проверьте test_perplexity < baseline_perplexity.
+
+[cell 013 | markdown]
+## TODO 5. Детерминированная генерация
+
+**Смысл блока:** проверить, как модель продолжает текст в фиксированном маршруте без случайного сэмплирования.
+
+**Что обязательно проверить:** одинаковые результаты при повторном запуске и прохождение порогов `success_count` и `mean_match_ratio`.
+
+[cell 014 | code]
+def generate_continuation(
+    model: keras.Model,
+    prompt: str,
+    char_to_id: dict[str, int],
+    id_to_char: dict[int, str],
+    profile_cfg: dict,
+    sos_id: int,
+    pad_id: int,
+) -> str:
+    """Генерирует продолжение фиксированной длины.
+
+    Аргументы:
+        model: Обученная модель.
+        prompt: Текст-подсказка.
+        char_to_id: Отображение символа в индекс.
+        id_to_char: Отображение индекса в символ.
+        profile_cfg: Конфигурация профиля.
+        sos_id: Индекс `SOS`.
+        pad_id: Индекс `PAD`.
+
+    Возвращает:
+        Сгенерированное продолжение.
+
+    Исключения:
+        RuntimeError: Если генерация невозможна.
+    """
+    # Смысл: генерация должна быть детерминированной (argmax), иначе проверки станут нестабильными.
+    # TODO 5.1
+    raise NotImplementedError('TODO 5.1')
+
+
+# Смысл: probes проверяют поведение модели в контролируемых практических сценариях.
+# TODO 5.2: Оцените 20 фиксированных probes.
+# Проверка: порог прохождения должен быть выражен жёстким assert, а не устной оценкой.
+# TODO 5.3: Проверьте строгий gate starter: success_count>=18 и mean_match_ratio>=0.70.
+
+[cell 015 | markdown]
+## TODO 6. Диагностика внимания
+
+**Смысл блока:** доказать на карте внимания, что причинность соблюдается не на словах, а численно.
+
+**Что обязательно проверить:** максимум в запрещённой верхнетреугольной зоне пренебрежимо мал и проходит `assert`.
+
+[cell 016 | code]
+# Смысл: диагностируем именно decoder self-attention, где работает причинная маска.
+# TODO 6.1: Получите attention scores первого decoder блока.
+# TODO 6.2: Постройте среднюю attention-карту.
+# Проверка: максимум в верхнем треугольнике должен быть близок к нулю.
+# TODO 6.3: Убедитесь, что в запрещённой области нет значимого веса.
+# TODO 6.4: Выведите итоговый JSON-summary.
+
+[cell 017 | markdown]
+## Чек-лист сдачи starter
+
+- [ ] Реализованы `TODO 1..6`.
+- [ ] `test_perplexity < baseline_perplexity`.
+- [ ] `success_count >= 18/20`.
+- [ ] `mean_match_ratio >= 0.70`.
+- [ ] Диагностика подтверждает отсутствие утечки в будущее.

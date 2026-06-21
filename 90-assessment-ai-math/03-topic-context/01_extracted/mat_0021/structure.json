@@ -1,0 +1,112 @@
+{
+  "format": "md",
+  "line_count": 139,
+  "char_count": 5165,
+  "headings": [
+    {
+      "line": 1,
+      "level": 1,
+      "title": "Self-Study Debugging Playbook for RNN Labs"
+    },
+    {
+      "line": 3,
+      "level": 2,
+      "title": "Зачем нужен этот файл"
+    },
+    {
+      "line": 13,
+      "level": 2,
+      "title": "Как работать с Jupyter без боли"
+    },
+    {
+      "line": 26,
+      "level": 2,
+      "title": "Как читать traceback"
+    },
+    {
+      "line": 41,
+      "level": 2,
+      "title": "Shape-first debugging"
+    },
+    {
+      "line": 54,
+      "level": 2,
+      "title": "Как понять, где именно ошибка"
+    },
+    {
+      "line": 55,
+      "level": 3,
+      "title": "1. Ошибка в данных"
+    },
+    {
+      "line": 66,
+      "level": 3,
+      "title": "2. Ошибка в модели"
+    },
+    {
+      "line": 77,
+      "level": 3,
+      "title": "3. Ошибка в метрике или постобработке"
+    },
+    {
+      "line": 88,
+      "level": 2,
+      "title": "Минимальный диагностический маршрут"
+    },
+    {
+      "line": 97,
+      "level": 2,
+      "title": "Как пользоваться walkthrough и solution notebook"
+    },
+    {
+      "line": 109,
+      "level": 2,
+      "title": "Частые вопросы self-study режима"
+    },
+    {
+      "line": 110,
+      "level": 3,
+      "title": "Что делать, если notebook запускается не по порядку?"
+    },
+    {
+      "line": 113,
+      "level": 3,
+      "title": "Что делать, если я не понимаю `axis`?"
+    },
+    {
+      "line": 116,
+      "level": 3,
+      "title": "Что делать, если мини-проверка упала, но ошибка мне не ясна?"
+    },
+    {
+      "line": 122,
+      "level": 3,
+      "title": "Когда допустимо смотреть решение?"
+    },
+    {
+      "line": 125,
+      "level": 2,
+      "title": "Что должно остаться после этого guide"
+    },
+    {
+      "line": 131,
+      "level": 2,
+      "title": "Навигация по курсу"
+    },
+    {
+      "line": 132,
+      "level": 3,
+      "title": "Где вы сейчас"
+    },
+    {
+      "line": 135,
+      "level": 3,
+      "title": "Что было до этого"
+    },
+    {
+      "line": 138,
+      "level": 3,
+      "title": "Что дальше"
+    }
+  ]
+}
