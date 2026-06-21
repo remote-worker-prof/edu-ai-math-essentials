@@ -2,7 +2,7 @@
 
 ---
 
-- Сгенерировано (UTC): `2026-06-21T14:26:30.867354+00:00`
+- Сгенерировано (UTC): `2026-06-21T14:43:34.784072+00:00`
 - Формат материалов: Markdown
 - Версия контракта генерации: `academic_ru_v2`
 - Профиль стиля: `transfer_academic_ru_v1_internet_strong`
@@ -22,6 +22,7 @@
 - `answer_key_1.md`
 - `answer_key_2.md`
 - `question_traceability.json`
+- `student_release/`
 - `README.md`
 
 ## Проверочные инварианты
@@ -37,5 +38,5 @@
 - Вариант 2: базовых=24, medium=6.
 
 Файл `question_traceability.json` содержит полную трассируемость `topic -> material -> module -> question`.
-Дополнительно в трассируемости фиксируются поля `risk_level`, `requires_latex`, `allowed_abbrev`, `style_profile`, `difficulty_level`, `knowledge_scope`.
+Дополнительно в трассируемости фиксируются поля `risk_level`, `requires_latex`, `allowed_abbrev`, `style_profile`, `hint_profile`, `difficulty_level`, `knowledge_scope`.
 Предыдущая версия тестов сохранена в `_backup/2026-06-21_pre_internet_generalization_strong`.

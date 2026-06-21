@@ -19,6 +19,10 @@ DIFFICULTY_PROFILE = "strong"
 KNOWLEDGE_SCOPE = "internet_general"
 BASIC_TARGET_PER_VARIANT = 24
 BACKUP_RELATIVE_PATH = "_backup/2026-06-21_pre_internet_generalization_strong"
+MAX_TASK_LENGTH_CLOSED = 140
+MAX_TASK_LENGTH_OPEN = 190
+MAX_CONTEXT_LENGTH = 180
+MAX_CONTEXT_LENGTH_WITH_LATEX = 220
 
 SECTION_TITLES_RU = {
     "foundations": "Раздел 1. Основы работы с последовательными данными",
@@ -64,39 +68,6 @@ TOPIC_CONTEXTS: dict[str, list[str]] = {
     ],
 }
 
-TOPIC_OPEN_HINTS: dict[str, list[str]] = {
-    "foundations": [
-        "Сначала назовите два простых правила подготовки данных.",
-        "Затем коротко объясните, почему без единых правил результаты сравнивать сложнее.",
-        "В конце сделайте краткий вывод одной фразой.",
-    ],
-    "rnn": [
-        "Сначала поясните основное отличие двух моделей или режимов.",
-        "Затем укажите, когда чаще выбирают каждый вариант.",
-        "В конце дайте короткий практический вывод.",
-    ],
-    "attention": [
-        "Сначала объясните, что показывают веса внимания.",
-        "Затем приведите один пример того, как эти веса помогают понять поведение модели.",
-        "В конце добавьте краткое ограничение интерпретации.",
-    ],
-    "transformer_encoder": [
-        "Сначала перечислите основные блоки кодировщика.",
-        "Затем коротко опишите назначение каждого блока простыми словами.",
-        "В конце сделайте общий вывод о пользе такой архитектуры.",
-    ],
-    "autoregression": [
-        "Сначала укажите, на каком шаге возникает проблема генерации.",
-        "Затем предложите одну проверку и одну простую корректировку.",
-        "В конце объясните, как убедиться, что стало лучше.",
-    ],
-    "full_transformer": [
-        "Сначала опишите роль кодировщика и роль декодера.",
-        "Затем поясните, как декодер использует информацию от кодировщика.",
-        "В конце дайте короткий критерий хорошего результата.",
-    ],
-}
-
 TOPIC_LATEX_SNIPPETS: dict[str, str] = {
     "foundations": "Для обозначений используйте стандартную запись последовательности вида $x_t$.",
     "rnn": "Для формального описания шага рекурсии опирайтесь на представление скрытого состояния $h_t$.",
@@ -113,6 +84,84 @@ TOPIC_ALLOWED_ABBREV: dict[str, list[str]] = {
     "transformer_encoder": ["FFN"],
     "autoregression": [],
     "full_transformer": [],
+}
+
+OPEN_HINT_PROFILES: dict[str, list[str]] = {
+    "open_foundations_protocol": [
+        "Назовите два единых правила подготовки последовательностей.",
+        "Объясните, какую ошибку сравнения эти правила предотвращают.",
+        "Сделайте вывод, почему без них сравнение моделей некорректно.",
+    ],
+    "open_foundations_tradeoff": [
+        "Укажите, что можно потерять при усечении длинной последовательности.",
+        "Укажите, какой побочный эффект возникает при дополнении короткой последовательности.",
+        "Сформулируйте простое правило выбора между двумя подходами.",
+    ],
+    "open_rnn_gru_lstm_choice": [
+        "Назовите одно отличие этих моделей по сложности и ресурсам.",
+        "Укажите, когда важнее экономия ресурсов, а когда удержание долгого контекста.",
+        "Сделайте короткий практический выбор для типовой задачи.",
+    ],
+    "open_rnn_early_overfit": [
+        "Назовите два признака раннего переобучения по динамике метрик.",
+        "Предложите одну конкретную корректировку обучения.",
+        "Опишите, как проверить улучшение на контрольных данных.",
+    ],
+    "open_attention_map_reading": [
+        "Выберите один шаг вывода, который будете анализировать.",
+        "Определите входные позиции с наибольшими весами внимания.",
+        "Сопоставьте наблюдение с ошибками и метриками качества.",
+    ],
+    "open_attention_vs_fixed_context": [
+        "Коротко опишите, как формируется контекст в каждом подходе.",
+        "Назовите одно практическое преимущество механизма внимания.",
+        "Назовите одно ограничение такого объяснения.",
+    ],
+    "open_encoder_pipeline": [
+        "Перечислите основные блоки кодировщика в правильном порядке.",
+        "Коротко поясните назначение каждого блока.",
+        "Сделайте вывод, зачем эти блоки работают совместно.",
+    ],
+    "open_encoder_order_risk": [
+        "Объясните, какую информацию о порядке может потерять модель.",
+        "Назовите одно последствие этой потери для качества.",
+        "Предложите одну меру, которая снижает риск.",
+    ],
+    "open_autoreg_repeats": [
+        "Укажите, на каком этапе проявляются повторяющиеся фрагменты.",
+        "Предложите одну проверку и одну корректировку декодирования.",
+        "Опишите критерий, по которому видно улучшение результата.",
+    ],
+    "open_autoreg_train_infer_gap": [
+        "Поясните, какой префикс модель получает при обучении и при выводе.",
+        "Объясните, почему из-за этого могут накапливаться ошибки.",
+        "Назовите одну практическую меру для снижения эффекта.",
+    ],
+    "open_full_transformer_criteria": [
+        "Назовите минимум две метрики и одну качественную проверку.",
+        "Добавьте проверку устойчивости на длинных примерах.",
+        "Сформулируйте порог, после которого результат можно считать хорошим.",
+    ],
+    "open_full_transformer_train_infer_gap": [
+        "Коротко укажите, чем отличается вход декодера в обучении и выводе.",
+        "Объясните, как это различие влияет на дальние шаги генерации.",
+        "Назовите одну меру, которая снижает накопление ошибок.",
+    ],
+}
+
+OPEN_HINT_PROFILE_BY_TITLE: dict[str, str] = {
+    "Единый протокол подготовки данных": "open_foundations_protocol",
+    "Компромисс между усечением и дополнением": "open_foundations_tradeoff",
+    "Выбор между моделями GRU и LSTM": "open_rnn_gru_lstm_choice",
+    "План диагностики раннего переобучения": "open_rnn_early_overfit",
+    "Процедура чтения карты внимания": "open_attention_map_reading",
+    "Сравнение с фиксированным контекстом": "open_attention_vs_fixed_context",
+    "Пайплайн кодировщика": "open_encoder_pipeline",
+    "Риск слабого учета порядка": "open_encoder_order_risk",
+    "Диагностика повторов": "open_autoreg_repeats",
+    "Различия между обучением и выводом": "open_autoreg_train_infer_gap",
+    "Критерии оценки полного трансформера": "open_full_transformer_criteria",
+    "Расхождение между обучением и выводом": "open_full_transformer_train_infer_gap",
 }
 
 QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
@@ -177,7 +226,7 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
             },
             {
                 "title": "Настройка длины последовательности",
-                "prompt": "Что учитывают при выборе рабочей длины последовательности в учебном эксперименте?",
+                "prompt": "Что учитывают при выборе рабочей длины последовательности в типовом примере?",
                 "options": [
                     "Риск потери содержания при усечении длинных примеров",
                     "Рост вычислительных затрат при чрезмерном дополнении",
@@ -191,6 +240,12 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
             {
                 "title": "Единый протокол подготовки данных",
                 "prompt": "Поясните, почему единые правила токенизации и выравнивания длины необходимы для корректного сравнения моделей.",
+                "hint_profile": "open_foundations_protocol",
+                "hint_steps": [
+                    "Назовите два единых правила подготовки последовательностей.",
+                    "Объясните, какую ошибку сравнения эти правила предотвращают.",
+                    "Сделайте вывод, почему без них сравнение моделей некорректно.",
+                ],
                 "reference": "Единый протокол исключает систематические различия на этапе предобработки и делает сравнение моделей по метрикам методически корректным.",
                 "criteria": [
                     "Показана связь между предобработкой и сопоставимостью результатов",
@@ -201,6 +256,12 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
             {
                 "title": "Компромисс между усечением и дополнением",
                 "prompt": "Опишите компромисс между усечением длинных последовательностей и дополнением коротких последовательностей.",
+                "hint_profile": "open_foundations_tradeoff",
+                "hint_steps": [
+                    "Укажите, что можно потерять при усечении длинной последовательности.",
+                    "Укажите, какой побочный эффект возникает при дополнении короткой последовательности.",
+                    "Сформулируйте простое правило выбора между двумя подходами.",
+                ],
                 "reference": "Усечение снижает вычислительную нагрузку, но может потерять значимую информацию; дополнение сохраняет длину батча, но добавляет служебные позиции, которые нужно корректно маскировать.",
                 "criteria": [
                     "Сформулированы преимущества и ограничения обеих стратегий",
@@ -236,7 +297,7 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
             },
             {
                 "title": "Особенность сети с управляемым рекуррентным блоком (GRU)",
-                "prompt": "Как обычно характеризуют сеть с управляемым рекуррентным блоком (GRU) по сравнению с сетью с долговременной краткосрочной памятью (LSTM) в учебных задачах?",
+                "prompt": "Как обычно характеризуют сеть с управляемым рекуррентным блоком (GRU) по сравнению с сетью с долговременной краткосрочной памятью (LSTM)?",
                 "options": [
                     "Как более компактную модель с меньшим числом управляющих блоков",
                     "Как архитектуру без состояния",
@@ -284,7 +345,13 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
         "open": [
             {
                 "title": "Выбор между моделями GRU и LSTM",
-                "prompt": "Сравните практические условия выбора модели с управляемым рекуррентным блоком (GRU) и модели с долговременной краткосрочной памятью (LSTM) для учебной задачи по последовательным данным.",
+                "prompt": "Сравните, в каких условиях обычно выбирают модель с управляемым рекуррентным блоком (GRU) и модель с долговременной краткосрочной памятью (LSTM).",
+                "hint_profile": "open_rnn_gru_lstm_choice",
+                "hint_steps": [
+                    "Назовите одно отличие этих моделей по сложности и ресурсам.",
+                    "Укажите, когда важнее экономия ресурсов, а когда удержание долгого контекста.",
+                    "Сделайте короткий практический выбор для типовой задачи.",
+                ],
                 "reference": "Модель GRU часто выбирают при ограниченных ресурсах из-за более компактной структуры, тогда как модель LSTM полезна при необходимости более гибкого контроля долговременной памяти.",
                 "criteria": [
                     "Сопоставлены вычислительные и качественные аспекты",
@@ -294,7 +361,13 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
             },
             {
                 "title": "План диагностики раннего переобучения",
-                "prompt": "Предложите краткий план диагностики ситуации, когда рекуррентная модель начинает переобучаться на ранних эпохах.",
+                "prompt": "Предложите простой план проверки, если рекуррентная модель переобучается уже на ранних эпохах.",
+                "hint_profile": "open_rnn_early_overfit",
+                "hint_steps": [
+                    "Назовите два признака раннего переобучения по динамике метрик.",
+                    "Предложите одну конкретную корректировку обучения.",
+                    "Опишите, как проверить улучшение на контрольных данных.",
+                ],
                 "reference": "Следует проанализировать динамику метрик на обучении и контроле, затем скорректировать регуляризацию, размер модели и шаг обновления параметров, после чего повторно оценить устойчивость результата.",
                 "criteria": [
                     "Описаны этапы наблюдения и корректировки",
@@ -330,7 +403,7 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
             },
             {
                 "title": "Корректная трактовка карт внимания",
-                "prompt": "Как корректно интерпретировать карты внимания в учебном анализе?",
+                "prompt": "Как корректно интерпретировать карты внимания в базовом анализе?",
                 "options": [
                     "Как индикатор распределения фокуса модели",
                     "Как прямое доказательство причинности",
@@ -379,6 +452,12 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
             {
                 "title": "Процедура чтения карты внимания",
                 "prompt": "Опишите краткий алгоритм интерпретации карты внимания на конкретном примере последовательности.",
+                "hint_profile": "open_attention_map_reading",
+                "hint_steps": [
+                    "Выберите один шаг вывода, который будете анализировать.",
+                    "Определите входные позиции с наибольшими весами внимания.",
+                    "Сопоставьте наблюдение с ошибками и метриками качества.",
+                ],
                 "reference": "Необходимо связать шаг вывода с позициями входа, выделить наиболее значимые области, сопоставить их с ожидаемыми зависимостями и проверить согласованность с ошибками и метриками.",
                 "criteria": [
                     "Представлена пошаговая процедура анализа",
@@ -389,6 +468,12 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
             {
                 "title": "Сравнение с фиксированным контекстом",
                 "prompt": "Сравните подход с механизмом внимания и подход с фиксированным контекстным вектором.",
+                "hint_profile": "open_attention_vs_fixed_context",
+                "hint_steps": [
+                    "Коротко опишите, как формируется контекст в каждом подходе.",
+                    "Назовите одно практическое преимущество механизма внимания.",
+                    "Назовите одно ограничение такого объяснения.",
+                ],
                 "reference": "Механизм внимания позволяет динамически перераспределять фокус по входу, а фиксированный вектор ограничивает модель единым сжатием всей последовательности.",
                 "criteria": [
                     "Сравнены принципы представления контекста",
@@ -473,6 +558,12 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
             {
                 "title": "Пайплайн кодировщика",
                 "prompt": "Кратко опишите путь данных в кодировщике трансформера от входных токенов до итогового представления.",
+                "hint_profile": "open_encoder_pipeline",
+                "hint_steps": [
+                    "Перечислите основные блоки кодировщика в правильном порядке.",
+                    "Коротко поясните назначение каждого блока.",
+                    "Сделайте вывод, зачем эти блоки работают совместно.",
+                ],
                 "reference": "Входные токены переводятся в векторы признаков, дополняются позиционной информацией и проходят через стек блоков самовнимания и полносвязных преобразований с остаточными связями и нормализацией.",
                 "criteria": [
                     "Отражены ключевые этапы преобразования",
@@ -483,6 +574,12 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
             {
                 "title": "Риск слабого учета порядка",
                 "prompt": "Какие последствия может вызвать недостаточно выразительное кодирование порядка элементов?",
+                "hint_profile": "open_encoder_order_risk",
+                "hint_steps": [
+                    "Объясните, какую информацию о порядке может потерять модель.",
+                    "Назовите одно последствие этой потери для качества.",
+                    "Предложите одну меру, которая снижает риск.",
+                ],
                 "reference": "Модель хуже различает порядок токенов, что снижает качество на задачах, где смысл зависит от последовательности появления элементов.",
                 "criteria": [
                     "Объяснено влияние на учет порядка",
@@ -566,7 +663,13 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
         "open": [
             {
                 "title": "Диагностика повторов",
-                "prompt": "Предложите краткий план диагностики ситуации, когда модель начинает порождать повторяющиеся фрагменты.",
+                "prompt": "Предложите простой план проверки, если модель начинает порождать повторяющиеся фрагменты.",
+                "hint_profile": "open_autoreg_repeats",
+                "hint_steps": [
+                    "Укажите, на каком этапе проявляются повторяющиеся фрагменты.",
+                    "Предложите одну проверку и одну корректировку декодирования.",
+                    "Опишите критерий, по которому видно улучшение результата.",
+                ],
                 "reference": "Нужно проверить параметры декодирования, динамику функций качества и длину контекста, затем скорректировать регуляризацию и стратегию выборки токенов с повторной оценкой результата.",
                 "criteria": [
                     "Названы причины как на этапе обучения, так и на этапе вывода",
@@ -577,6 +680,12 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
             {
                 "title": "Различия между обучением и выводом",
                 "prompt": "Объясните ключевое различие между режимом обучения и режимом вывода в авторегрессионной модели.",
+                "hint_profile": "open_autoreg_train_infer_gap",
+                "hint_steps": [
+                    "Поясните, какой префикс модель получает при обучении и при выводе.",
+                    "Объясните, почему из-за этого могут накапливаться ошибки.",
+                    "Назовите одну практическую меру для снижения эффекта.",
+                ],
                 "reference": "На обучении модель получает корректный префикс, а на выводе опирается на собственные предсказания, из-за чего ошибки могут накапливаться по мере роста последовательности.",
                 "criteria": [
                     "Корректно описан источник расхождения режимов",
@@ -647,7 +756,7 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
             },
             {
                 "title": "Типичные риски полного контура",
-                "prompt": "Какие риски характерны для полного трансформера в учебной задаче?",
+                "prompt": "Какие типичные трудности характерны для полного трансформера в типовой задаче?",
                 "options": [
                     "Согласование представлений кодировщика и декодера",
                     "Деградация качества на длинных зависимостях",
@@ -661,16 +770,28 @@ QUESTION_BANK: dict[str, dict[str, list[dict[str, Any]]]] = {
             {
                 "title": "Критерии оценки полного трансформера",
                 "prompt": "Предложите набор критериев оценки качества полного трансформера в задаче преобразования последовательностей.",
+                "hint_profile": "open_full_transformer_criteria",
+                "hint_steps": [
+                    "Назовите минимум две метрики и одну качественную проверку.",
+                    "Добавьте проверку устойчивости на длинных примерах.",
+                    "Сформулируйте порог, после которого результат можно считать хорошим.",
+                ],
                 "reference": "Нужно учитывать качество на контрольной выборке, устойчивость на длинных и сложных примерах, согласованность выхода с входным контекстом и воспроизводимость результата.",
                 "criteria": [
                     "Указаны и количественные, и качественные показатели",
                     "Отдельно отмечены устойчивость и согласованность",
-                    "Критерии применимы к учебной практике",
+                    "Критерии применимы к практической проверке",
                 ],
             },
             {
                 "title": "Расхождение между обучением и выводом",
                 "prompt": "Объясните, как различие между режимом обучения и режимом вывода влияет на качество модели кодировщик-декодер.",
+                "hint_profile": "open_full_transformer_train_infer_gap",
+                "hint_steps": [
+                    "Коротко укажите, чем отличается вход декодера в обучении и выводе.",
+                    "Объясните, как это различие влияет на дальние шаги генерации.",
+                    "Назовите одну меру, которая снижает накопление ошибок.",
+                ],
                 "reference": "На обучении модель получает корректный целевой префикс, а на выводе использует собственные предсказания, поэтому ошибки могут накапливаться и ухудшать дальние шаги генерации.",
                 "criteria": [
                     "Корректно раскрыт источник расхождения",
@@ -760,6 +881,30 @@ def build_default_context(topic_id: str, variant: int, qtype: str, title: str, s
     return simplify_text(candidates[idx])
 
 
+def resolve_open_hint_contract(title: str, hint_profile: str, hint_steps: list[str]) -> tuple[str, list[str]]:
+    expected_profile = OPEN_HINT_PROFILE_BY_TITLE.get(title)
+    if not expected_profile:
+        raise ValueError(f"open question '{title}' has no title->hint_profile mapping")
+    if hint_profile != expected_profile:
+        raise ValueError(
+            f"open question '{title}' must use hint_profile='{expected_profile}', got '{hint_profile}'"
+        )
+
+    profile_steps = OPEN_HINT_PROFILES.get(hint_profile)
+    if not profile_steps:
+        raise ValueError(f"open question '{title}' uses unknown hint_profile '{hint_profile}'")
+
+    normalized_profile_steps = [simplify_text(step) for step in profile_steps]
+    normalized_item_steps = [simplify_text(step) for step in hint_steps]
+    if len(normalized_item_steps) != 3:
+        raise ValueError(f"open question '{title}' must define exactly 3 hint steps")
+    if normalized_item_steps != normalized_profile_steps:
+        raise ValueError(
+            f"open question '{title}' has hint steps that do not match profile '{hint_profile}'"
+        )
+    return expected_profile, normalized_profile_steps
+
+
 def ensure_latex_marker(topic_id: str, context: str, task: str, requires_latex: bool) -> str:
     if not requires_latex:
         return context
@@ -769,6 +914,20 @@ def ensure_latex_marker(topic_id: str, context: str, task: str, requires_latex: 
     return f"{context} {snippet}".strip()
 
 
+def enforce_readability_limits(title: str, qtype: str, task: str, context: str, requires_latex: bool) -> None:
+    task_limit = MAX_TASK_LENGTH_OPEN if qtype == "open" else MAX_TASK_LENGTH_CLOSED
+    if len(task) > task_limit:
+        raise ValueError(
+            f"question '{title}' exceeds task length limit: {len(task)} > {task_limit} ({qtype})"
+        )
+
+    context_limit = MAX_CONTEXT_LENGTH_WITH_LATEX if requires_latex else MAX_CONTEXT_LENGTH
+    if len(context) > context_limit:
+        raise ValueError(
+            f"question '{title}' exceeds context length limit: {len(context)} > {context_limit}"
+        )
+
+
 def normalize_question(
     topic_id: str,
     qtype: str,
@@ -776,8 +935,9 @@ def normalize_question(
     variant: int,
     seed: int,
 ) -> dict[str, Any]:
+    title = str(item.get("title") or "").strip()
     task = simplify_text(str(item.get("task") or item.get("prompt") or "").strip())
-    context = simplify_text(str(item.get("context") or build_default_context(topic_id, variant, qtype, str(item.get("title", "")), seed)).strip())
+    context = simplify_text(str(item.get("context") or build_default_context(topic_id, variant, qtype, title, seed)).strip())
 
     risk_level = str(item.get("risk_level") or ("high" if topic_id in HIGH_RISK_TOPICS else "normal"))
     if risk_level not in {"normal", "high"}:
@@ -790,12 +950,11 @@ def normalize_question(
     style_profile = str(item.get("style_profile") or STYLE_PROFILE)
 
     if qtype == "open":
-        hint_steps = list(item.get("hint_steps") or TOPIC_OPEN_HINTS.get(topic_id, []))
-        if len(hint_steps) < 2:
-            hint_steps = TOPIC_OPEN_HINTS.get(topic_id, [])[:]
-        hint_steps = hint_steps[:3]
-        hint_steps = [simplify_text(step) for step in hint_steps]
+        hint_profile = str(item.get("hint_profile") or "").strip()
+        raw_hint_steps = list(item.get("hint_steps") or [])
+        hint_profile, hint_steps = resolve_open_hint_contract(title, hint_profile, raw_hint_steps)
     else:
+        hint_profile = ""
         hint_steps = []
 
     options = [simplify_text(option) for option in list(item.get("options", []))]
@@ -805,12 +964,15 @@ def normalize_question(
     if difficulty_level not in {"basic", "medium"}:
         difficulty_level = "basic"
     knowledge_scope = str(item.get("knowledge_scope") or KNOWLEDGE_SCOPE)
+    enforce_readability_limits(title, qtype, task, context, requires_latex)
 
     normalized = {
         **item,
+        "title": title,
         "qtype": qtype,
         "task": task,
         "context": context,
+        "hint_profile": hint_profile,
         "hint_steps": hint_steps,
         "risk_level": risk_level,
         "requires_latex": requires_latex,
@@ -847,6 +1009,7 @@ def build_section_questions(topic_id: str, variant: int, seed: int) -> list[dict
             if q["qtype"] == "open":
                 q["requires_latex"] = True
                 q["context"] = ensure_latex_marker(topic_id, str(q["context"]), str(q["task"]), True)
+                enforce_readability_limits(str(q["title"]), str(q["qtype"]), str(q["task"]), str(q["context"]), True)
                 break
 
     return questions
@@ -865,11 +1028,13 @@ def qtype_label(qtype: str) -> str:
     return "открытый вопрос."
 
 
-def qtype_choice_instruction(qtype: str) -> str:
+def qtype_choice_instruction(qtype: str, correct_count: int | None = None) -> str:
     if qtype == "single":
         return "Выберите один вариант ответа."
     if qtype == "multiple":
-        return "Выберите все верные варианты ответа."
+        if not isinstance(correct_count, int) or correct_count <= 0:
+            raise ValueError("multiple question requires positive correct_count for instruction rendering")
+        return f"Выберите ровно {correct_count} верных варианта(ов) ответа."
     return ""
 
 
@@ -913,7 +1078,7 @@ def render_test_variant(
 
             if q["qtype"] in {"single", "multiple"}:
                 lines.append("Инструкция:")
-                lines.append(qtype_choice_instruction(q["qtype"]))
+                lines.append(qtype_choice_instruction(q["qtype"], len(q.get("correct", []))))
                 lines.append("")
                 lines.append("Варианты ответа:")
                 lines.append("")
@@ -949,6 +1114,7 @@ def render_test_variant(
                     "context": q["context"],
                     "task": q["task"],
                     "prompt": q["task"],
+                    "hint_profile": q.get("hint_profile", ""),
                     "hint_steps": q.get("hint_steps", []),
                     "correct": q.get("correct", []),
                     "reference": q.get("reference", ""),
@@ -1059,7 +1225,12 @@ def render_answer_key(variant: int, modules: list[dict[str, Any]], traceability:
 
             if q["question_type"] in {"single", "multiple"}:
                 lines.append("Инструкция:")
-                lines.append(qtype_choice_instruction(str(q["question_type"])))
+                lines.append(
+                    qtype_choice_instruction(
+                        str(q["question_type"]),
+                        len(q.get("correct", [])),
+                    )
+                )
                 lines.append("")
             else:
                 lines.append("Подсказка (ход рассуждения):")
@@ -1091,6 +1262,11 @@ def render_answer_key(variant: int, modules: list[dict[str, Any]], traceability:
             lines.append(f"- Уровень риска: {q['risk_level']}")
             lines.append(f"- Требуется LaTeX: {'да' if q['requires_latex'] else 'нет'}")
             lines.append(f"- Профиль стиля: {q.get('style_profile', STYLE_PROFILE)}")
+            hint_profile_value = str(q.get("hint_profile", "")).strip()
+            if hint_profile_value:
+                lines.append(f"- Профиль подсказки: {hint_profile_value}")
+            else:
+                lines.append("- Профиль подсказки:")
             lines.append(f"- Уровень сложности: {q['difficulty_level']}")
             lines.append(f"- Область знаний: {q['knowledge_scope']}")
             q_counter += 1
@@ -1125,6 +1301,7 @@ def render_readme(traceability: list[dict[str, Any]]) -> str:
         "- `answer_key_1.md`",
         "- `answer_key_2.md`",
         "- `question_traceability.json`",
+        "- `student_release/`",
         "- `README.md`",
         "",
         "## Проверочные инварианты",
@@ -1150,7 +1327,7 @@ def render_readme(traceability: list[dict[str, Any]]) -> str:
     lines.extend([
         "",
         "Файл `question_traceability.json` содержит полную трассируемость `topic -> material -> module -> question`.",
-        "Дополнительно в трассируемости фиксируются поля `risk_level`, `requires_latex`, `allowed_abbrev`, `style_profile`, `difficulty_level`, `knowledge_scope`.",
+        "Дополнительно в трассируемости фиксируются поля `risk_level`, `requires_latex`, `allowed_abbrev`, `style_profile`, `hint_profile`, `difficulty_level`, `knowledge_scope`.",
         f"Предыдущая версия тестов сохранена в `{BACKUP_RELATIVE_PATH}`.",
         "",
     ])

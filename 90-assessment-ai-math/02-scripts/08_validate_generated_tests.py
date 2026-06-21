@@ -95,6 +95,25 @@ PROJECT_MARKER_PATTERNS = [
 
 KNOWLEDGE_SCOPE_REQUIRED = "internet_general"
 BASIC_MIN_SHARE = 0.80
+MAX_TASK_LENGTH_CLOSED = 140
+MAX_TASK_LENGTH_OPEN = 190
+MAX_CONTEXT_LENGTH = 180
+MAX_CONTEXT_LENGTH_WITH_LATEX = 220
+
+OPEN_HINT_PROFILE_BY_TITLE: dict[str, str] = {
+    "Единый протокол подготовки данных": "open_foundations_protocol",
+    "Компромисс между усечением и дополнением": "open_foundations_tradeoff",
+    "Выбор между моделями GRU и LSTM": "open_rnn_gru_lstm_choice",
+    "План диагностики раннего переобучения": "open_rnn_early_overfit",
+    "Процедура чтения карты внимания": "open_attention_map_reading",
+    "Сравнение с фиксированным контекстом": "open_attention_vs_fixed_context",
+    "Пайплайн кодировщика": "open_encoder_pipeline",
+    "Риск слабого учета порядка": "open_encoder_order_risk",
+    "Диагностика повторов": "open_autoreg_repeats",
+    "Различия между обучением и выводом": "open_autoreg_train_infer_gap",
+    "Критерии оценки полного трансформера": "open_full_transformer_criteria",
+    "Расхождение между обучением и выводом": "open_full_transformer_train_infer_gap",
+}
 
 
 class ValidationError(Exception):
@@ -195,28 +214,35 @@ def extract_context_task(block: str) -> tuple[str, str]:
     return context, task
 
 
-def extract_closed_instruction(block: str, qtype: str) -> str:
-    match = re.search(
-        r"Инструкция:\n(.+?)\n\nВарианты ответа:\n",
-        block,
-        flags=re.DOTALL,
-    )
+def extract_closed_instruction(block: str, qtype: str) -> int:
+    match = re.search(r"Инструкция:\n(.+?)\n\nВарианты ответа:\n", block, flags=re.DOTALL)
+    if not match:
+        match = re.search(r"Инструкция:\n(.+?)\n\n", block, flags=re.DOTALL)
     if not match:
         raise ValidationError("missing or malformed 'Инструкция' block for closed question")
     instruction = normalize_spaces(match.group(1))
 
-    expected = {
-        "single": "Выберите один вариант ответа.",
-        "multiple": "Выберите все верные варианты ответа.",
-    }
-    if instruction != expected[qtype]:
-        raise ValidationError(f"closed question has invalid instruction: '{instruction}'")
-    return instruction
+    if qtype == "single":
+        if instruction != "Выберите один вариант ответа.":
+            raise ValidationError(f"closed question has invalid instruction: '{instruction}'")
+        return 1
+
+    if qtype == "multiple":
+        m = re.fullmatch(r"Выберите ровно (\d+) верных варианта\(ов\) ответа\.", instruction)
+        if not m:
+            raise ValidationError(f"closed question has invalid instruction: '{instruction}'")
+        count = int(m.group(1))
+        if not (1 <= count <= 4):
+            raise ValidationError(f"closed question has invalid answer count in instruction: {count}")
+        return count
+
+    raise ValidationError(f"unsupported closed question type: {qtype}")
 
 
-def extract_open_hint_steps(block: str) -> list[str]:
+def extract_open_hint_steps(block: str, end_marker: str = "Ответ представьте") -> list[str]:
+    marker = re.escape(end_marker)
     match = re.search(
-        r"Подсказка \(ход рассуждения\):\n((?:\d+\.\s+.+\n?)+)\nОтвет представьте",
+        rf"Подсказка \(ход рассуждения\):\n((?:\d+\.\s+.+\n?)+)\n{marker}",
         block,
         flags=re.DOTALL,
     )
@@ -231,11 +257,28 @@ def extract_open_hint_steps(block: str) -> list[str]:
             raise ValidationError("hint steps must be sequentially numbered from 1")
         steps.append(line[len(expected_prefix) :].strip())
 
-    if not (2 <= len(steps) <= 3):
-        raise ValidationError("open question must contain 2-3 hint steps")
+    if len(steps) != 3:
+        raise ValidationError("open question must contain exactly 3 hint steps")
     if any(not step for step in steps):
         raise ValidationError("open question contains empty hint step")
     return steps
+
+
+def validate_readability_lengths(
+    path: Path,
+    qid: int,
+    qtype: str,
+    context: str,
+    task: str,
+    has_latex: bool,
+) -> None:
+    task_limit = MAX_TASK_LENGTH_OPEN if qtype == "open" else MAX_TASK_LENGTH_CLOSED
+    if len(task) > task_limit:
+        raise ValidationError(f"{path.name}: Q{qid} task is too long ({len(task)} > {task_limit})")
+
+    context_limit = MAX_CONTEXT_LENGTH_WITH_LATEX if has_latex else MAX_CONTEXT_LENGTH
+    if len(context) > context_limit:
+        raise ValidationError(f"{path.name}: Q{qid} context is too long ({len(context)} > {context_limit})")
 
 
 def validate_file_completeness(out_dir: Path) -> None:
@@ -289,15 +332,17 @@ def validate_test_file_v2(path: Path, variant: int) -> dict[int, dict[str, Any]]
             if qtype == "unknown":
                 raise ValidationError(f"{path.name}: Q{qid} has unknown type")
             mix[qtype] += 1
+            has_latex = contains_latex(qblock)
 
             try:
                 context, task = extract_context_task(qblock)
             except ValidationError as exc:
                 raise ValidationError(f"{path.name}: Q{qid} {exc}") from exc
+            validate_readability_lengths(path, qid, qtype, context, task, has_latex)
 
             if qtype in {"single", "multiple"}:
                 try:
-                    _ = extract_closed_instruction(qblock, qtype)
+                    instruction_correct_count = extract_closed_instruction(qblock, qtype)
                 except ValidationError as exc:
                     raise ValidationError(f"{path.name}: Q{qid} {exc}") from exc
 
@@ -308,6 +353,7 @@ def validate_test_file_v2(path: Path, variant: int) -> dict[int, dict[str, Any]]
                 options = [text.strip() for _, text in option_matches]
                 hint_steps: list[str] = []
             else:
+                instruction_correct_count = 0
                 if "Ответ представьте в развернутой форме" not in qblock:
                     raise ValidationError(f"{path.name}: Q{qid} open question missing response guidance")
                 try:
@@ -324,8 +370,9 @@ def validate_test_file_v2(path: Path, variant: int) -> dict[int, dict[str, Any]]
                 "task": task,
                 "options": options,
                 "hint_steps": hint_steps,
+                "instruction_correct_count": instruction_correct_count,
                 "block": qblock,
-                "has_latex": contains_latex(qblock),
+                "has_latex": has_latex,
             }
             found_ids.append(qid)
 
@@ -420,6 +467,10 @@ def _parse_key_technical_block(block: str, qid: int, filename: str) -> dict[str,
     if not style_match:
         raise ValidationError(f"{filename}: Q{qid} missing style profile line")
 
+    hint_profile_match = re.search(r"^- Профиль подсказки:[ \t]*(.*)$", block, flags=re.MULTILINE)
+    if not hint_profile_match:
+        raise ValidationError(f"{filename}: Q{qid} missing hint profile line")
+
     difficulty_match = re.search(r"^- Уровень сложности:\s+(basic|medium)\s*$", block, flags=re.MULTILINE)
     if not difficulty_match:
         raise ValidationError(f"{filename}: Q{qid} missing difficulty level line")
@@ -435,6 +486,7 @@ def _parse_key_technical_block(block: str, qid: int, filename: str) -> dict[str,
         "risk_level": risk_match.group(1),
         "requires_latex": latex_match.group(1) == "да",
         "style_profile": style_match.group(0).split(":", 1)[1].strip(),
+        "hint_profile": hint_profile_match.group(1).strip(),
         "difficulty_level": difficulty_match.group(1),
         "knowledge_scope": scope_match.group(1).strip(),
     }
@@ -476,31 +528,20 @@ def validate_key_v2(path: Path, variant: int, test_meta: dict[int, dict[str, Any
         if normalize_spaces(task) != normalize_spaces(test_meta[qid]["task"]):
             raise ValidationError(f"{path.name}: Q{qid} task mismatch between test and key")
 
+        validate_readability_lengths(path, qid, qtype, context, task, contains_latex(block))
+
         if qtype in {"single", "multiple"}:
-            instruction_match = re.search(r"Инструкция:\n(.+?)\n\n", block, flags=re.DOTALL)
-            if not instruction_match:
-                raise ValidationError(f"{path.name}: Q{qid} missing or malformed 'Инструкция' block for closed question")
-            instruction = normalize_spaces(instruction_match.group(1))
-            expected_instruction = {
-                "single": "Выберите один вариант ответа.",
-                "multiple": "Выберите все верные варианты ответа.",
-            }[qtype]
-            if instruction != expected_instruction:
-                raise ValidationError(f"{path.name}: Q{qid} closed question has invalid instruction")
+            try:
+                instruction_correct_count = extract_closed_instruction(block, qtype)
+            except ValidationError as exc:
+                raise ValidationError(f"{path.name}: Q{qid} closed question has invalid instruction") from exc
+            hint_steps: list[str] = []
         else:
-            hint_match = re.search(
-                r"Подсказка \(ход рассуждения\):\n((?:\d+\.\s+.+\n?)+)\nЭталонный ответ:",
-                block,
-                flags=re.DOTALL,
-            )
-            if not hint_match:
-                raise ValidationError(f"{path.name}: Q{qid} missing or malformed 'Подсказка (ход рассуждения)' block")
-            step_lines = [line.strip() for line in hint_match.group(1).splitlines() if line.strip()]
-            if not (2 <= len(step_lines) <= 3):
-                raise ValidationError(f"{path.name}: Q{qid} open question must contain 2-3 hint steps")
-            for idx, line in enumerate(step_lines, start=1):
-                if not line.startswith(f"{idx}. "):
-                    raise ValidationError(f"{path.name}: Q{qid} hint steps must be numbered from 1")
+            instruction_correct_count = 0
+            try:
+                hint_steps = extract_open_hint_steps(block, end_marker="Эталонный ответ:")
+            except ValidationError as exc:
+                raise ValidationError(f"{path.name}: Q{qid} {exc}") from exc
 
         correct_indices: list[int] = []
         if qtype == "single":
@@ -529,6 +570,8 @@ def validate_key_v2(path: Path, variant: int, test_meta: dict[int, dict[str, Any
             "block": block,
             "has_latex": contains_latex(block),
             "correct_indices": correct_indices,
+            "instruction_correct_count": instruction_correct_count,
+            "hint_steps": hint_steps,
             **tech,
         }
     return meta
@@ -552,6 +595,7 @@ def validate_traceability_json(path: Path, legacy_mode: bool) -> dict[tuple[int,
         "options",
         "correct",
         "hint_steps",
+        "hint_profile",
         "risk_level",
         "requires_latex",
         "allowed_abbrev",
@@ -608,6 +652,33 @@ def validate_traceability_json(path: Path, legacy_mode: bool) -> dict[tuple[int,
                     f"question_traceability.json: item #{idx} must use knowledge_scope={KNOWLEDGE_SCOPE_REQUIRED}"
                 )
 
+            title = str(item["title"]).strip()
+            hint_profile = str(item.get("hint_profile") or "").strip()
+            hint_steps = item.get("hint_steps")
+            if qtype == "open":
+                expected_profile = OPEN_HINT_PROFILE_BY_TITLE.get(title)
+                if not expected_profile:
+                    raise ValidationError(
+                        f"question_traceability.json: item #{idx} open title '{title}' is missing hint-profile mapping"
+                    )
+                if hint_profile != expected_profile:
+                    raise ValidationError(
+                        f"question_traceability.json: item #{idx} open question must use hint_profile='{expected_profile}'"
+                    )
+                if not isinstance(hint_steps, list) or len(hint_steps) != 3:
+                    raise ValidationError(
+                        f"question_traceability.json: item #{idx} open question must contain exactly 3 hint steps"
+                    )
+                if any(not str(step).strip() for step in hint_steps):
+                    raise ValidationError(
+                        f"question_traceability.json: item #{idx} open question has empty hint step"
+                    )
+            else:
+                if hint_profile != "":
+                    raise ValidationError(
+                        f"question_traceability.json: item #{idx} closed question must not define hint_profile"
+                    )
+
         result[key] = item
 
     expected_keys = {(variant, qid) for variant in (1, 2) for qid in range(1, 31)}
@@ -651,17 +722,38 @@ def validate_sync_with_traceability(
                 raise ValidationError(f"traceability mismatch: variant {variant} Q{qid} difficulty differs from key")
             if str(trace["knowledge_scope"]).strip() != str(q_key["knowledge_scope"]).strip():
                 raise ValidationError(f"traceability mismatch: variant {variant} Q{qid} knowledge scope differs from key")
+            if str(trace.get("hint_profile") or "").strip() != str(q_key.get("hint_profile") or "").strip():
+                raise ValidationError(f"traceability mismatch: variant {variant} Q{qid} hint profile differs from key")
 
             if q_test["qtype"] == "single":
                 trace_indices = [int(i) + 1 for i in trace.get("correct", [])]
+                if q_test["instruction_correct_count"] != 1 or q_key["instruction_correct_count"] != 1:
+                    raise ValidationError(f"traceability mismatch: variant {variant} Q{qid} single instruction count must be 1")
                 if q_key["correct_indices"] != trace_indices:
                     raise ValidationError(f"traceability mismatch: variant {variant} Q{qid} single correct answer differs")
             elif q_test["qtype"] == "multiple":
                 trace_indices = [int(i) + 1 for i in trace.get("correct", [])]
+                expected_count = len(trace_indices)
+                if q_test["instruction_correct_count"] != expected_count:
+                    raise ValidationError(
+                        f"traceability mismatch: variant {variant} Q{qid} test instruction count differs from traceability"
+                    )
+                if q_key["instruction_correct_count"] != expected_count:
+                    raise ValidationError(
+                        f"traceability mismatch: variant {variant} Q{qid} key instruction count differs from traceability"
+                    )
                 if q_key["correct_indices"] != trace_indices:
                     raise ValidationError(
                         f"traceability mismatch: variant {variant} Q{qid} multiple correct answers differ"
                     )
+            else:
+                trace_steps = [normalize_spaces(str(step)) for step in trace.get("hint_steps", [])]
+                test_steps = [normalize_spaces(str(step)) for step in q_test.get("hint_steps", [])]
+                key_steps = [normalize_spaces(str(step)) for step in q_key.get("hint_steps", [])]
+                if trace_steps != test_steps:
+                    raise ValidationError(f"traceability mismatch: variant {variant} Q{qid} test hint steps differ")
+                if trace_steps != key_steps:
+                    raise ValidationError(f"traceability mismatch: variant {variant} Q{qid} key hint steps differ")
 
 
 def content_tokens(text: str) -> list[str]:
@@ -767,6 +859,8 @@ def strip_technical_lines(text: str) -> str:
         if stripped.startswith("- Требуется LaTeX:"):
             continue
         if stripped.startswith("- Профиль стиля:"):
+            continue
+        if stripped.startswith("- Профиль подсказки:"):
             continue
         if stripped.startswith("- Уровень сложности:"):
             continue
